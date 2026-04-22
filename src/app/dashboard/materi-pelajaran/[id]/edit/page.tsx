@@ -162,7 +162,7 @@ export default function MateriEditPage() {
   // Deteksi duplikasi judul di kelas lain yang sejenis
   const judulTrimmed = judul.trim()
   const srcMataPelajaranTingkatId = item?.mataPelajaran?.mataPelajaranTingkatId
-  const srcSemesterId = item?.mataPelajaran?.semesterId
+  const srcSemesterId = item?.mataPelajaran?.semester?.id
   const { data: dupMateriData } = useMateriList(
     judulTrimmed && srcMataPelajaranTingkatId && srcSemesterId ? {
       mataPelajaranTingkatId: srcMataPelajaranTingkatId,

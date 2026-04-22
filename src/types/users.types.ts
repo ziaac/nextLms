@@ -13,6 +13,7 @@ export interface UserProfile {
   nip: string | null
   nuptk: string | null
   noTelepon: string | null
+  tahunMasuk?: number | null
 }
 
 /** Profile lengkap — dari GET /users/:id */

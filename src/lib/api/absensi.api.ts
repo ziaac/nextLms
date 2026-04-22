@@ -198,6 +198,7 @@ export interface JadwalHariIniWaliItem {
   isOngoing:  boolean
   statusSesi: string | null
   tokenSesi:  string | null
+  modeSesi?:  string | null
 }
 
 export interface JadwalHariIniWaliResponse {

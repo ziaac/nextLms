@@ -27,11 +27,11 @@ export const tugasKeys = {
   submissionDetail: (id: string) => ['tugas', 'submission', 'detail', id] as const,
 }
 
-export function useTugasList(params: TugasQueryParams, options?: { enabled?: boolean }) {
+export function useTugasList(params: TugasQueryParams | undefined, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: tugasKeys.all(params),
-    queryFn:  () => getListTugas(params),
-    enabled:  options?.enabled ?? true,
+    queryFn:  () => getListTugas(params!),
+    enabled:  !!params && (options?.enabled ?? true),
     staleTime: 5 * 60 * 1000,
   })
 }
