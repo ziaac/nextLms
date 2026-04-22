@@ -52,12 +52,21 @@ export const metadata: Metadata = {
     title: APP_NAME,
     description: APP_DESC,
     locale: 'id_ID',
+    images: [
+      {
+        url: '/opengraph-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Sistem Manajemen Pembelajaran MAN 2 Kota Makassar',
+      },
+    ],
   },
 
   twitter: {
     card: 'summary_large_image',
     title: APP_NAME,
     description: APP_DESC,
+    images: ['/opengraph-image.jpg'],
   },
 }
 
