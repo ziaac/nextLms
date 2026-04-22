@@ -48,9 +48,11 @@ export function Sidebar() {
         'border-b border-gray-200/60 dark:border-gray-700/60 flex-shrink-0',
         collapsed && 'justify-center px-0',
       )}>
-        <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0">
-          <span className="text-white text-xs font-bold">M2</span>
-        </div>
+        <img
+          src="https://storagelms.man2kotamakassar.sch.id/static-assets/static_logoman-150h.png"
+          alt="Logo MAN 2"
+          className="h-8 w-auto object-contain flex-shrink-0"
+        />
         {!collapsed && (
           <div className="overflow-hidden">
             <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight whitespace-nowrap">LMS MAN 2</p>
