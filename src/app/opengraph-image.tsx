@@ -1,6 +1,5 @@
 import { ImageResponse } from 'next/og'
 
-export const runtime     = 'edge'
 export const alt         = 'Sistem Manajemen Pembelajaran MAN 2 Kota Makassar'
 export const size        = { width: 1200, height: 630 }
 export const contentType = 'image/png'
@@ -9,6 +8,16 @@ const BG_URL   = 'https://storagelms.man2kotamakassar.sch.id/static-assets/stati
 const LOGO_URL = 'https://storagelms.man2kotamakassar.sch.id/static-assets/static_logoman-150h.png'
 
 export default async function Image() {
+  // Pre-fetch images → base64 data URLs so the renderer never makes
+  // outbound network calls during JSX evaluation (avoids timeouts in Docker).
+  const [bgData, logoData] = await Promise.all([
+    fetch(BG_URL).then((r) => r.arrayBuffer()),
+    fetch(LOGO_URL).then((r) => r.arrayBuffer()),
+  ])
+
+  const bgSrc   = `data:image/webp;base64,${Buffer.from(bgData).toString('base64')}`
+  const logoSrc = `data:image/png;base64,${Buffer.from(logoData).toString('base64')}`
+
   return new ImageResponse(
     (
       <div
@@ -24,7 +33,7 @@ export default async function Image() {
         {/* ── Background image ── */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={BG_URL}
+          src={bgSrc}
           alt=""
           style={{
             position: 'absolute',
@@ -36,7 +45,7 @@ export default async function Image() {
           }}
         />
 
-        {/* ── Multi-stop dark overlay ── */}
+        {/* ── Dark overlay ── */}
         <div
           style={{
             position: 'absolute',
@@ -48,7 +57,7 @@ export default async function Image() {
           }}
         />
 
-        {/* ── Emerald tint strip on left ── */}
+        {/* ── Emerald strip left ── */}
         <div
           style={{
             position: 'absolute',
@@ -71,21 +80,15 @@ export default async function Image() {
             height: '100%',
           }}
         >
-          {/* Top: Logo + school tag */}
+          {/* Top: Logo + URL */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={LOGO_URL}
+              src={logoSrc}
               alt="Logo MAN 2"
               style={{ height: '56px', objectFit: 'contain' }}
             />
-            <div
-              style={{
-                width: '1px',
-                height: '40px',
-                background: 'rgba(255,255,255,0.25)',
-              }}
-            />
+            <div style={{ width: '1px', height: '40px', background: 'rgba(255,255,255,0.25)' }} />
             <span
               style={{
                 fontSize: '13px',
@@ -99,9 +102,8 @@ export default async function Image() {
             </span>
           </div>
 
-          {/* Bottom: main title block */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0px' }}>
-            {/* Eyebrow */}
+          {/* Bottom: title block */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span
               style={{
                 fontSize: '16px',
@@ -115,7 +117,6 @@ export default async function Image() {
               Sistem Manajemen Pembelajaran
             </span>
 
-            {/* Main title */}
             <span
               style={{
                 fontSize: '64px',
@@ -140,7 +141,6 @@ export default async function Image() {
               Makassar
             </span>
 
-            {/* Accent bar */}
             <div
               style={{
                 width: '72px',
