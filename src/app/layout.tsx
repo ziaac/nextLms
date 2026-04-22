@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     locale: 'id_ID',
     images: [
       {
-        url: '/opengraph-image.jpg',
+        url: 'https://storagelms.man2kotamakassar.sch.id/static-assets/static_opengraph.jpg',
         width: 1200,
         height: 630,
         alt: 'Sistem Manajemen Pembelajaran MAN 2 Kota Makassar',
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: APP_NAME,
     description: APP_DESC,
-    images: ['/opengraph-image.jpg'],
+    images: ['https://storagelms.man2kotamakassar.sch.id/static-assets/static_opengraph.jpg'],
   },
 }
 
