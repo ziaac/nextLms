@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/projects/LMS-MAN/Code/nextjslms/**)",
+      "Bash(npx tsc *)",
+      "Bash(del \"D:\\\\projects\\\\LMS-MAN\\\\Code\\\\nextjslms\\\\src\\\\app\\\\favicon.ico\")"
+    ]
+  }
+}
