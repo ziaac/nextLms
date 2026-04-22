@@ -13,9 +13,10 @@ const PUBLIC_ROUTES = [
   '/ekskul',
   '/pendaftaran-ulang',
   '/login',
+  '/jadwal-publik',
 ]
 
-const PUBLIC_PREFIXES = ['/berita/', '/galeri/']
+const PUBLIC_PREFIXES = ['/berita/', '/galeri/', '/jadwal-publik/']
 
 // PENTING: Urutan dari yang paling spesifik ke yang paling umum
 // karena matching pakai .startsWith()

@@ -98,7 +98,7 @@ export function LoginBannerPanel() {
                 {/* Jadwal Pelajaran Area */}
                 <div className="flex flex-col flex-1 overflow-hidden">
                   <div className="flex justify-between items-end mb-3 border-b border-white/10 pb-2">
-                    <p className="text-[11px] text-white/60 uppercase">Jadwal Pelajaran</p>
+                    <p className="text-[11px] text-white/60 uppercase">Jadwal Pelajaran Hari Ini</p>
                     <p className="text-[11px] text-white/80 uppercase">{hariIni}</p>
                   </div>
 
