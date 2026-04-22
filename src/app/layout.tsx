@@ -13,14 +13,35 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
+const APP_URL = 'https://lms.man2kotamakassar.sch.id'
+const APP_NAME = 'LMS MAN 2 Kota Makassar'
+const APP_DESC = 'Sistem Manajemen Pembelajaran & ERP MAN 2 Kota Makassar'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
+
   title: {
-    default: 'LMS MAN 2 Kota Makassar',
+    default: APP_NAME,
     template: '%s | LMS MAN 2 Makassar',
   },
-  description:
-    'Sistem Manajemen Pembelajaran & ERP MAN 2 Kota Makassar',
-  keywords: ['LMS', 'MAN 2', 'Makassar', 'Madrasah', 'E-Learning'],
+  description: APP_DESC,
+  keywords: ['LMS', 'MAN 2', 'Makassar', 'Madrasah', 'E-Learning', 'Sistem Manajemen Pembelajaran'],
+  authors: [{ name: 'MAN 2 Kota Makassar', url: APP_URL }],
+
+  openGraph: {
+    type: 'website',
+    url: APP_URL,
+    siteName: APP_NAME,
+    title: APP_NAME,
+    description: APP_DESC,
+    locale: 'id_ID',
+  },
+
+  twitter: {
+    card: 'summary_large_image',
+    title: APP_NAME,
+    description: APP_DESC,
+  },
 }
 
 export default function RootLayout({
