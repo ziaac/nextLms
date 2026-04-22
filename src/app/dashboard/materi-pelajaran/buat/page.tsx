@@ -9,7 +9,11 @@ import { RichTextEditor }    from '@/components/ui/RichTextEditor'
 import { DateInput }         from '@/components/ui/DateInput'
 import { TimePicker }        from '@/components/ui/TimePicker'
 import { FileUpload }            from '@/components/ui'
-import { PdfSlideshowViewer }   from '@/components/ui/PdfSlideshowViewer'
+import dynamic from 'next/dynamic'
+const PdfSlideshowViewer = dynamic(
+  () => import('@/components/ui/PdfSlideshowViewer').then((m) => m.PdfSlideshowViewer),
+  { ssr: false },
+)
 import { uploadApi, getPresignedUrl } from '@/lib/api/upload.api'
 import { useCreateMateri, useUpdateMateri, useMateriList } from '@/hooks/materi-pelajaran/useMateriPelajaran'
 import { useMataPelajaranList }             from '@/hooks/mata-pelajaran/useMataPelajaran'
