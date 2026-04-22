@@ -30,7 +30,7 @@ export function JadwalGuruMatrix({ roster }: Props) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+    <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-gray-700/50">
       <table className="w-full border-collapse text-sm min-w-[600px]">
         <thead>
           <tr>
@@ -72,7 +72,7 @@ export function JadwalGuruMatrix({ roster }: Props) {
                   const pal = getMapelPalette(item.mataPelajaran.nama)
                   return (
                     <td key={hari} className="border-r border-b last:border-r-0 border-gray-100 dark:border-gray-700/80 px-2 py-2">
-                      <div className={`rounded-lg border px-2.5 py-2 ${pal.bg} ${pal.border} transition-shadow hover:shadow-md`}>
+                      <div className={`rounded-xl px-2.5 py-2 ${pal.bg}`}>
                         <div className="flex items-start gap-1.5">
                           <span className={`mt-0.5 shrink-0 h-2 w-2 rounded-full ${pal.dot}`} />
                           <div className="min-w-0">

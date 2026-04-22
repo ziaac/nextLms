@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, CalendarDays, GraduationCap, User, BookOpen } from 'lucide-react'
+import { ThemeToggle } from '@/components/dashboard/ThemeToggle'
 import { Combobox } from '@/components/ui'
 import type { ComboboxOption } from '@/components/ui/Combobox'
 import { jadwalPublikApi } from '@/lib/api/jadwal-publik.api'
@@ -189,6 +190,9 @@ export default function JadwalPublikPage() {
             </div>
           </div>
 
+          {/* Theme toggle */}
+          <ThemeToggle />
+
           {/* Badge semester aktif */}
           {activeSemester && (
             <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 px-3 py-1.5 shrink-0">
@@ -204,7 +208,7 @@ export default function JadwalPublikPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
 
         {/* ── Filter Panel ─────────────────────────────────────────────────── */}
-        <div className="bg-white/70 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl border border-gray-200/60 dark:border-gray-700/60 shadow-sm p-5">
+        <div className="bg-white/70 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl border border-gray-100/80 dark:border-gray-700/40 p-5">
 
           {/* Mode tabs */}
           <div className="flex items-center gap-1 p-1 rounded-xl bg-gray-100 dark:bg-gray-700/60 w-fit mb-5">
@@ -289,21 +293,18 @@ export default function JadwalPublikPage() {
 
         {/* ── Judul jadwal ─────────────────────────────────────────────────── */}
         {(showMatrix || isLoadingMatrix) && (
-          <div className="flex items-center gap-3">
-            <div className="h-6 w-1 rounded-full bg-emerald-500" />
-            <div>
-              {mode === 'kelas' && selectedKelas ? (
-                <>
-                  <h2 className="text-base font-bold text-gray-900 dark:text-white">{selectedKelas.namaKelas}</h2>
-                  <p className="text-xs text-gray-400">{selectedKelas.tingkatKelas.nama} · {activeSemester ? `Semester ${NAMA_SEMESTER_LABEL[activeSemester.nama]} ${activeSemester.tahunAjaran.nama}` : ''}</p>
-                </>
-              ) : mode === 'guru' && selectedGuru ? (
-                <>
-                  <h2 className="text-base font-bold text-gray-900 dark:text-white">{selectedGuru.namaLengkap}</h2>
-                  <p className="text-xs text-gray-400">{selectedGuru.nip ?? 'Jadwal Mengajar'} · {activeSemester ? `Semester ${NAMA_SEMESTER_LABEL[activeSemester.nama]} ${activeSemester.tahunAjaran.nama}` : ''}</p>
-                </>
-              ) : null}
-            </div>
+          <div>
+            {mode === 'kelas' && selectedKelas ? (
+              <>
+                <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">{selectedKelas.namaKelas}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{selectedKelas.tingkatKelas.nama} · {activeSemester ? `Semester ${NAMA_SEMESTER_LABEL[activeSemester.nama]} ${activeSemester.tahunAjaran.nama}` : ''}</p>
+              </>
+            ) : mode === 'guru' && selectedGuru ? (
+              <>
+                <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">{selectedGuru.namaLengkap}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{selectedGuru.nip ?? 'Jadwal Mengajar'} · {activeSemester ? `Semester ${NAMA_SEMESTER_LABEL[activeSemester.nama]} ${activeSemester.tahunAjaran.nama}` : ''}</p>
+              </>
+            ) : null}
           </div>
         )}
 
