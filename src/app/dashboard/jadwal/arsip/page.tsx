@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState }          from 'react'
+import { useMemo, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Download, Printer, CalendarDays, Users, MapPin } from 'lucide-react'
 import { useMyJadwalMingguan, useExportMyJadwal } from '@/hooks/jadwal/useJadwalView'
@@ -22,6 +22,9 @@ interface TimeSlot {
 }
 
 export default function JadwalArsipDetailPage() {
+  return <Suspense><JadwalArsipDetailContent /></Suspense>
+}
+function JadwalArsipDetailContent() {
   const router     = useRouter()
   const params     = useSearchParams()
   const semesterId = params.get('semesterId') ?? ''

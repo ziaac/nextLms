@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Plus, Copy, Printer, ArrowLeft } from 'lucide-react'
 import { PageHeader, Button } from '@/components/ui'
@@ -40,6 +40,9 @@ function useTingkatKelasList() {
 
 
 export default function PembelajaranManajemenPage() {
+  return <Suspense><PembelajaranManajemenContent /></Suspense>
+}
+function PembelajaranManajemenContent() {
   const router       = useRouter()
   const { user }   = useAuthStore()
   const searchParams = useSearchParams()

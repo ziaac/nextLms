@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useEffect, useMemo, useState }  from 'react'
+import { use, useEffect, useMemo, useState, Suspense } from 'react'
 import { useRouter }                           from 'next/navigation'
 import { useMateriDetail, useMateriList, useBulkCopyMateri } from '@/hooks/materi-pelajaran/useMateriPelajaran'
 import { useAuth }                             from '@/hooks/useAuth'
@@ -36,6 +36,9 @@ const TABS = ['Deskripsi', 'Kompetensi Dasar', 'Tujuan Pembelajaran', 'Dokumen P
 type Tab = typeof TABS[number]
 
 export default function DetailMateriPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+  return <Suspense><DetailMateriContent params={paramsPromise} /></Suspense>
+}
+function DetailMateriContent({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params       = use(paramsPromise)
   const router       = useRouter()
   const { data: materi, isLoading, error } = useMateriDetail(params.id)

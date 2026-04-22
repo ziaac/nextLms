@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, use }                    from 'react'
+import { useState, use, Suspense }           from 'react'
 import { useRouter, useSearchParams }  from 'next/navigation'
 import { useQuery }                    from '@tanstack/react-query'
 import {
@@ -27,6 +27,9 @@ function formatTanggal(val?: string | null) {
 
 // ── Page ─────────────────────────────────────────────────────────
 export default function ArsipMapelDetailPage({ params }: { params: Promise<{ mataPelajaranId: string }> }) {
+  return <Suspense><ArsipMapelDetailContent params={params} /></Suspense>
+}
+function ArsipMapelDetailContent({ params }: { params: Promise<{ mataPelajaranId: string }> }) {
   const router       = useRouter()
   const searchParams = useSearchParams()
   const { mataPelajaranId: mapelId } = use(params)

@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState, useMemo, useEffect }     from 'react'
+import { useState, useMemo, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams }       from 'next/navigation'
 import { useAuthStore }                     from '@/stores/auth.store'
 import { PageHeader, Button, ConfirmModal } from '@/components/ui'
@@ -22,6 +22,9 @@ const GURU_ROLES  = ['GURU', 'WALI_KELAS']
 const SISWA_ROLES = ['SISWA']
 
 export default function TugasPage() {
+  return <Suspense><TugasContent /></Suspense>
+}
+function TugasContent() {
   const router       = useRouter()
   const searchParams = useSearchParams()
   const { user }     = useAuthStore()
