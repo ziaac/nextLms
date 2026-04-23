@@ -1,9 +1,16 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import dynamic from 'next/dynamic'
 import { Providers } from './providers'
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister'
-import { PWAInstallPrompt } from '@/components/pwa/PWAInstallPrompt'
 import './globals.css'
+
+// PWAInstallPrompt adalah komponen murni client-side (pakai navigator, window.matchMedia,
+// module-scope listener) — ssr: false mencegah hydration mismatch di production.
+const PWAInstallPrompt = dynamic(
+  () => import('@/components/pwa/PWAInstallPrompt').then((m) => m.PWAInstallPrompt),
+  { ssr: false },
+)
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

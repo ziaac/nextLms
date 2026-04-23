@@ -9,17 +9,11 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
-// ── Tangkap event SESEGERA MUNGKIN, sebelum React mount ─────────────
-// beforeinstallprompt bisa fire sebelum hydration selesai — simpan di
-// module scope agar tidak terlewat.
-let _earlyPrompt: BeforeInstallPromptEvent | null = null
-
-if (typeof window !== 'undefined') {
-  window.addEventListener(
-    'beforeinstallprompt',
-    (e) => { e.preventDefault(); _earlyPrompt = e as BeforeInstallPromptEvent },
-    { once: true },
-  )
+// Deklarasi global agar TypeScript mengenali properti custom di window
+declare global {
+  interface Window {
+    __deferredPrompt?: BeforeInstallPromptEvent | null;
+  }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -50,17 +44,17 @@ export function PWAInstallPrompt() {
     setIsIOSDevice(ios)
 
     if (!ios) {
-      // Ambil event yang sudah tertangkap sebelum mount
-      if (_earlyPrompt) {
-        setDeferredPrompt(_earlyPrompt)
+      // Ambil event yang sudah ditangkap LEBIH AWAL oleh ServiceWorkerRegister (Fix 3)
+      if (window.__deferredPrompt) {
+        setDeferredPrompt(window.__deferredPrompt)
         setShow(true)
         return
       }
 
-      // Kalau belum — pasang listener, event mungkin belum fire
+      // Kalau belum — pasang listener sebagai fallback (jika event telat fire)
       const handler = (e: Event) => {
         e.preventDefault()
-        _earlyPrompt = e as BeforeInstallPromptEvent
+        window.__deferredPrompt = e as BeforeInstallPromptEvent
         setDeferredPrompt(e as BeforeInstallPromptEvent)
         setShow(true)
       }
@@ -82,7 +76,7 @@ export function PWAInstallPrompt() {
     if (outcome === 'accepted') setShow(false)
     setInstalling(false)
     setDeferredPrompt(null)
-    _earlyPrompt = null
+    window.__deferredPrompt = null // Reset global state
   }
 
   function handleLater() {
@@ -94,7 +88,7 @@ export function PWAInstallPrompt() {
 
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-end sm:justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-sm bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-3xl shadow-2xl border border-white/60 dark:border-gray-700/60 overflow-hidden">
+      <div className="w-full max-w-sm bg-white/80 dark:bg-gray-900/95 backdrop-blur-md rounded-3xl shadow-2xl border border-white/60 dark:border-gray-700/60 overflow-hidden">
 
         {/* Close button */}
         <div className="flex justify-end px-4 pt-4">
@@ -109,7 +103,7 @@ export function PWAInstallPrompt() {
 
         {/* App identity */}
         <div className="flex items-center gap-3.5 px-6 pt-1 pb-5">
-          <div className="shrink-0 rounded-2xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-700">
+          <div className="shrink-0 rounded-2xl overflow-hidden">
             <Image
               src="/android-chrome-192x192.png"
               alt="App Icon"
