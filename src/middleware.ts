@@ -18,6 +18,15 @@ const PUBLIC_ROUTES = [
 
 const PUBLIC_PREFIXES = ['/berita/', '/galeri/', '/jadwal-publik/']
 
+// File statis publik di-root yang tidak butuh auth
+const PUBLIC_FILES = [
+  '/manifest.webmanifest',
+  '/site.webmanifest',
+  '/sw.js',
+  '/robots.txt',
+  '/sitemap.xml',
+]
+
 // PENTING: Urutan dari yang paling spesifik ke yang paling umum
 // karena matching pakai .startsWith()
 const ROLE_ROUTES: Record<string, UserRole[]> = {
@@ -69,6 +78,7 @@ const ROLE_ROUTES: Record<string, UserRole[]> = {
 
 function isPublicRoute(pathname: string): boolean {
   if (PUBLIC_ROUTES.includes(pathname)) return true
+  if (PUBLIC_FILES.includes(pathname)) return true
   if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return true
   return false
 }
@@ -119,6 +129,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|icons|images|fonts).*)',
+    // Kecualikan: Next.js internals, file statis publik (gambar, manifest, SW, dll)
+    '/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:png|jpg|jpeg|svg|gif|webp|ico|webmanifest)|sw\\.js|robots\\.txt|sitemap\\.xml|icons|images|fonts).*)',
   ],
 }

@@ -3,7 +3,7 @@
 import {
   Camera, Wifi, BookOpen, Eye,
   CheckCircle2, AlertCircle, MinusCircle, Timer,
-  RefreshCw, Ban, PlayCircle, SwitchCamera,
+  Ban, PlayCircle, SwitchCamera,
 } from 'lucide-react'
 import { Button }                from '@/components/ui/Button'
 import type { AbsensiStatusItem } from '@/types'
@@ -21,12 +21,12 @@ interface Props {
 }
 
 const STATUS_MAP = {
-  HADIR:       { label: 'Hadir',   cls: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400', Icon: CheckCircle2 },
-  TERLAMBAT:   { label: 'Lambat',  cls: 'text-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-400',    Icon: AlertCircle  },
-  SAKIT:       { label: 'Sakit',   cls: 'text-blue-700 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400',            Icon: MinusCircle  },
-  IZIN:        { label: 'Izin',    cls: 'text-purple-700 bg-purple-50 dark:bg-purple-900/20 dark:text-purple-400',    Icon: MinusCircle  },
-  ALPA:        { label: 'Alpa',    cls: 'text-red-700 bg-red-50 dark:bg-red-900/20 dark:text-red-400',                Icon: AlertCircle  },
-  BELUM_ABSEN: { label: 'Belum',   cls: 'text-gray-600 bg-gray-100 dark:bg-gray-800 dark:text-gray-400',             Icon: Timer        },
+  HADIR:       { label: 'Hadir',  cls: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400', Icon: CheckCircle2 },
+  TERLAMBAT:   { label: 'Lambat', cls: 'text-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-400',    Icon: AlertCircle  },
+  SAKIT:       { label: 'Sakit',  cls: 'text-blue-700 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400',            Icon: MinusCircle  },
+  IZIN:        { label: 'Izin',   cls: 'text-purple-700 bg-purple-50 dark:bg-purple-900/20 dark:text-purple-400',    Icon: MinusCircle  },
+  ALPA:        { label: 'Alpa',   cls: 'text-red-700 bg-red-50 dark:bg-red-900/20 dark:text-red-400',                Icon: AlertCircle  },
+  BELUM_ABSEN: { label: 'Belum',  cls: 'text-gray-500 bg-gray-100 dark:bg-gray-800 dark:text-gray-400',             Icon: Timer        },
 } as const
 
 const MODE_MAP = {
@@ -36,15 +36,12 @@ const MODE_MAP = {
 } as const
 
 function getSesiState(statusSesi: StatusSesi | null, isOngoing: boolean) {
-  if (statusSesi === 'AKTIF') {
-    return { type: 'aktif' as const,   dotCls: 'bg-emerald-400 animate-pulse', textCls: 'text-emerald-600 dark:text-emerald-400', label: 'Sesi sedang berjalan' }
-  }
-  if (statusSesi === 'SELESAI' || statusSesi === 'EXPIRED') {
-    return { type: 'selesai' as const, dotCls: 'bg-red-400',                   textCls: 'text-red-500 dark:text-red-400',         label: 'Sesi telah berakhir'  }
-  }
-  if (isOngoing && (!statusSesi || statusSesi === 'BELUM_BUKA')) {
-    return { type: 'ongoing' as const, dotCls: 'bg-blue-400 animate-pulse',    textCls: 'text-blue-600 dark:text-blue-400',       label: 'Jam pelajaran berlangsung' }
-  }
+  if (statusSesi === 'AKTIF')
+    return { type: 'aktif' as const,   dotCls: 'bg-emerald-400 animate-pulse', textCls: 'text-emerald-600 dark:text-emerald-400', label: 'Sesi berjalan'      }
+  if (statusSesi === 'SELESAI' || statusSesi === 'EXPIRED')
+    return { type: 'selesai' as const, dotCls: 'bg-gray-300 dark:bg-gray-600', textCls: 'text-gray-400 dark:text-gray-500',       label: 'Sesi selesai'       }
+  if (isOngoing && (!statusSesi || statusSesi === 'BELUM_BUKA'))
+    return { type: 'ongoing' as const, dotCls: 'bg-blue-400 animate-pulse',   textCls: 'text-blue-600 dark:text-blue-400',       label: 'Jam sedang berlangsung' }
   return { type: 'idle' as const, dotCls: '', textCls: '', label: '' }
 }
 
@@ -64,37 +61,60 @@ export function JadwalGuruCard({
   const isModeManual  = item.modeSesi === 'MANUAL'
   const hasToken      = !!item.tokenSesi
 
-  // Parse "07:00-07:45" → jamMulai / jamSelesai
-  const jamParts  = item.jam.split(/\s*[-–]\s*/)
-  const jamMulai  = jamParts[0]?.trim() ?? item.jam
+  const jamParts   = item.jam.split(/\s*[-–]\s*/)
+  const jamMulai   = jamParts[0]?.trim() ?? item.jam
   const jamSelesai = jamParts[1]?.trim() ?? ''
 
   return (
     <div className={[
-      'bg-white dark:bg-gray-900 rounded-2xl border p-4 space-y-3 transition-shadow hover:shadow-sm',
-      isSesiAktif   ? 'border-emerald-200 dark:border-emerald-800' :
-      isSesiSelesai ? 'border-red-200 dark:border-red-900/40' :
-                      'border-gray-200 dark:border-gray-800',
+      'bg-white dark:bg-gray-900 rounded-xl border overflow-hidden transition-all',
+      isSesiAktif
+        ? 'border-emerald-200 dark:border-emerald-800 shadow-sm'
+        : isSesiSelesai
+        ? 'border-gray-200 dark:border-gray-700'
+        : 'border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm',
     ].join(' ')}>
 
-      {/* Header: status badge kiri, jam kanan */}
-      <div className="flex items-start justify-between gap-3">
+      {/* ── Konten utama — layout sama dengan SlotCard ─────────── */}
+      <div className="flex items-start gap-3 px-3.5 py-3">
 
-        {/* Kiri: status + info */}
-        <div className="min-w-0 flex-1 space-y-1">
-          <span className={'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ' + statusCls}>
-            <StatusIcon size={10} />
-            {statusLabel}
-          </span>
+        {/* Kiri */}
+        <div className="flex-1 min-w-0">
+
+          {/* Status + mode (badge kecil) */}
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className={'inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium ' + statusCls}>
+              <StatusIcon size={8} />
+              {statusLabel}
+            </span>
+            {modeCfg && isSesiAktif && (
+              <span className={'inline-flex items-center gap-0.5 text-[10px] font-medium ' + modeCfg.cls}>
+                <modeCfg.Icon size={9} />
+                {modeCfg.label}
+              </span>
+            )}
+          </div>
+
+          {/* Nama mapel — muted, kecil */}
           <p className="text-xs text-gray-400 dark:text-gray-500 truncate leading-snug">
             {item.namaMapel}
           </p>
-          <p className="text-sm font-bold text-gray-800 dark:text-gray-100 truncate leading-snug">
+
+          {/* Nama kelas — prominent */}
+          <p className="text-sm font-bold text-gray-800 dark:text-gray-100 truncate mt-0.5 leading-snug">
             {item.namaKelas ?? '—'}
           </p>
+
+          {/* Sesi state indicator */}
+          {sesiState.type !== 'idle' && (
+            <div className={'flex items-center gap-1 mt-1.5 text-[10px] font-medium ' + sesiState.textCls}>
+              <span className={'w-1.5 h-1.5 rounded-full flex-shrink-0 ' + sesiState.dotCls} />
+              {sesiState.label}
+            </div>
+          )}
         </div>
 
-        {/* Kanan: jam */}
+        {/* Kanan: jam — persis seperti SlotCard */}
         <div className="text-right shrink-0 pt-0.5">
           <p className="text-lg font-bold font-mono text-gray-700 dark:text-gray-200 leading-tight tabular-nums">
             {jamMulai}
@@ -107,88 +127,49 @@ export function JadwalGuruCard({
         </div>
       </div>
 
-      {/* Sesi state indicator */}
-      {sesiState.type !== 'idle' && (
-        <div className={'flex items-center gap-1.5 text-xs font-medium ' + sesiState.textCls}>
-          <span className={'w-1.5 h-1.5 rounded-full flex-shrink-0 ' + sesiState.dotCls} />
-          {modeCfg && isSesiAktif && <modeCfg.Icon size={12} />}
-          {isSesiSelesai && <Ban size={12} />}
-          <span>{sesiState.label}</span>
-          {isSesiAktif && modeCfg && (
-            <span className="text-gray-400 font-normal">— {modeCfg.label}</span>
-          )}
-        </div>
-      )}
+      {/* ── Tombol aksi ─────────────────────────────────────────── */}
+      <div className="border-t border-gray-100 dark:border-gray-800 px-3.5 py-2.5 space-y-1.5">
 
-      {/* Actions */}
-      <div className="pt-2 border-t border-gray-100 dark:border-gray-800 space-y-2">
-
-        {/* AKTIF + MANUAL: Absen Manual + Ubah Mode */}
+        {/* AKTIF + MANUAL */}
         {isSesiAktif && isModeManual && (
           <>
-            <Button
-              variant="primary" size="sm" className="w-full"
-              leftIcon={<BookOpen size={14} />}
-              onClick={onKelolaAktif}
-            >
+            <Button variant="primary" size="sm" className="w-full" leftIcon={<BookOpen size={13} />} onClick={onKelolaAktif}>
               Absen Manual
             </Button>
-            <Button
-              variant="secondary" size="sm" className="w-full"
-              leftIcon={<SwitchCamera size={13} />}
-              onClick={onUbahMode}
-            >
-              Ubah Mode Absensi
+            <Button variant="secondary" size="sm" className="w-full" leftIcon={<SwitchCamera size={12} />} onClick={onUbahMode}>
+              Ubah Mode
             </Button>
           </>
         )}
 
-        {/* AKTIF + QR: Kelola Sesi + Ubah Mode */}
+        {/* AKTIF + QR */}
         {isSesiAktif && !isModeManual && (
           <>
-            <Button
-              variant="primary" size="sm" className="w-full"
-              leftIcon={<Eye size={14} />}
-              onClick={onKelolaAktif}
-              disabled={!hasToken}
-            >
+            <Button variant="primary" size="sm" className="w-full" leftIcon={<Eye size={13} />} onClick={onKelolaAktif} disabled={!hasToken}>
               Kelola Sesi Aktif
             </Button>
-            <Button
-              variant="secondary" size="sm" className="w-full"
-              leftIcon={<SwitchCamera size={13} />}
-              onClick={onUbahMode}
-            >
-              Ubah Mode Absensi
+            <Button variant="secondary" size="sm" className="w-full" leftIcon={<SwitchCamera size={12} />} onClick={onUbahMode}>
+              Ubah Mode
             </Button>
           </>
         )}
 
         {/* SELESAI / EXPIRED */}
         {isSesiSelesai && (
-          <Button
-            variant="secondary" size="sm" className="w-full"
-            leftIcon={<Eye size={13} />}
-            onClick={onRekap}
-          >
-            Lihat Rekap Absensi
+          <Button variant="secondary" size="sm" className="w-full" leftIcon={<Eye size={12} />} onClick={onRekap}>
+            Lihat Rekap
           </Button>
         )}
 
         {/* Belum ada sesi */}
         {!isSesiAktif && !isSesiSelesai && (
           canBukaSesi ? (
-            <Button
-              variant="secondary" size="sm" className="w-full"
-              leftIcon={<PlayCircle size={14} />}
-              onClick={onBukaSesi}
-            >
+            <Button variant="secondary" size="sm" className="w-full" leftIcon={<PlayCircle size={13} />} onClick={onBukaSesi}>
               Buka Absensi
             </Button>
           ) : (
-            <div className="flex items-center justify-center gap-1.5 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-xs text-gray-400">
-              <Ban size={12} />
-              Tidak dapat membuka sesi
+            <div className="flex items-center justify-center gap-1.5 py-1.5 text-[10px] text-gray-400">
+              <Ban size={10} /> Tidak dapat membuka sesi
             </div>
           )
         )}

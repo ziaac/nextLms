@@ -123,7 +123,7 @@ export function JadwalArsipSlideover({ open, onClose, arsipPath = '/dashboard/ja
     <SlideOver
       open={open}
       onClose={onClose}
-      title="Arsip Jadwal"
+      title="Arsip Jadwal & Absensi"
       description="Riwayat jadwal mengajar per tahun ajaran"
       width="md"
     >

@@ -1,11 +1,21 @@
-const CACHE_NAME = 'lms-man2-v1'
+const CACHE_NAME = 'lms-man2-v2'
+const OLD_CACHES = ['lms-man2-v1']
 
 self.addEventListener('install', () => {
   self.skipWaiting()
 })
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim())
+  // Hapus semua cache lama saat versi baru aktif
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => OLD_CACHES.includes(key))
+          .map((key) => caches.delete(key))
+      )
+    ).then(() => self.clients.claim())
+  )
 })
 
 // Network-first: selalu ambil dari server, fallback ke cache

@@ -19,6 +19,24 @@ const nextConfig: NextConfig = {
     '*.trycloudflare.com',
   ],
 
+  // Pastikan file manifest dilayani dengan MIME type yang benar
+  async headers() {
+    return [
+      {
+        source: '/site.webmanifest',
+        headers: [
+          { key: 'Content-Type', value: 'application/manifest+json; charset=utf-8' },
+        ],
+      },
+      {
+        source: '/manifest.webmanifest',
+        headers: [
+          { key: 'Content-Type', value: 'application/manifest+json; charset=utf-8' },
+        ],
+      },
+    ]
+  },
+
   // canvas is an optional Node.js dep of pdfjs-dist — not needed in browser
   webpack: (config) => {
     config.resolve.alias.canvas = false

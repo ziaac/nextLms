@@ -1,11 +1,12 @@
 
 import api from '@/lib/axios'
 import { PaginatedResponse } from '@/types/api.types'
-import { 
-  TugasItem, 
-  TugasQueryParams, 
+import {
+  TugasItem,
+  TugasQueryParams,
   PengumpulanTugas,
-  StatusPengumpulan
+  RekapPengumpulanItem,
+  StatusPengumpulan,
 } from '@/types/tugas.types'
 
 const BASE = '/tugas'
@@ -31,7 +32,7 @@ export const deleteTugas = (id: string) =>
   api.delete<{ message: string }>(`${BASE}/${id}`).then((r) => r.data)
 
 export const getRekapPengumpulan = (tugasId: string) =>
-  api.get<any>(`${BASE}/${tugasId}/rekap`).then((r) => r.data)
+  api.get<RekapPengumpulanItem[]>(`${BASE}/${tugasId}/rekap`).then((r) => r.data)
 
 // --- SUBMISSION (SISWA) ---
 
@@ -54,6 +55,12 @@ export const bulkCopyTugas = (payload: {
 }) =>
   api.post<{ count: number; message: string }>(`${BASE}/bulk-copy`, payload).then(r => r.data)
 
-export const updateSubmissionStatus = (id: string, payload: { status: StatusPengumpulan; catatan?: string }) =>
+export interface UpdateSubmissionPayload {
+  status:   StatusPengumpulan
+  catatan?: string
+  nilai?:   number          // wajib jika status === DINILAI
+}
+
+export const updateSubmissionStatus = (id: string, payload: UpdateSubmissionPayload) =>
   api.patch<PengumpulanTugas>(`${BASE}/pengumpulan/${id}/status`, payload).then((r) => r.data)
 

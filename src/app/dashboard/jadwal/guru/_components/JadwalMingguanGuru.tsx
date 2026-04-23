@@ -88,8 +88,8 @@ export function JadwalMingguanGuruView({ data, isLoading, selectedHari, hideStat
               </span>
             </div>
 
-            {/* Slots — 1 col mobile, 2 col desktop */}
-            <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+            {/* Slots — 1 col mobile, 2 col tablet, 3 col desktop */}
+            <div className="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {slots.map((item) => (
                 <SlotCard key={item.id} item={item} />
               ))}

@@ -80,16 +80,10 @@ export const NAV_GROUPS: NavGroup[] = [
         roles: ['GURU', 'SISWA', 'WALI_KELAS', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'ADMIN', 'SUPER_ADMIN'],
       },
       {
-        label: 'Tugas',
+        label: 'Tugas & Penilaian',
         href: '/dashboard/tugas',
         icon: ClipboardList,
-        roles: ['GURU', 'SISWA', 'ADMIN', 'SUPER_ADMIN'],
-      },
-      {
-        label: 'Penilaian',
-        href: '/dashboard/penilaian',
-        icon: FileText,
-        roles: ['GURU', 'WALI_KELAS', 'ADMIN', 'SUPER_ADMIN'],
+        roles: ['GURU', 'WALI_KELAS', 'SISWA', 'ADMIN', 'SUPER_ADMIN'],
       },
       {
         label: 'Jadwal',
@@ -101,7 +95,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Absensi',
         href: '/dashboard/absensi',
         icon: QrCode,
-        roles: ['GURU', 'SISWA', 'WALI_KELAS', 'ADMIN', 'SUPER_ADMIN'],
+        roles: ['SISWA', 'ADMIN', 'SUPER_ADMIN'],
       },
             {
         label: 'Perizinan',
@@ -251,8 +245,7 @@ export function getNavForRole(user: any): NavGroup[] {
           // 1. Absensi
           if (item.label === 'Absensi' && item.href === '/dashboard/absensi') {
             let dynamicHref = '/dashboard/absensi/manajemen'
-            if (role === 'GURU' || role === 'WALI_KELAS') dynamicHref = '/dashboard/absensi/guru'
-            else if (role === 'SISWA' || role === 'ORANG_TUA') dynamicHref = '/dashboard/absensi/siswa'
+            if (role === 'SISWA' || role === 'ORANG_TUA') dynamicHref = '/dashboard/absensi/siswa'
             return { ...item, href: dynamicHref }
           }
 
@@ -267,13 +260,17 @@ export function getNavForRole(user: any): NavGroup[] {
           // 3. Jadwal
           if (item.label === 'Jadwal' && item.href === '/dashboard/jadwal') {
             let dynamicHref = '/dashboard/jadwal/manajemen'
-            if (role === 'GURU') dynamicHref = user?.isWaliKelas ? '/dashboard/jadwal/wali-kelas' : '/dashboard/jadwal/guru'
-            else if (role === 'WALI_KELAS') dynamicHref = '/dashboard/jadwal/wali-kelas'
+            if (role === 'GURU' || role === 'WALI_KELAS') dynamicHref = '/dashboard/jadwal/guru'
             else if (role === 'SISWA') dynamicHref = '/dashboard/jadwal/kelas'
             return { ...item, href: dynamicHref }
           }
           
-          // 4. Kelas & Siswa (Kelas Belajar)
+          // 4. Tugas — siswa cukup lihat "Tugas" bukan "Tugas & Penilaian"
+          if (item.label === 'Tugas & Penilaian' && item.href === '/dashboard/tugas') {
+            if (role === 'SISWA') return { ...item, label: 'Tugas' }
+          }
+
+          // 5. Kelas & Siswa (Kelas Belajar)
           if (item.label === 'Kelas & Siswa' && item.href === '/dashboard/kelas') {
             let dynamicHref = '/dashboard/kelas'
             if (role === 'GURU' || role === 'WALI_KELAS') {

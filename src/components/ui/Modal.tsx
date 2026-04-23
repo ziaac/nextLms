@@ -10,7 +10,7 @@ interface ModalProps {
   onClose: () => void
   title: string
   description?: string
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
   fullHeight?: boolean
   children: React.ReactNode
   footer?: React.ReactNode
@@ -19,10 +19,11 @@ interface ModalProps {
 }
 
 const SIZE = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-2xl',
+  sm:  'max-w-sm',
+  md:  'max-w-md',
+  lg:  'max-w-lg',
+  xl:  'max-w-2xl',
+  '2xl': 'max-w-5xl',
 }
 
 export function Modal({ open, onClose, title, description, size = 'md', fullHeight, children, footer, bodyClassName }: ModalProps) {

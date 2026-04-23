@@ -11,8 +11,9 @@ const HARI_LABEL: Record<string, string> = {
 }
 
 interface Props {
-  kelas:     KelasWali
-  isLoading: boolean
+  kelas:      KelasWali
+  isLoading:  boolean
+  hideStats?: boolean
 }
 
 /** Parse "07:00 - 07:45" → { mulai, selesai } */
@@ -27,7 +28,7 @@ function toMinutes(hhmm: string) {
   return h * 60 + m
 }
 
-export function JadwalKelasWaliView({ kelas, isLoading }: Props) {
+export function JadwalKelasWaliView({ kelas, isLoading, hideStats = false }: Props) {
   // ── Hooks harus dipanggil sebelum early return ──
   // Kumpulkan semua slot jam unik dari semua hari, lalu sort by waktu mulai
   const sortedJams = useMemo(() => {
@@ -63,23 +64,25 @@ export function JadwalKelasWaliView({ kelas, isLoading }: Props) {
 
   return (
     <div className="space-y-3">
-      {/* Summary */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Total Sesi</p>
-          <p className="text-lg font-bold text-gray-800 dark:text-gray-200">{totalSesi}
-            <span className="text-sm font-medium text-gray-400 ml-1">sesi</span>
-          </p>
-          <p className="text-[10px] text-gray-400">per minggu</p>
+      {/* Summary — bisa disembunyikan jika stats sudah ditampilkan di luar */}
+      {!hideStats && (
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3">
+            <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Total Sesi</p>
+            <p className="text-lg font-bold text-gray-800 dark:text-gray-200">{totalSesi}
+              <span className="text-sm font-medium text-gray-400 ml-1">sesi</span>
+            </p>
+            <p className="text-[10px] text-gray-400">per minggu</p>
+          </div>
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3">
+            <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Jam Mengajar</p>
+            <p className="text-lg font-bold text-gray-800 dark:text-gray-200">{sortedJams.length}
+              <span className="text-sm font-medium text-gray-400 ml-1">jam</span>
+            </p>
+            <p className="text-[10px] text-gray-400">unik per minggu</p>
+          </div>
         </div>
-        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Slot Waktu</p>
-          <p className="text-lg font-bold text-gray-800 dark:text-gray-200">{sortedJams.length}
-            <span className="text-sm font-medium text-gray-400 ml-1">slot</span>
-          </p>
-          <p className="text-[10px] text-gray-400">unik</p>
-        </div>
-      </div>
+      )}
 
       {/* Matrix table */}
       <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">

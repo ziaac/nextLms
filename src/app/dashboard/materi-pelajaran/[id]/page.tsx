@@ -32,8 +32,9 @@ const PdfSlideshowViewer = dynamic(
   { ssr: false },
 )
 
-const TABS = ['Deskripsi', 'Kompetensi Dasar', 'Tujuan Pembelajaran', 'Dokumen Pengajaran'] as const
-type Tab = typeof TABS[number]
+const ALL_TABS   = ['Deskripsi', 'Kompetensi Dasar', 'Tujuan Pembelajaran', 'Dokumen Pengajaran'] as const
+const SISWA_TABS = ['Deskripsi', 'Kompetensi Dasar', 'Tujuan Pembelajaran']                     as const
+type Tab = typeof ALL_TABS[number]
 
 export default function DetailMateriPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   return <Suspense><DetailMateriContent params={paramsPromise} /></Suspense>
@@ -196,7 +197,7 @@ function DetailMateriContent({ params: paramsPromise }: { params: Promise<{ id: 
             {materi.mataPelajaran?.semester?.tahunAjaran?.nama ? ` · ${materi.mataPelajaran.semester.tahunAjaran.nama}` : ''}
             {materi.mataPelajaran?.semester?.nama ? ` Sem. ${materi.mataPelajaran.semester.nama}` : ''}
           </p>
-          {copySuccess ? (
+          {!isSiswa && (copySuccess ? (
             <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
               <Check className="w-3.5 h-3.5" /> Tersalin
             </span>
@@ -213,12 +214,12 @@ function DetailMateriContent({ params: paramsPromise }: { params: Promise<{ id: 
             >
               <Copy className="w-3 h-3" /> Salin ke Semester Aktif
             </button>
-          )}
+          ))}
         </div>
       )}
 
       {/* ── Inline copy panel ── */}
-      {isReadOnly && copyOpen && (
+      {isReadOnly && copyOpen && !isSiswa && (
         <div className="mb-4 rounded-lg border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/40 dark:bg-emerald-900/10 p-4 space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
@@ -343,12 +344,20 @@ function DetailMateriContent({ params: paramsPromise }: { params: Promise<{ id: 
             )}
           </div>
 
-          {isSiswa && <MateriProgressTracker materiId={materi.id} siswaId={user?.id ?? ''} />}
+          {isSiswa && (
+            <MateriProgressTracker
+              materiId={materi.id}
+              siswaId={user?.id ?? ''}
+              readOnly={isReadOnly}
+              staticProgress={(materi as any).progressSiswa?.[0]}
+              minScreenTime={materi.minScreenTime}
+            />
+          )}
 
           {/* Tugas terkait */}
           <div className="flex items-center gap-3">
             <Link
-              href={`/dashboard/tugas?mataPelajaranId=${materi.mataPelajaranId}`}
+              href={`/dashboard/tugas?materiId=${materi.id}`}
               className={cn(
                 'inline-flex items-center gap-2 h-9 px-4 rounded-md text-sm font-medium border transition-colors',
                 tugasCount > 0
@@ -369,7 +378,7 @@ function DetailMateriContent({ params: paramsPromise }: { params: Promise<{ id: 
           {/* Tabs */}
           <div className="rounded-lg border border-gray-200 dark:border-gray-700/60 bg-white dark:bg-gray-900 overflow-hidden">
             <div className="flex border-b border-gray-200 dark:border-gray-700/60 overflow-x-auto overflow-y-hidden">
-              {TABS.map(tab => (
+              {(isSiswa ? SISWA_TABS : ALL_TABS).map(tab => (
                 <button
                   key={tab}
                   type="button"

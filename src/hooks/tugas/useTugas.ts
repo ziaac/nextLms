@@ -14,10 +14,8 @@ import {
   updateSubmissionStatus,
   bulkCopyTugas,
 } from '@/lib/api/tugas.api'
-import { 
-  TugasQueryParams, 
-  StatusPengumpulan 
-} from '@/types/tugas.types'
+import { TugasQueryParams } from '@/types/tugas.types'
+import type { UpdateSubmissionPayload } from '@/lib/api/tugas.api'
 
 export const tugasKeys = {
   all:     (params?: TugasQueryParams) => ['tugas', 'list', params ?? {}] as const,
@@ -76,11 +74,11 @@ export function useDeleteTugas() {
   })
 }
 
-export function useTugasRekap(id: string | null) {
+export function useTugasRekap(id: string | null, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: tugasKeys.rekap(id ?? ''),
     queryFn:  () => getRekapPengumpulan(id!),
-    enabled:  !!id,
+    enabled:  !!id && (options?.enabled ?? true),
   })
 }
 
@@ -102,6 +100,7 @@ export function useMySubmission(tugasId: string | null) {
     queryKey: tugasKeys.mySubmission(tugasId ?? ''),
     queryFn:  () => getMySubmission(tugasId!),
     enabled:  !!tugasId,
+    retry:    false,   // 404 = belum submit, jangan di-retry
   })
 }
 
@@ -116,9 +115,9 @@ export function useSubmissionDetail(id: string | null) {
 export function useUpdateSubmissionStatus() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: { status: StatusPengumpulan; catatan?: string } }) => 
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateSubmissionPayload }) =>
       updateSubmissionStatus(id, payload),
-    onSuccess:  () => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tugas', 'submission'] })
       qc.invalidateQueries({ queryKey: ['tugas', 'rekap'] })
     },

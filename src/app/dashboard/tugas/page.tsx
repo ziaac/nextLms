@@ -14,8 +14,9 @@ import { TugasPredefinedModal }            from './_components/TugasPredefinedMo
 import { ArsipTugasSlideOver }             from './_components/ArsipTugasSlideOver'
 import { SalinTugasModal }                from './_components/SalinTugasModal'
 import type { TugasItem, TujuanTugas, BentukTugas } from '@/types/tugas.types'
+import { TugasSiswaList }                  from './_components/TugasSiswaList'
+import { TugasSiswaPanel }                from './_components/TugasSiswaPanel'
 import { toast }                            from 'sonner'
-import Link                                 from 'next/link'
 
 const ADMIN_ROLES = ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA']
 const GURU_ROLES  = ['GURU', 'WALI_KELAS']
@@ -40,6 +41,7 @@ function TugasContent() {
   const [tujuan,         setTujuan]         = useState<TujuanTugas | ''>('')
   const [bentuk,         setBentuk]         = useState<BentukTugas | ''>('')
   const [mataPelajaranId, setMataPelajaranId] = useState('')
+  const [materiId,        setMateriId]        = useState('')
   const [page,           setPage]           = useState(1)
 
   // ── Modal states ─────────────────────────────────────────────
@@ -70,9 +72,11 @@ function TugasContent() {
     const kId  = searchParams.get('kelasId')
     const mtId = searchParams.get('mapelTingkatId')
     const mpId = searchParams.get('mataPelajaranId')
+    const mId  = searchParams.get('materiId')
     if (kId)  setKelasId(kId)
     if (mtId) setMapelTingkatId(mtId)
     if (mpId) setMataPelajaranId(mpId)
+    if (mId)  setMateriId(mId)
   }, [searchParams])
 
   // ── Admin & Guru query ─────────────────────────────────────────
@@ -92,7 +96,8 @@ function TugasContent() {
     ...(tujuan         ? { tujuan }                                 : {}),
     ...(bentuk         ? { bentuk }                                 : {}),
     ...(mataPelajaranId ? { mataPelajaranId }                       : {}),
-  }), [page, search, mapelTingkatId, kelasId, tujuan, bentuk, mataPelajaranId, isGuru, user?.id, activeSemList.length, selectedSemId])
+    ...(materiId        ? { materiId }                              : {}),
+  }), [page, search, mapelTingkatId, kelasId, tujuan, bentuk, mataPelajaranId, materiId, isGuru, user?.id, activeSemList.length, selectedSemId])
 
   const { data: listData, isLoading } = useTugasList(queryParams, {
     enabled: (isGuru || isAdmin) && !!user?.id,
@@ -106,6 +111,7 @@ function TugasContent() {
     setTujuan('')
     setBentuk('')
     setMataPelajaranId('')
+    setMateriId('')
     setPage(1)
   }
 
@@ -135,7 +141,19 @@ function TugasContent() {
 
     return (
       <div className="space-y-6">
-        {isGuru && (
+        {/* Back button — Pembelajaran Saya atau kembali dari filter materi */}
+        {materiId ? (
+          <button
+            type="button"
+            onClick={() => { setMateriId(''); router.back() }}
+            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+          >
+            <span className="w-7 h-7 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center shrink-0">
+              <ArrowLeft className="w-3.5 h-3.5" />
+            </span>
+            Kembali ke Materi
+          </button>
+        ) : isGuru && (
           <button
             type="button"
             onClick={() => router.push('/dashboard/pembelajaran/guru')}
@@ -149,7 +167,11 @@ function TugasContent() {
         )}
         <PageHeader
           title={isAdmin ? "Semua Tugas" : "Manajemen Tugas"}
-          description={isAdmin ? "Pantau seluruh tugas di sekolah" : "Kelola tugas dan ujian untuk siswa Anda"}
+          description={
+            materiId
+              ? 'Tugas yang terhubung ke materi ini'
+              : isAdmin ? "Pantau seluruh tugas di sekolah" : "Kelola tugas dan ujian untuk siswa Anda"
+          }
           actions={
             <div className="flex items-center gap-2">
               {(isGuru || isAdmin) && (
@@ -278,11 +300,39 @@ function TugasContent() {
 
   // ── Render: Siswa ────────────────────────────────────────────
   if (isSiswa) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <p className="text-sm text-gray-400">Halaman tugas siswa sedang dalam pengembangan.</p>
-      </div>
-    )
+    const materiIdFromUrl = searchParams.get('materiId')        ?? ''
+    const mapelIdFromUrl  = searchParams.get('mataPelajaranId') ?? ''
+    const isFiltered      = !!(materiIdFromUrl || mapelIdFromUrl)
+
+    // Filtered view — datang dari link materi / mapel tertentu
+    if (isFiltered) {
+      return (
+        <div className="space-y-6">
+          <button
+            type="button"
+            onClick={() => router.push('/dashboard/tugas')}
+            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+          >
+            <span className="w-7 h-7 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center shrink-0">
+              <ArrowLeft className="w-3.5 h-3.5" />
+            </span>
+            Semua Tugas
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Tugas Saya</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Tugas terkait materi ini</p>
+          </div>
+          <TugasSiswaList
+            materiId={materiIdFromUrl || undefined}
+            mataPelajaranId={mapelIdFromUrl || undefined}
+            userId={user?.id ?? ''}
+          />
+        </div>
+      )
+    }
+
+    // Main two-panel view
+    return <TugasSiswaPanel userId={user?.id ?? ''} />
   }
 
   // Fallback

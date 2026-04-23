@@ -45,8 +45,6 @@ export const metadata: Metadata = {
     ],
   },
 
-  manifest: '/site.webmanifest',
-
   openGraph: {
     type: 'website',
     url: APP_URL,

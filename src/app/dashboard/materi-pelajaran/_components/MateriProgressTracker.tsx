@@ -2,15 +2,80 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { getSocket } from '@/lib/socket'
-import { CheckCircle2, Clock } from 'lucide-react'
+import { CheckCircle2, Clock, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ProgressTrackerProps {
-  materiId: string
-  siswaId: string
+  materiId:        string
+  siswaId:         string
+  /** Mode arsip: tidak ada WebSocket, hanya tampilkan ringkasan akhir */
+  readOnly?:       boolean
+  staticProgress?: { isRead: boolean; timeSpentSeconds: number }
+  minScreenTime?:  number
 }
 
-export function MateriProgressTracker({ materiId, siswaId }: ProgressTrackerProps) {
+// Format detik → "X jam Y mnt" / "Y mnt Z dtk" / "Z dtk"
+function formatDuration(sec: number): string {
+  if (sec <= 0) return '0 dtk'
+  if (sec < 60) return `${sec} dtk`
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  if (m < 60) return s > 0 ? `${m} mnt ${s} dtk` : `${m} mnt`
+  const h = Math.floor(m / 60)
+  const rm = m % 60
+  return rm > 0 ? `${h} jam ${rm} mnt` : `${h} jam`
+}
+
+export function MateriProgressTracker({ materiId, siswaId, readOnly, staticProgress, minScreenTime: minScreenTimeProp }: ProgressTrackerProps) {
+
+  // ── Mode arsip: tampilkan ringkasan statis tanpa WebSocket ────────────
+  if (readOnly) {
+    const spent = staticProgress?.timeSpentSeconds ?? 0
+    const min   = minScreenTimeProp ?? 0
+    const done  = staticProgress?.isRead || (min > 0 && spent >= min)
+    const pct   = min <= 0 ? (spent > 0 ? 100 : 0) : Math.min(Math.floor((spent / min) * 100), 100)
+
+    return (
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              'p-1.5 rounded-lg',
+              done ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-400',
+            )}>
+              {done ? <CheckCircle2 size={18} /> : <BookOpen size={18} />}
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white leading-none">
+                {done ? 'Sudah dibaca' : 'Belum selesai dibaca'}
+              </h4>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+                {spent > 0
+                  ? `Telah dibaca selama ${formatDuration(spent)}`
+                  : 'Belum pernah dibuka'}
+              </p>
+            </div>
+          </div>
+          <span className={cn(
+            'text-xs font-bold',
+            done ? 'text-emerald-600' : 'text-gray-400',
+          )}>
+            {pct}%
+          </span>
+        </div>
+
+        {min > 0 && (
+          <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div
+              className={cn('h-full transition-all', done ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-500')}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        )}
+      </div>
+    )
+  }
+  // ─────────────────────────────────────────────────────────────────────
   const [currentSeconds, setCurrentSeconds] = useState(0)
   const [minSeconds, setMinSeconds] = useState(-1) // -1 berarti belum fetch dari server
   const [isRead, setIsRead] = useState(false)

@@ -84,7 +84,7 @@ export interface TugasItem {
   judul: string
   deskripsi?: string
   instruksi?: string
-  fileUrls?: string[] | any
+  fileUrls?: string[] | null
   tujuan: TujuanTugas
   bentuk: BentukTugas
   modePengerjaan: ModePengerjaan
@@ -112,11 +112,17 @@ export interface TugasItem {
   soalKuis?: SoalKuis[]
 }
 
+export interface PenilaianEntry {
+  id:      string
+  nilai:   number
+  catatan?: string
+}
+
 export interface PengumpulanTugas {
   id: string
   tugasId: string
   siswaId: string
-  fileUrls?: string[] | any
+  fileUrls?: string[] | null
   jawaban?: string
   catatan?: string
   tanggalSubmit?: string
@@ -125,11 +131,25 @@ export interface PengumpulanTugas {
   revisiKe: number
   createdAt: string
   updatedAt: string
-  
+
   // Relations
   tugas?: TugasItem
   siswa?: UserItem
-  penilaian?: any[]
+  penilaian?: PenilaianEntry[]
+}
+
+/** Shape tiap baris dari GET /tugas/:id/rekap */
+export interface RekapPengumpulanItem {
+  siswaId:        string
+  pengumpulanId?: string      // ada jika siswa sudah submit
+  namaLengkap:    string
+  nisn?:          string | null
+  nomorAbsen?:    number | null
+  sudahSubmit:    boolean
+  statusSubmit?:  StatusPengumpulan | null
+  tanggalSubmit?: string | null
+  isLate?:        boolean
+  nilai?:         number | null
 }
 
 export interface TugasQueryParams {
@@ -139,6 +159,8 @@ export interface TugasQueryParams {
   kelasId?: string
   semesterId?: string
   mataPelajaranId?: string
+  /** Filter tugas yang terhubung ke materi spesifik */
+  materiId?: string
   tujuan?: TujuanTugas
   bentuk?: BentukTugas
   modePengerjaan?: ModePengerjaan
