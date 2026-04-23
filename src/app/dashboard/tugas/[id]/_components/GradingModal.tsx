@@ -82,20 +82,20 @@ interface GradingFormProps {
 function GradingForm({ pengumpulanId, bobot, initialNilai, initialCatatan, onDone }: GradingFormProps) {
   const [nilai,   setNilai]   = useState(initialNilai != null ? String(initialNilai) : '')
   const [catatan, setCatatan] = useState(initialCatatan ?? '')
-  const [action,  setAction]  = useState<'DINILAI' | 'REVISI'>('DINILAI')
+  const [action,  setAction]  = useState<StatusPengumpulan>(StatusPengumpulan.DINILAI)
 
   // Reset saat pengumpulanId berubah (navigasi antar siswa)
   useEffect(() => {
     setNilai(initialNilai != null ? String(initialNilai) : '')
     setCatatan(initialCatatan ?? '')
-    setAction('DINILAI')
+    setAction(StatusPengumpulan.DINILAI)
   }, [pengumpulanId, initialNilai, initialCatatan])
 
   const updateMutation = useUpdateSubmissionStatus()
 
   const handleSubmit = async () => {
     // Validasi nilai
-    if (action === 'DINILAI') {
+    if (action === StatusPengumpulan.DINILAI) {
       if (!nilai.trim()) { toast.error('Masukkan nilai terlebih dahulu.'); return }
       const num = Number(nilai)
       if (isNaN(num) || num < 0 || num > bobot) {
@@ -104,7 +104,7 @@ function GradingForm({ pengumpulanId, bobot, initialNilai, initialCatatan, onDon
       }
     }
     // Validasi catatan wajib untuk REVISI
-    if (action === 'REVISI' && !catatan.trim()) {
+    if (action === StatusPengumpulan.REVISI && !catatan.trim()) {
       toast.error('Catatan wajib diisi agar siswa tahu apa yang harus direvisi.')
       return
     }
@@ -115,10 +115,10 @@ function GradingForm({ pengumpulanId, bobot, initialNilai, initialCatatan, onDon
         payload: {
           status:  action,
           catatan: catatan.trim() || undefined,
-          ...(action === 'DINILAI' ? { nilai: Number(nilai) } : {}),
+          ...(action === StatusPengumpulan.DINILAI ? { nilai: Number(nilai) } : {}),
         },
       })
-      toast.success(action === 'DINILAI' ? 'Nilai berhasil disimpan!' : 'Revisi berhasil dikirim ke siswa.')
+      toast.success(action === StatusPengumpulan.DINILAI ? 'Nilai berhasil disimpan!' : 'Revisi berhasil dikirim ke siswa.')
       onDone()
     } catch {
       toast.error('Gagal menyimpan penilaian.')
@@ -131,10 +131,10 @@ function GradingForm({ pengumpulanId, bobot, initialNilai, initialCatatan, onDon
       <div className="flex gap-2">
         <button
           type="button"
-          onClick={() => setAction('DINILAI')}
+          onClick={() => setAction(StatusPengumpulan.DINILAI)}
           className={[
             'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border transition-colors',
-            action === 'DINILAI'
+            action === StatusPengumpulan.DINILAI
               ? 'bg-emerald-50 border-emerald-400 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-600 dark:text-emerald-300'
               : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-emerald-300 hover:text-emerald-600',
           ].join(' ')}
@@ -143,10 +143,10 @@ function GradingForm({ pengumpulanId, bobot, initialNilai, initialCatatan, onDon
         </button>
         <button
           type="button"
-          onClick={() => setAction('REVISI')}
+          onClick={() => setAction(StatusPengumpulan.REVISI)}
           className={[
             'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border transition-colors',
-            action === 'REVISI'
+            action === StatusPengumpulan.REVISI
               ? 'bg-amber-50 border-amber-400 text-amber-700 dark:bg-amber-900/20 dark:border-amber-600 dark:text-amber-300'
               : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-amber-300 hover:text-amber-600',
           ].join(' ')}
@@ -156,7 +156,7 @@ function GradingForm({ pengumpulanId, bobot, initialNilai, initialCatatan, onDon
       </div>
 
       {/* Input nilai */}
-      {action === 'DINILAI' && (
+      {action === StatusPengumpulan.DINILAI && (
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
             <Award size={12} /> Nilai (maks. {bobot})
@@ -178,14 +178,14 @@ function GradingForm({ pengumpulanId, bobot, initialNilai, initialCatatan, onDon
         <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
           <MessageSquare size={12} />
           Catatan untuk Siswa
-          {action === 'REVISI' && <span className="text-red-500 ml-0.5">*</span>}
+          {action === StatusPengumpulan.REVISI && <span className="text-red-500 ml-0.5">*</span>}
         </label>
         <textarea
           value={catatan}
           onChange={(e) => setCatatan(e.target.value)}
           rows={3}
           placeholder={
-            action === 'REVISI'
+            action === StatusPengumpulan.REVISI
               ? 'Jelaskan apa yang perlu direvisi... (wajib diisi)'
               : 'Opsional: komentar untuk siswa'
           }
@@ -199,7 +199,7 @@ function GradingForm({ pengumpulanId, bobot, initialNilai, initialCatatan, onDon
         disabled={updateMutation.isPending}
         onClick={() => { void handleSubmit() }}
       >
-        {action === 'DINILAI' ? 'Simpan Nilai' : 'Kirim ke Siswa'}
+        {action === StatusPengumpulan.DINILAI ? 'Simpan Nilai' : 'Kirim ke Siswa'}
       </Button>
     </div>
   )
