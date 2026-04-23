@@ -14,10 +14,14 @@ export function LoginBannerPanel() {
   const [jadwal, setJadwal] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
-
-  const hariIni = HARI_ID[new Date().getDay()]
+  
+  // FIX: Jadikan state agar aman dari SSR mismatch
+  const [hariIni, setHariIni] = useState<string>('')
 
   useEffect(() => {
+    // FIX: Set hari berdasarkan waktu browser HANYA saat di client
+    setHariIni(HARI_ID[new Date().getDay()])
+
     const fetchData = async () => {
       try {
         const [sRes, jRes] = await Promise.all([
@@ -99,7 +103,8 @@ export function LoginBannerPanel() {
                 <div className="flex flex-col flex-1 overflow-hidden">
                   <div className="flex justify-between items-end mb-3 border-b border-white/10 pb-2">
                     <p className="text-[11px] text-white/60 uppercase">Jadwal Pelajaran Hari Ini</p>
-                    <p className="text-[11px] text-white/80 uppercase">{hariIni}</p>
+                    {/* Tambahkan fallback string kosong atau memuat sebelum hariIni diset */}
+                    <p className="text-[11px] text-white/80 uppercase">{hariIni || '...'}</p>
                   </div>
 
                   <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scroll pb-2">
