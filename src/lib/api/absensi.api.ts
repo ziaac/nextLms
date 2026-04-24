@@ -20,6 +20,7 @@ import type {
   AbsensiDetailSemesterItem,
   RekapSemesterSiswaItem,
   KinerjaGuruResponse,
+  MatrixSiswaResponse,
 } from '@/types'
 
 // ── Sesi ──────────────────────────────────────────────────────────────────────
@@ -103,6 +104,17 @@ export const exportMatrixBlob = async (params: MatrixQueryParams): Promise<void>
 
 export const exportMatrix = (params: MatrixQueryParams) =>
   api.get<Blob>('/absensi/export/matrix', { params, responseType: 'blob' })
+
+export interface MatrixSiswaParams {
+  semesterId: string
+  siswaId?:   string
+}
+
+export const getMatrixSiswa = (params: MatrixSiswaParams) =>
+  api.get<MatrixSiswaResponse>('/absensi/my/matrix-semester', { params }).then((r) => r.data)
+
+export const exportMatrixSiswa = (params: MatrixSiswaParams) =>
+  api.get<Blob>('/absensi/my/matrix-semester/export', { params, responseType: 'blob' })
 
 // ── Wali Kelas ────────────────────────────────────────────────────────────────
 

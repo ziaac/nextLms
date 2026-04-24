@@ -34,14 +34,13 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
 
   return (
     <>
-      {/* Overlay */}
-      <div
-        className={cn(
-          'lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm transition-opacity',
-          open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
-        )}
-        onClick={onClose}
-      />
+      {/* Overlay — hanya di-render saat drawer terbuka agar tidak ada artefak backdrop-blur */}
+      {open && (
+        <div
+          className="lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+          onClick={onClose}
+        />
+      )}
 
       {/* Drawer */}
       <aside
@@ -51,15 +50,17 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
           'border-r border-gray-200 dark:border-gray-800',
           'transition-transform duration-300 ease-in-out',
           'flex flex-col',
-          open ? 'translate-x-0' : '-translate-x-full',
+          open ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none',
         )}
       >
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">M2</span>
-            </div>
+            <img
+              src="https://storagelms.man2kotamakassar.sch.id/static-assets/static_logoman-150h.png"
+              alt="Logo MAN 2"
+              className="h-8 w-auto object-contain flex-shrink-0"
+            />
             <div>
               <p className="text-sm font-bold text-gray-900 dark:text-white">LMS MAN 2</p>
               <p className="text-[10px] text-gray-400">Kota Makassar</p>

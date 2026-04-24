@@ -425,3 +425,36 @@ export interface KinerjaGuruResponse {
   totalJamMengajar: number
   rincianPerMapel:  KinerjaGuruRincian[]
 }
+
+// ── Matrix Siswa ──────────────────────────────────────────────────────────────
+export interface MatrixSiswaSesi {
+  pertemuan:  number
+  tanggal:    string | null
+  status:     'H' | 'I' | 'S' | 'A' | null
+  waktuMasuk: string | null
+}
+
+export interface MatrixSiswaMapelRow {
+  mataPelajaranId:    string
+  namaMapel:          string
+  targetPertemuan:    number
+  realisasiPertemuan: number
+  sesi:               MatrixSiswaSesi[]
+  summary:            { H: number; I: number; S: number; A: number }
+}
+
+export interface MatrixSiswaResponse {
+  siswa: {
+    id:        string
+    nama:      string
+    nisn:      string
+    namaKelas: string
+  } | null
+  semester: {
+    id:          string
+    nama:        string
+    tahunAjaran: string
+  } | null
+  maxPertemuan: number
+  mapel:        MatrixSiswaMapelRow[]
+}

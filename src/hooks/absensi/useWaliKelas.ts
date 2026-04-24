@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import {
   getRekapKelasWaliHariIni,
   getRekapSemesterPerKelas,
@@ -6,9 +6,11 @@ import {
   getMatrixRekap,
   getJadwalHariIniWali,
   getGuruDetailJadwal,
+  getMatrixSiswa,
+  exportMatrixSiswa,
 } from '@/lib/api/absensi.api'
 import { getListPerizinan } from '@/lib/api/perizinan.api'
-import type { MatrixQueryParams } from '@/lib/api/absensi.api'
+import type { MatrixQueryParams, MatrixSiswaParams } from '@/lib/api/absensi.api'
 
 export const waliKelasKeys = {
   rekapHarian:   (kelasId: string) =>
@@ -110,5 +112,31 @@ export function useJadwalHariIniWali(
     enabled:  !!semesterId && !!kelasId,
     staleTime: 1000 * 30,
     refetchInterval: 1000 * 60,
+  })
+}
+
+// ── Matrix Siswa (1 siswa × semua mapel) ─────────────────────────────────────
+export function useMatrixSiswa(params: Partial<MatrixSiswaParams> & { semesterId: string }) {
+  return useQuery({
+    queryKey: ['absensi', 'matrix-siswa', params.semesterId, params.siswaId ?? 'me'],
+    queryFn:  () => getMatrixSiswa(params as MatrixSiswaParams),
+    enabled:  !!params.semesterId,
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
+export function useExportMatrixSiswa() {
+  return useMutation({
+    mutationFn: async (params: MatrixSiswaParams) => {
+      const res = await exportMatrixSiswa(params)
+      const url = URL.createObjectURL(res.data)
+      const a   = document.createElement('a')
+      a.href     = url
+      a.download = `Matriks_Absensi_Siswa.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    },
   })
 }

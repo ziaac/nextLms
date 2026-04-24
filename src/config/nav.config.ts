@@ -95,13 +95,13 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Absensi',
         href: '/dashboard/absensi',
         icon: QrCode,
-        roles: ['SISWA', 'ADMIN', 'SUPER_ADMIN'],
+        roles: ['ADMIN', 'SUPER_ADMIN'],
       },
-            {
+      {
         label: 'Perizinan',
         href: '/dashboard/perizinan',
         icon: ShieldCheck,
-        roles: ['GURU', 'SISWA', 'WALI_KELAS', 'ADMIN', 'SUPER_ADMIN'],
+        roles: ['GURU', 'WALI_KELAS', 'ADMIN', 'SUPER_ADMIN'],
       },
 
     ],
@@ -259,10 +259,9 @@ export function getNavForRole(user: any): NavGroup[] {
 
           // 3. Jadwal
           if (item.label === 'Jadwal' && item.href === '/dashboard/jadwal') {
-            let dynamicHref = '/dashboard/jadwal/manajemen'
-            if (role === 'GURU' || role === 'WALI_KELAS') dynamicHref = '/dashboard/jadwal/guru'
-            else if (role === 'SISWA') dynamicHref = '/dashboard/jadwal/kelas'
-            return { ...item, href: dynamicHref }
+            if (role === 'SISWA') return { ...item, label: 'Absensi', href: '/dashboard/jadwal/kelas' }
+            if (role === 'GURU' || role === 'WALI_KELAS') return { ...item, href: '/dashboard/jadwal/guru' }
+            return { ...item, href: '/dashboard/jadwal/manajemen' }
           }
           
           // 4. Tugas — siswa cukup lihat "Tugas" bukan "Tugas & Penilaian"

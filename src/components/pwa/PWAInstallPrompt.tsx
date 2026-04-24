@@ -39,19 +39,21 @@ export function PWAInstallPrompt() {
 
   useEffect(() => {
     if (isInStandaloneMode()) return
+    // Jangan tampilkan lagi jika sudah di-dismiss dalam session ini
+    if (sessionStorage.getItem('pwa-prompt-dismissed')) return
 
     const ios = isIOS()
     setIsIOSDevice(ios)
 
     if (!ios) {
-      // Ambil event yang sudah ditangkap LEBIH AWAL oleh ServiceWorkerRegister (Fix 3)
+      // Ambil event yang sudah ditangkap lebih awal oleh ServiceWorkerRegister
       if (window.__deferredPrompt) {
         setDeferredPrompt(window.__deferredPrompt)
         setShow(true)
         return
       }
 
-      // Kalau belum — pasang listener sebagai fallback (jika event telat fire)
+      // Fallback: pasang listener jika event belum fire saat mount
       const handler = (e: Event) => {
         e.preventDefault()
         window.__deferredPrompt = e as BeforeInstallPromptEvent
@@ -62,9 +64,7 @@ export function PWAInstallPrompt() {
       return () => window.removeEventListener('beforeinstallprompt', handler)
     } else {
       // iOS: tampilkan panduan sekali per session
-      if (!sessionStorage.getItem('pwa-ios-shown')) {
-        setShow(true)
-      }
+      setShow(true)
     }
   }, [])
 
@@ -80,29 +80,33 @@ export function PWAInstallPrompt() {
   }
 
   function handleLater() {
-    if (isIOSDevice) sessionStorage.setItem('pwa-ios-shown', '1')
+    sessionStorage.setItem('pwa-prompt-dismissed', '1')
     setShow(false)
   }
 
   if (!show) return null
 
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-end sm:justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-sm bg-white/80 dark:bg-gray-900/95 backdrop-blur-md rounded-3xl shadow-2xl border border-white/60 dark:border-gray-700/60 overflow-hidden">
+    <div
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-end sm:justify-center p-4 bg-black/50"
+      onClick={handleLater}
+    >
+      {/* Tombol escape — selalu visible di pojok atas, apapun kondisi card */}
+      <button
+        onClick={handleLater}
+        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors"
+        aria-label="Tutup"
+      >
+        <X size={16} />
+      </button>
 
-        {/* Close button */}
-        <div className="flex justify-end px-4 pt-4">
-          <button
-            onClick={handleLater}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-            aria-label="Tutup"
-          >
-            <X size={14} />
-          </button>
-        </div>
+      <div
+        className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
 
         {/* App identity */}
-        <div className="flex items-center gap-3.5 px-6 pt-1 pb-5">
+        <div className="flex items-center gap-3.5 px-6 pt-5 pb-5">
           <div className="shrink-0 rounded-2xl overflow-hidden">
             <Image
               src="/android-chrome-192x192.png"

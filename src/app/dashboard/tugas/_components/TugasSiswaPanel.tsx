@@ -3,6 +3,7 @@
 import { useState, useMemo }         from 'react'
 import { useRouter }                 from 'next/navigation'
 import { useTugasList }             from '@/hooks/tugas/useTugas'
+import { useActiveSemesterLabel }   from '@/hooks/semester/useSemester'
 import { PageHeader, Button }       from '@/components/ui'
 import {
   Archive, Search, Library, Book, BookOpen,
@@ -148,7 +149,8 @@ interface Props {
 }
 
 export function TugasSiswaPanel({ userId }: Props) {
-  const router = useRouter()
+  const router   = useRouter()
+  const semLabel = useActiveSemesterLabel()
 
   const [search,          setSearch]          = useState('')
   const [selectedMapelId, setSelectedMapelId] = useState('')
@@ -211,56 +213,31 @@ export function TugasSiswaPanel({ userId }: Props) {
   return (
     <div className="space-y-5">
 
-      {/* ── Mobile: back + archive di satu baris ── */}
-      <div className="flex items-center justify-between md:hidden">
-        <button
-          type="button"
-          onClick={() => router.push('/dashboard/pembelajaran/siswa')}
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
-        >
-          <span className="w-7 h-7 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center shrink-0">
-            <ArrowLeft className="w-3.5 h-3.5" />
-          </span>
-          Pembelajaran Saya
-        </button>
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            type="button"
+            onClick={() => router.push('/dashboard/pembelajaran/siswa')}
+            className="w-7 h-7 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex items-center justify-center shrink-0 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-gray-500" />
+          </button>
+          <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 shrink-0" />
+          <div className="min-w-0">
+            <h1 className="text-base font-bold text-gray-900 dark:text-gray-100 leading-tight">Tugas</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{semLabel ?? 'Memuat...'}</p>
+          </div>
+        </div>
         <button
           type="button"
           onClick={() => setArsipOpen(true)}
-          className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           title="Arsip Tugas"
+          className="w-8 h-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex items-center justify-center hover:border-gray-300 dark:hover:border-gray-600 transition-colors shrink-0"
         >
-          <Archive className="w-4 h-4" />
+          <Archive className="w-4 h-4 text-gray-500" />
         </button>
       </div>
-
-      {/* ── Desktop: back button ── */}
-      <button
-        type="button"
-        onClick={() => router.push('/dashboard/pembelajaran/siswa')}
-        className="hidden md:inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
-      >
-        <span className="w-7 h-7 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center shrink-0">
-          <ArrowLeft className="w-3.5 h-3.5" />
-        </span>
-        Pembelajaran Saya
-      </button>
-
-      {/* ── PageHeader — archive hanya desktop ── */}
-      <PageHeader
-        title="Tugas Saya"
-        description="Tugas semester aktif"
-        actions={
-          <span className="hidden md:block">
-            <Button
-              variant="secondary"
-              leftIcon={<Archive size={16} />}
-              onClick={() => setArsipOpen(true)}
-            >
-              Arsip
-            </Button>
-          </span>
-        }
-      />
 
       {/* Search bar */}
       <div className="relative">

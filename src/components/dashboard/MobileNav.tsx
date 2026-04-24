@@ -41,7 +41,7 @@ export function MobileNav() {
         // ── Dynamic routing per role ──
         if (item.label === 'Absensi') {
           if (user?.role === 'GURU' || user?.role === 'WALI_KELAS') href = '/dashboard/absensi/guru'
-          else if (user?.role === 'SISWA') href = '/dashboard/absensi/siswa'
+          else if (user?.role === 'SISWA') href = '/dashboard/jadwal/kelas'
           else href = '/dashboard/absensi/manajemen'
         }
 

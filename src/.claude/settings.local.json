@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"D:\\\\projects\\\\LMS-MAN\\\\Code\\\\nextjslms\\\\src\\\\app\" /b /s)",
+      "Bash(findstr /i \"pembelajaran\")",
+      "Read(//d/projects/LMS-MAN/Code/nextjslms/**)",
+      "Bash(npx tsc *)",
+      "Bash(npx --prefix \"D:/projects/LMS-MAN/Code/nextjslms\" tsc --noEmit --project \"D:/projects/LMS-MAN/Code/nextjslms/tsconfig.json\")",
+      "Bash(grep -E \"\\\\.\\(tsx?|jsx?\\)$\")"
+    ]
+  }
+}

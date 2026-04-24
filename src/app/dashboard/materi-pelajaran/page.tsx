@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams }               from 'next/navigation'
 import { useAuthStore }            from '@/stores/auth.store'
 import { PageHeader, Button, ConfirmModal } from '@/components/ui'
+import { useActiveSemesterLabel }           from '@/hooks/semester/useSemester'
 import { Plus, Copy, Archive, ArrowLeft, CheckCircle2, Circle, ClipboardList, CalendarDays, Search, BookOpen, Book, Library } from 'lucide-react'
 import { cn }                             from '@/lib/utils'
 import { useMateriList, useDeleteMateri } from '@/hooks/materi-pelajaran/useMateriPelajaran'
@@ -43,9 +44,10 @@ function MateriPelajaranContent() {
   const searchParams = useSearchParams()
   const { user }  = useAuthStore()
 
-  const isAdmin = ADMIN_ROLES.includes(user?.role ?? '')
-  const isGuru  = GURU_ROLES.includes(user?.role ?? '')
-  const isSiswa = SISWA_ROLES.includes(user?.role ?? '')
+  const isAdmin  = ADMIN_ROLES.includes(user?.role ?? '')
+  const isGuru   = GURU_ROLES.includes(user?.role ?? '')
+  const isSiswa  = SISWA_ROLES.includes(user?.role ?? '')
+  const semLabel = useActiveSemesterLabel()
 
 
   // ── Admin filter state ───────────────────────────────────────
@@ -70,17 +72,20 @@ function MateriPelajaranContent() {
 
   // Handle URL params on mount
   useEffect(() => {
-    const mtId = searchParams.get('mapelTingkatId')
-    const kId = searchParams.get('kelasId')
-    
+    const mtId    = searchParams.get('mapelTingkatId')
+    const kId     = searchParams.get('kelasId')
+    const mapelId = searchParams.get('mataPelajaranId')
+
     if (isGuru) {
       if (mtId) setGuruMapelTingkatId(mtId)
-      if (kId) setGuruKelasId(kId)
+      if (kId)  setGuruKelasId(kId)
     } else if (isAdmin) {
       if (mtId) setMapelTingkatId(mtId)
-      if (kId) setKelasId(kId)
+      if (kId)  setKelasId(kId)
+    } else if (isSiswa) {
+      if (mapelId) setSelectedMapelId(mapelId)
     }
-  }, [searchParams, isGuru, isAdmin])
+  }, [searchParams, isGuru, isAdmin, isSiswa])
 
   // ── Siswa state ──────────────────────────────────────────────
   const [siswaSearch,      setSiswaSearch]      = useState('')
@@ -148,7 +153,8 @@ function MateriPelajaranContent() {
   const mapelGroups = useMemo(() => {
     const map = new Map<string, { id: string; nama: string; items: MateriItem[] }>()
     for (const item of allMateri) {
-      const id   = item.mataPelajaran?.mataPelajaranTingkat?.id   ?? '__other__'
+      // Gunakan mataPelajaran.id agar cocok dengan mataPelajaranId yang dikirim dari card
+      const id   = item.mataPelajaran?.id ?? '__other__'
       const nama = item.mataPelajaran?.mataPelajaranTingkat?.masterMapel?.nama ?? 'Lainnya'
       if (!map.has(id)) map.set(id, { id, nama, items: [] })
       map.get(id)!.items.push(item)
@@ -427,31 +433,31 @@ function MateriPelajaranContent() {
     return (
       <div className="space-y-5">
 
-        {/* Back button */}
-        <button
-          type="button"
-          onClick={() => router.push('/dashboard/pembelajaran/siswa')}
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
-        >
-          <span className="w-7 h-7 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center shrink-0">
-            <ArrowLeft className="w-3.5 h-3.5" />
-          </span>
-          Pembelajaran Saya
-        </button>
-
-        <PageHeader
-          title="Materi Belajar"
-          description="Materi pelajaran semester aktif"
-          actions={
-            <Button
-              variant="secondary"
-              leftIcon={<Archive size={16} />}
-              onClick={() => setSiswaArsipOpen(true)}
+        {/* ── Header ── */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard/pembelajaran/siswa')}
+              className="w-7 h-7 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex items-center justify-center shrink-0 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
             >
-              Arsip
-            </Button>
-          }
-        />
+              <ArrowLeft className="w-3.5 h-3.5 text-gray-500" />
+            </button>
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 shrink-0" />
+            <div className="min-w-0">
+              <h1 className="text-base font-bold text-gray-900 dark:text-gray-100 leading-tight">Materi Belajar</h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{semLabel ?? 'Memuat...'}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSiswaArsipOpen(true)}
+            title="Arsip Materi"
+            className="w-8 h-8 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex items-center justify-center hover:border-gray-300 dark:hover:border-gray-600 transition-colors shrink-0"
+          >
+            <Archive className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
 
         {/* Search bar */}
         <div className="relative">
@@ -480,15 +486,18 @@ function MateriPelajaranContent() {
 
         {/* Mobile: horizontal mapel pills */}
         {!siswaLoading && filteredMapelGroups.length > 1 && (
-          <div className="flex md:hidden gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4">
+          <div
+            className="flex md:hidden gap-1.5 overflow-x-auto pb-1 -mx-4 px-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
             <button
               type="button"
               onClick={() => setSelectedMapelId('')}
               className={cn(
-                'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors whitespace-nowrap',
+                'shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap',
                 !selectedMapelId
-                  ? 'bg-emerald-600 border-emerald-600 text-white'
-                  : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-emerald-400 hover:text-emerald-600',
+                  ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/35 dark:text-emerald-400'
+                  : 'bg-gray-100/80 text-gray-500 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200/70 dark:hover:bg-gray-700',
               )}
             >
               Semua ({allMateri.length})
@@ -501,10 +510,10 @@ function MateriPelajaranContent() {
                   type="button"
                   onClick={() => setSelectedMapelId(selectedMapelId === group.id ? '' : group.id)}
                   className={cn(
-                    'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors whitespace-nowrap',
+                    'shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap',
                     selectedMapelId === group.id
-                      ? 'bg-emerald-600 border-emerald-600 text-white'
-                      : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-emerald-400 hover:text-emerald-600',
+                      ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/35 dark:text-emerald-400'
+                      : 'bg-gray-100/80 text-gray-500 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200/70 dark:hover:bg-gray-700',
                   )}
                 >
                   {group.nama}{searchQ ? ` (${count})` : ''}
@@ -646,13 +655,13 @@ function MateriPelajaranContent() {
                         'relative w-full rounded-2xl border p-5 flex flex-col overflow-hidden',
                         'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/30',
                         isRead
-                          ? 'bg-white dark:bg-gray-800/80 border-emerald-200/60 dark:border-emerald-800/40'
-                          : 'bg-white dark:bg-gray-800 border-gray-200/80 dark:border-gray-700/80',
+                          ? 'bg-white dark:bg-gray-800/80 border-emerald-100/70 dark:border-emerald-900/30'
+                          : 'bg-white dark:bg-gray-800 border-gray-100/90 dark:border-gray-700/60',
                       )}>
 
                         {/* Accent strip — tipis di atas card saat sudah dibaca */}
                         {isRead && (
-                          <span className="absolute inset-x-0 top-0 h-0.5 bg-emerald-400/60 dark:bg-emerald-500/40" />
+                          <span className="absolute inset-x-0 top-0 h-px bg-emerald-200/80 dark:bg-emerald-700/30" />
                         )}
 
                         {/* Top row: tipe + read indicator */}

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { semesterApi } from '@/lib/api/semester.api'
 import type { CreateSemesterPayload, UpdateSemesterPayload } from '@/types/tahun-ajaran.types'
+import { useTahunAjaranActive } from '@/hooks/tahun-ajaran/useTahunAjaran'
 
 // ── Query Keys ────────────────────────────────────────────────
 export const semesterKeys = {
@@ -80,4 +81,20 @@ export function useDeleteSemester() {
       qc.invalidateQueries({ queryKey: semesterKeys.active })
     },
   })
+}
+
+// ── Label semester aktif (reusable) ──────────────────────────
+// Returns "Semester Genap 2024/2025" or null saat loading
+export function useActiveSemesterLabel(): string | null {
+  const { data: taListRaw = [] } = useTahunAjaranActive()
+  const taList  = taListRaw as { id: string; nama: string }[]
+  const taAktif = taList[0] ?? null
+
+  const { data: semListRaw = [] } = useSemesterByTahunAjaran(taAktif?.id ?? null)
+  const semAktif = (semListRaw as { id: string; nama: string; isActive?: boolean; urutan?: number }[])
+    .filter((s) => s.isActive)
+    .sort((a, b) => (b.urutan ?? 0) - (a.urutan ?? 0))[0] ?? null
+
+  if (!semAktif || !taAktif) return null
+  return `Semester ${semAktif.nama} ${taAktif.nama}`
 }

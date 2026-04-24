@@ -15,22 +15,22 @@ interface BadgeProps {
 
 // ── Warna light mode ──────────────────────────────────────────
 const LIGHT: Record<BadgeVariant, { bg: string; color: string }> = {
-  default: { bg: '#f3f4f6', color: '#374151' },          // gray-100 / gray-700
-  success: { bg: '#d1fae5', color: '#065f46' },          // emerald-100 / emerald-800
-  warning: { bg: '#fef9c3', color: '#854d0e' },          // yellow-100 / yellow-800
-  danger:  { bg: '#fee2e2', color: '#991b1b' },          // red-100 / red-800
-  info:    { bg: '#dbeafe', color: '#1e40af' },          // blue-100 / blue-800
-  purple:  { bg: '#ede9fe', color: '#5b21b6' },          // purple-100 / purple-800
+  default: { bg: '#f9fafb', color: '#6b7280' },          // gray-50  / gray-500
+  success: { bg: '#ecfdf5', color: '#059669' },          // emerald-50 / emerald-600
+  warning: { bg: '#fefce8', color: '#ca8a04' },          // yellow-50 / yellow-600
+  danger:  { bg: '#fef2f2', color: '#dc2626' },          // red-50   / red-600
+  info:    { bg: '#eff6ff', color: '#3b82f6' },          // blue-50  / blue-500
+  purple:  { bg: '#faf5ff', color: '#9333ea' },          // purple-50 / purple-600
 }
 
 // ── Warna dark mode ───────────────────────────────────────────
 const DARK: Record<BadgeVariant, { bg: string; color: string }> = {
-  default: { bg: '#1f2937', color: '#d1d5db' },          // gray-800 / gray-300
-  success: { bg: '#022c22', color: '#34d399' },          // emerald-950/50 / emerald-400
-  warning: { bg: '#1c1500', color: '#fbbf24' },          // yellow-950/50 / yellow-400
-  danger:  { bg: '#1f0707', color: '#f87171' },          // red-950/50 / red-400
-  info:    { bg: '#071730', color: '#60a5fa' },          // blue-950/50 / blue-400
-  purple:  { bg: '#1e0840', color: '#a78bfa' },          // purple-950/50 / purple-400
+  default: { bg: 'rgba(107,114,128,0.15)', color: '#9ca3af' },   // gray muted
+  success: { bg: 'rgba(5,150,105,0.12)',   color: '#6ee7b7' },   // emerald muted
+  warning: { bg: 'rgba(202,138,4,0.12)',   color: '#fde68a' },   // yellow muted
+  danger:  { bg: 'rgba(220,38,38,0.12)',   color: '#fca5a5' },   // red muted
+  info:    { bg: 'rgba(59,130,246,0.12)',  color: '#93c5fd' },   // blue muted
+  purple:  { bg: 'rgba(147,51,234,0.12)', color: '#d8b4fe' },   // purple muted
 }
 
 const SIZE_CLASS: Record<BadgeSize, string> = {

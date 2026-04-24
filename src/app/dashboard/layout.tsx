@@ -1,11 +1,17 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { Sidebar } from '@/components/dashboard/Sidebar'
 import { Topbar } from '@/components/dashboard/Topbar'
 import { MobileNav } from '@/components/dashboard/MobileNav'
 import { MobileDrawer } from '@/components/dashboard/MobileDrawer'
 import { SocketInitializer } from '@/components/dashboard/SocketInitializer'
+
+const PWAInstallPrompt = dynamic(
+  () => import('@/components/pwa/PWAInstallPrompt').then((m) => m.PWAInstallPrompt),
+  { ssr: false },
+)
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -26,6 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       <MobileNav />
       <SocketInitializer />
+      <PWAInstallPrompt />
     </div>
   )
 }

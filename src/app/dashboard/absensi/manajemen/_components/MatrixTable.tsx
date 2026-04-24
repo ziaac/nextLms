@@ -95,6 +95,9 @@ export function MatrixTable({ matrix, onOverride }: Props) {
                   </th>
                 )
               })}
+              <th className="px-2 py-3 text-center text-xs font-bold w-12 text-gray-500 dark:text-gray-400 border-l border-gray-200 dark:border-gray-700">
+                Real.
+              </th>
               {['H', 'S', 'I', 'A'].map((k) => (
                 <th key={k} className={'px-2 py-3 text-center text-xs font-bold w-10 ' + (STATUS_CLS[k] ?? 'text-gray-500')}>
                   {k}
@@ -166,7 +169,13 @@ export function MatrixTable({ matrix, onOverride }: Props) {
                     </td>
                   )
                 })}
-                {/* Summary */}
+                {/* Realisasi Sesi */}
+                <td className="px-2 py-2 text-center text-xs font-semibold tabular-nums border-l border-gray-100 dark:border-gray-800">
+                  <span className="text-gray-500 dark:text-gray-400">
+                    {metadata.realisasiPertemuan ?? 0}
+                  </span>
+                </td>
+                {/* Summary H/S/I/A */}
                 {(['H', 'S', 'I', 'A'] as const).map((k) => (
                   <td key={k} className="px-2 py-2 text-center text-xs font-semibold tabular-nums">
                     <span className={siswa.summary[k] > 0
@@ -181,7 +190,7 @@ export function MatrixTable({ matrix, onOverride }: Props) {
             ))}
             {dataSiswa.length === 0 && (
               <tr>
-                <td colSpan={target + 6} className="text-center py-10 text-sm text-gray-400 italic">
+                <td colSpan={target + 7} className="text-center py-10 text-sm text-gray-400 italic">
                   Tidak ada data siswa.
                 </td>
               </tr>

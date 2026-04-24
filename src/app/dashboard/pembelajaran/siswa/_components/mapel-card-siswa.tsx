@@ -25,14 +25,14 @@ function StatBar({
   label: string; value: number; max: number; color?: 'emerald' | 'blue' | 'amber'
 }) {
   const pct = max > 0 ? Math.round((value / max) * 100) : 0
-  const colorMap = { emerald: 'bg-emerald-500', blue: 'bg-blue-500', amber: 'bg-amber-500' }
+  const colorMap = { emerald: 'bg-emerald-400', blue: 'bg-blue-400', amber: 'bg-amber-400' }
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs text-gray-500">
         <span>{label}</span>
         <span className="font-medium text-gray-700">{value}/{max}</span>
       </div>
-      <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+      <div className="h-1.5 rounded-full bg-gray-50 dark:bg-gray-800 overflow-hidden">
         <div className={`h-full rounded-full transition-all ${colorMap[color]}`}
           style={{ width: `${pct}%` }} />
       </div>
@@ -60,9 +60,9 @@ export function MapelCardSiswa({
   return (
     <div
       className={[
-        'rounded-2xl border bg-white p-5 flex flex-col gap-4',
-        'hover:shadow-md transition-shadow cursor-pointer',
-        readOnly ? 'border-gray-200 opacity-80' : 'border-gray-200',
+        'rounded-2xl border bg-white dark:bg-gray-900 p-5 flex flex-col gap-4',
+        'hover:shadow-sm transition-shadow cursor-pointer',
+        readOnly ? 'border-gray-100 dark:border-gray-800 opacity-80' : 'border-gray-100 dark:border-gray-800',
       ].join(' ')}
       onClick={() => onKlik(mapel)}
     >
@@ -112,16 +112,16 @@ export function MapelCardSiswa({
 
       {/* Todo indicator */}
       {todoCount > 0 ? (
-        <div className="flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2">
-          <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-          <p className="text-xs text-red-700">
+        <div className="flex items-center gap-2 rounded-lg bg-red-50/70 dark:bg-red-950/20 border border-red-100 dark:border-red-900/40 px-3 py-2">
+          <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+          <p className="text-xs text-red-500 dark:text-red-400">
             {todoCount} item perlu perhatian — klik untuk detail
           </p>
         </div>
       ) : (
         <div className="flex items-center gap-1.5">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-          <p className="text-xs text-gray-400">Semua tugas & absensi lengkap</p>
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300 dark:text-emerald-600 shrink-0" />
+          <p className="text-xs text-gray-400 dark:text-gray-500">Semua tugas & absensi lengkap</p>
         </div>
       )}
 
@@ -142,7 +142,7 @@ export function MapelCardSiswa({
       </div>
 
       {/* Tombol navigasi — stopPropagation agar tidak trigger slideover */}
-      <div className="grid grid-cols-2 gap-2 pt-1 border-t border-gray-100"
+      <div className="grid grid-cols-2 gap-2 pt-1 border-t border-gray-50 dark:border-gray-800/60"
         onClick={(e) => e.stopPropagation()}>
         <Button size="sm" variant="secondary"
           leftIcon={<CalendarDays className="w-3.5 h-3.5" />}
