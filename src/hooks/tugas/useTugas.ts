@@ -10,6 +10,7 @@ import {
   getRekapPengumpulan,
   submitTugas,
   getMySubmission,
+  getMyNilaiRekap,
   getSubmissionDetail,
   updateSubmissionStatus,
   bulkCopyTugas,
@@ -18,11 +19,12 @@ import { TugasQueryParams } from '@/types/tugas.types'
 import type { UpdateSubmissionPayload } from '@/lib/api/tugas.api'
 
 export const tugasKeys = {
-  all:     (params?: TugasQueryParams) => ['tugas', 'list', params ?? {}] as const,
-  detail:  (id: string) => ['tugas', 'detail', id] as const,
-  rekap:   (id: string) => ['tugas', 'rekap', id] as const,
+  all:          (params?: TugasQueryParams) => ['tugas', 'list', params ?? {}] as const,
+  detail:       (id: string)  => ['tugas', 'detail', id] as const,
+  rekap:        (id: string)  => ['tugas', 'rekap', id] as const,
   mySubmission: (tugasId: string) => ['tugas', 'submission', 'me', tugasId] as const,
   submissionDetail: (id: string) => ['tugas', 'submission', 'detail', id] as const,
+  nilaiRekap:   () => ['tugas', 'my', 'nilai-rekap'] as const,
 }
 
 export function useTugasList(params: TugasQueryParams | undefined, options?: { enabled?: boolean }) {
@@ -92,6 +94,15 @@ export function useSubmitTugas() {
       qc.invalidateQueries({ queryKey: tugasKeys.mySubmission(tugasId) })
       qc.invalidateQueries({ queryKey: ['tugas', 'rekap'] })
     },
+  })
+}
+
+export function useMyNilaiRekap(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: tugasKeys.nilaiRekap(),
+    queryFn:  () => getMyNilaiRekap(),
+    enabled:  options?.enabled ?? true,
+    staleTime: 2 * 60 * 1000,
   })
 }
 

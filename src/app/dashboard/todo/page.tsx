@@ -18,6 +18,7 @@ import { id as localeId }                from 'date-fns/locale'
 import type {
   TugasPendingItem,
   AbsensiPendingItem,
+  MateriPerMapelItem,
   TugasMenungguPenilaianItem,
 } from '@/types/akademik.types'
 
@@ -65,7 +66,7 @@ function AllDone() {
   return (
     <div className="flex items-center gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 px-3 py-3">
       <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-      <p className="text-xs text-emerald-700 dark:text-emerald-400">Semua sudah selesai 🎉</p>
+      <p className="text-xs text-emerald-700 dark:text-emerald-400">Semua sudah selesai</p>
     </div>
   )
 }
@@ -81,15 +82,16 @@ function TodoSiswaView({
     staleTime: 1000 * 60,
   })
 
-  const tugas   = data?.tugasPending   ?? []
-  const absensi = data?.absensiPending ?? []
-  const absensiAksi = absensi.filter((a) => a.status === 'AKSI_DIBUTUHKAN')
+  const tugas        = data?.tugasPending   ?? []
+  const absensi      = data?.absensiPending ?? []
+  const materiMapel  = data?.materiPerMapel ?? []
+  const absensiAksi  = absensi.filter((a) => a.status === 'AKSI_DIBUTUHKAN')
 
   if (isLoading) {
     return <div className="flex justify-center py-16"><Spinner /></div>
   }
 
-  const totalPending = tugas.length + absensiAksi.length
+  const totalPending = tugas.length + absensiAksi.length + materiMapel.length
 
   if (totalPending === 0) {
     return (
@@ -98,8 +100,8 @@ function TodoSiswaView({
           <CheckCircle2 className="w-7 h-7 text-emerald-500" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Semua beres!</p>
-          <p className="text-xs text-gray-400 mt-1">Tidak ada tugas atau absensi yang perlu aksi.</p>
+          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Semua beres</p>
+          <p className="text-xs text-gray-400 mt-1">Tidak ada tugas, absensi, atau materi yang perlu aksi.</p>
         </div>
       </div>
     )
@@ -173,6 +175,32 @@ function TodoSiswaView({
         ))}
       </div>
 
+      {/* Materi Belum Dibaca per Mapel */}
+      {materiMapel.length > 0 && (
+        <div className="space-y-2">
+          <SectionHeader icon={BookOpen} title="Materi Belum Dibaca" count={materiMapel.length} />
+          {materiMapel.map((m: MateriPerMapelItem) => (
+            <button
+              key={m.mataPelajaranId}
+              type="button"
+              onClick={() => router.push(`/dashboard/materi-pelajaran?mataPelajaranId=${m.mataPelajaranId}`)}
+              className="w-full flex items-center gap-3 rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-3.5 py-3 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all text-left"
+            >
+              <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
+                <BookOpen className="w-4 h-4 text-blue-500" />
+              </div>
+              <p className="flex-1 text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
+                {m.namaMapel}
+              </p>
+              <span className="text-[11px] font-bold bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full shrink-0">
+                {m.belumDibaca} belum dibaca
+              </span>
+              <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+            </button>
+          ))}
+        </div>
+      )}
+
     </div>
   )
 }
@@ -200,7 +228,7 @@ function TodoGuruView({
           <CheckCircle2 className="w-7 h-7 text-emerald-500" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Semua beres!</p>
+          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Semua beres</p>
           <p className="text-xs text-gray-400 mt-1">Tidak ada tugas yang menunggu penilaian.</p>
         </div>
       </div>

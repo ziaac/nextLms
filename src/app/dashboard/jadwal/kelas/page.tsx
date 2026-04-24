@@ -140,7 +140,7 @@ export default function JadwalKelasPage() {
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 mb-0.5">
               <h1 className="text-base font-bold text-gray-900 dark:text-gray-100 leading-tight">
-                Absensi
+                Jadwal & Absensi
               </h1>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -222,15 +222,29 @@ export default function JadwalKelasPage() {
           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             Rekap Semester Ini
           </p>
-          <div className="grid grid-cols-5 gap-2">
-            {STAT_KEYS.map(({ key, label, color }) => (
-              <div key={key} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-3 text-center">
-                <p className={`text-2xl font-bold tabular-nums ${color}`}>
-                  {summary ? (summary[key] ?? 0) : '—'}
+          <div
+            className="overflow-x-auto -mx-4 px-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
+          >
+            <div className="flex gap-2 items-stretch w-max pb-1">
+              {/* Total sesi */}
+              <div className="flex flex-col items-center justify-center bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-3.5 py-2.5 min-w-[60px] text-center">
+                <p className="text-2xl font-bold tabular-nums text-gray-700 dark:text-gray-300">
+                  {summary ? STAT_KEYS.reduce((sum, { key }) => sum + (summary[key] ?? 0), 0) : '—'}
                 </p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{label}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">Sesi</p>
               </div>
-            ))}
+              <div className="w-px bg-gray-100 dark:bg-gray-800 self-stretch my-1" />
+              {/* Per status */}
+              {STAT_KEYS.map(({ key, label, color }) => (
+                <div key={key} className="flex flex-col items-center justify-center bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-3.5 py-2.5 min-w-[60px] text-center">
+                  <p className={`text-2xl font-bold tabular-nums ${color}`}>
+                    {summary ? (summary[key] ?? 0) : '—'}
+                  </p>
+                  <p className="text-[10px] text-gray-400 mt-0.5">{label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}

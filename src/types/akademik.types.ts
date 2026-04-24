@@ -365,9 +365,16 @@ export interface AbsensiPendingItem {
   status:          'AKSI_DIBUTUHKAN' | 'MENUNGGU_GURU'
 }
 
+export interface MateriPerMapelItem {
+  mataPelajaranId: string
+  namaMapel:       string
+  belumDibaca:     number
+}
+
 export interface TodoSiswaResponse {
   tugasPending:    TugasPendingItem[]
   absensiPending:  AbsensiPendingItem[]
+  materiPerMapel:  MateriPerMapelItem[]
 }
 
 // ── Todo Guru ─────────────────────────────────────────────────

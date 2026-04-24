@@ -9,13 +9,13 @@ import {
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth.store'
 
-// Dashboard | Materi | Tugas | Absensi | ToDo
+// Dashboard | Materi | Tugas & Nilai | Jadwal & Absensi | ToDo
 const BOTTOM_NAV = [
-  { label: 'Dashboard', href: '/dashboard',                icon: LayoutDashboard },
-  { label: 'Materi',    href: '/dashboard/materi-pelajaran', icon: BookOpen },
-  { label: 'Tugas',     href: '/dashboard/tugas',          icon: ClipboardList },
-  { label: 'Absensi',   href: '/dashboard/absensi',        icon: QrCode },
-  { label: 'ToDo',      href: '/dashboard/todo',           icon: ListTodo },
+  { label: 'Dashboard',       href: '/dashboard',                  icon: LayoutDashboard },
+  { label: 'Materi',          href: '/dashboard/materi-pelajaran', icon: BookOpen },
+  { label: 'Tugas & Nilai',   href: '/dashboard/tugas',            icon: ClipboardList },
+  { label: 'Jadwal & Absensi', href: '/dashboard/absensi',         icon: QrCode },
+  { label: 'ToDo',            href: '/dashboard/todo',             icon: ListTodo },
 ]
 
 export function MobileNav() {
@@ -39,7 +39,7 @@ export function MobileNav() {
         let href = item.href
 
         // ── Dynamic routing per role ──
-        if (item.label === 'Absensi') {
+        if (item.label === 'Jadwal & Absensi') {
           if (user?.role === 'GURU' || user?.role === 'WALI_KELAS') href = '/dashboard/absensi/guru'
           else if (user?.role === 'SISWA') href = '/dashboard/jadwal/kelas'
           else href = '/dashboard/absensi/manajemen'

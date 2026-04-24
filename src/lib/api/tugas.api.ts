@@ -7,6 +7,7 @@ import {
   PengumpulanTugas,
   RekapPengumpulanItem,
   StatusPengumpulan,
+  NilaiRekapResponse,
 } from '@/types/tugas.types'
 
 const BASE = '/tugas'
@@ -41,6 +42,9 @@ export const submitTugas = (tugasId: string, payload: any) =>
 
 export const getMySubmission = (tugasId: string) =>
   api.get<PengumpulanTugas>(`${BASE}/${tugasId}/pengumpulan`).then((r) => r.data)
+
+export const getMyNilaiRekap = () =>
+  api.get<NilaiRekapResponse>(`${BASE}/my/nilai-rekap`).then((r) => r.data)
 
 // --- GRADING (GURU) ---
 

@@ -3,7 +3,7 @@ import {
   QrCode, FileText, Award, Users, DollarSign, CreditCard,
   Settings, BarChart3, Home, Bell, UserCircle, School,
   BookMarked, ShieldCheck, Calendar, Layers,
-  Building2, FolderOpen,
+  Building2, FolderOpen, ListTodo,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
 import { ST } from 'next/dist/shared/lib/utils'
@@ -27,7 +27,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'SAYA',
     items: [
       { label: 'Dashboard',     href: '/dashboard',               icon: LayoutDashboard },
-      { label: 'Notifikasi',    href: '/dashboard/notifikasi',    icon: Bell },
+      { label: 'To Do',          href: '/dashboard/todo',           icon: ListTodo },
       { label: 'Profil Saya',   href: '/dashboard/profil',        icon: UserCircle },
     ],
   },
@@ -80,13 +80,13 @@ export const NAV_GROUPS: NavGroup[] = [
         roles: ['GURU', 'SISWA', 'WALI_KELAS', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'ADMIN', 'SUPER_ADMIN'],
       },
       {
-        label: 'Tugas & Penilaian',
+        label: 'Tugas & Nilai',
         href: '/dashboard/tugas',
         icon: ClipboardList,
         roles: ['GURU', 'WALI_KELAS', 'SISWA', 'ADMIN', 'SUPER_ADMIN'],
       },
       {
-        label: 'Jadwal',
+        label: 'Jadwal & Absensi',
         href: '/dashboard/jadwal',
         icon: CalendarDays,
         roles: ['GURU', 'SISWA', 'WALI_KELAS', 'ADMIN', 'SUPER_ADMIN', 'WAKIL_KEPALA', 'KEPALA_SEKOLAH'],
@@ -257,16 +257,11 @@ export function getNavForRole(user: any): NavGroup[] {
             return { ...item, href: dynamicHref }
           }
 
-          // 3. Jadwal
-          if (item.label === 'Jadwal' && item.href === '/dashboard/jadwal') {
-            if (role === 'SISWA') return { ...item, label: 'Absensi', href: '/dashboard/jadwal/kelas' }
+          // 3. Jadwal & Absensi — routing per role
+          if (item.label === 'Jadwal & Absensi' && item.href === '/dashboard/jadwal') {
+            if (role === 'SISWA') return { ...item, href: '/dashboard/jadwal/kelas' }
             if (role === 'GURU' || role === 'WALI_KELAS') return { ...item, href: '/dashboard/jadwal/guru' }
             return { ...item, href: '/dashboard/jadwal/manajemen' }
-          }
-          
-          // 4. Tugas — siswa cukup lihat "Tugas" bukan "Tugas & Penilaian"
-          if (item.label === 'Tugas & Penilaian' && item.href === '/dashboard/tugas') {
-            if (role === 'SISWA') return { ...item, label: 'Tugas' }
           }
 
           // 5. Kelas & Siswa (Kelas Belajar)

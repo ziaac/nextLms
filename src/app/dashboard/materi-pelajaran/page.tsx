@@ -30,6 +30,16 @@ const ADMIN_ROLES = ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA']
 const GURU_ROLES  = ['GURU', 'WALI_KELAS']
 const SISWA_ROLES = ['SISWA']
 
+// ── Mini-stat config (siswa) ──────────────────────────────────────────
+const MATERI_TIPE_CONFIG: { tipe: TipeMateri; label: string; color: string }[] = [
+  { tipe: 'TEXT',          label: 'Richtext',  color: 'text-blue-600 dark:text-blue-400'      },
+  { tipe: 'PDF',           label: 'PDF',       color: 'text-red-600 dark:text-red-400'        },
+  { tipe: 'VIDEO_YOUTUBE', label: 'Video',     color: 'text-purple-600 dark:text-purple-400'  },
+  { tipe: 'SLIDESHOW',     label: 'Slideshow', color: 'text-amber-600 dark:text-amber-400'    },
+  { tipe: 'AUDIO',         label: 'Audio',     color: 'text-emerald-600 dark:text-emerald-400'},
+  { tipe: 'HYBRID',        label: 'Hybrid',    color: 'text-indigo-600 dark:text-indigo-400'  },
+]
+
 
 export default function MateriPelajaranPage() {
   return (
@@ -189,6 +199,14 @@ function MateriPelajaranContent() {
       ),
     )
   }, [mapelGroups, searchQ])
+
+  // Breakdown tipe materi untuk mini-stats siswa
+  const materiStats = useMemo(() => {
+    return allMateri.reduce<Partial<Record<TipeMateri, number>>>((acc, m) => {
+      acc[m.tipeMateri] = (acc[m.tipeMateri] ?? 0) + 1
+      return acc
+    }, {})
+  }, [allMateri])
 
   // Jumlah materi yang cocok per group saat search aktif
   const matchCount = (group: (typeof mapelGroups)[0]) => {
@@ -458,6 +476,34 @@ function MateriPelajaranContent() {
             <Archive className="w-4 h-4 text-gray-500" />
           </button>
         </div>
+
+        {/* ── Mini stats ── */}
+        {!siswaLoading && allMateri.length > 0 && (
+          <div
+            className="overflow-x-auto -mx-4 px-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
+          >
+            <div className="flex gap-2 items-stretch w-max pb-1">
+              {/* Total */}
+              <div className="flex flex-col items-center justify-center bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl px-3.5 py-2 min-w-[56px]">
+                <p className="text-sm font-bold text-gray-800 dark:text-gray-200 tabular-nums">{allMateri.length}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">Total</p>
+              </div>
+              <div className="w-px bg-gray-100 dark:bg-gray-800 self-stretch my-1" />
+              {/* Per tipe */}
+              {MATERI_TIPE_CONFIG.map(({ tipe, label, color }) => {
+                const count = materiStats[tipe] ?? 0
+                if (count === 0) return null
+                return (
+                  <div key={tipe} className="flex flex-col items-center justify-center bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl px-3.5 py-2 min-w-[56px]">
+                    <p className={`text-sm font-bold tabular-nums ${color}`}>{count}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5 whitespace-nowrap">{label}</p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Search bar */}
         <div className="relative">

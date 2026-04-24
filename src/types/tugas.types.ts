@@ -152,6 +152,31 @@ export interface RekapPengumpulanItem {
   nilai?:         number | null
 }
 
+// ── Nilai rekap (GET /tugas/my/nilai-rekap) ───────────────────
+export interface NilaiRekapItem {
+  tugasId:             string
+  judul:               string
+  tujuan:              TujuanTugas
+  bentuk:              BentukTugas
+  bobot:               number
+  tanggalSelesai:      string
+  allowLateSubmission: boolean
+  mataPelajaranId:     string
+  namaMapel:           string
+  pengumpulan: {
+    id:            string
+    status:        StatusPengumpulan
+    isLate:        boolean
+    tanggalSubmit: string | null
+    nilai:         number | null
+    catatan:       string | null
+  } | null
+}
+
+export interface NilaiRekapResponse {
+  data: NilaiRekapItem[]
+}
+
 export interface TugasQueryParams {
   page?: number
   limit?: number
