@@ -1,18 +1,21 @@
 
 'use client'
 
-import { useState, useMemo, useEffect, Suspense } from 'react'
+import React, { useState, useMemo, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams }       from 'next/navigation'
 import { useAuthStore }                     from '@/stores/auth.store'
 import { PageHeader, Button, ConfirmModal } from '@/components/ui'
-import { Plus, Archive, Copy, ArrowLeft }             from 'lucide-react'
+import { Plus, Archive, Copy, ArrowLeft, Award, BookOpen } from 'lucide-react'
 import { useTugasList, useDeleteTugas }     from '@/hooks/tugas/useTugas'
 import { useSemesterActive }               from '@/hooks/semester/useSemester'
+import { useMataPelajaranList }            from '@/hooks/mata-pelajaran/useMataPelajaran'
 import { TugasFilterBar }                  from './_components/TugasFilterBar'
 import { TugasTable }                      from './_components/TugasTable'
 import { TugasPredefinedModal }            from './_components/TugasPredefinedModal'
 import { ArsipTugasSlideOver }             from './_components/ArsipTugasSlideOver'
 import { SalinTugasModal }                from './_components/SalinTugasModal'
+import { PenilaianDimensiTab }             from '@/components/dimensi-profil/PenilaianDimensiTab'
+import { ProfilLulusanSiswa }             from '@/components/dimensi-profil/ProfilLulusanSiswa'
 import type { TugasItem, TujuanTugas, BentukTugas } from '@/types/tugas.types'
 import { TugasSiswaList }                  from './_components/TugasSiswaList'
 import { TugasSiswaPanel }                from './_components/TugasSiswaPanel'
@@ -21,6 +24,51 @@ import { toast }                            from 'sonner'
 const ADMIN_ROLES = ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA']
 const GURU_ROLES  = ['GURU', 'WALI_KELAS']
 const SISWA_ROLES = ['SISWA']
+
+// ── Siswa tabbed view (Tugas & Nilai | Dimensi Profil) ───────
+function TugasSiswaTabbed({ userId, semesterId }: { userId: string; semesterId: string }) {
+  const [tab, setTab] = useState<'tugas' | 'dimensi'>('tugas')
+
+  return (
+    <div className="space-y-5">
+      {/* Page title */}
+      <div>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Tugas, Nilai dan Dimensi Profil</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Lihat tugas, nilai, dan penilaian dimensi profil Anda</p>
+      </div>
+
+      {/* Tab bar */}
+      <div className="flex gap-0 border-b border-gray-200 dark:border-gray-700">
+        {([
+          { key: 'tugas',   label: 'Tugas & Nilai' },
+          { key: 'dimensi', label: 'Dimensi Profil', icon: <Award className="w-3.5 h-3.5" /> },
+        ] as { key: 'tugas' | 'dimensi'; label: string; icon?: React.ReactNode }[]).map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setTab(t.key)}
+            className={[
+              'flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors',
+              tab === t.key
+                ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
+            ].join(' ')}
+          >
+            {t.icon}
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'tugas'   && <TugasSiswaPanel userId={userId} />}
+      {tab === 'dimensi' && (
+        semesterId
+          ? <ProfilLulusanSiswa siswaId={userId} semesterId={semesterId} />
+          : <p className="text-sm text-gray-400 italic text-center py-10">Semester aktif tidak ditemukan.</p>
+      )}
+    </div>
+  )
+}
 
 export default function TugasPage() {
   return <Suspense><TugasContent /></Suspense>
@@ -60,6 +108,26 @@ function TugasContent() {
     [semAktifRaw],
   )
   const [selectedSemId, setSelectedSemId] = useState('')
+
+  // ── Main tab (Tugas | Dimensi Profil) — guru only ─────────────────
+  type MainTab = 'tugas' | 'dimensi'
+  const [mainTab,       setMainTab]       = useState<MainTab>('tugas')
+  const [dimensiMapelId, setDimensiMapelId] = useState('')
+
+  const resolvedSemId = activeSemList[0]?.id ?? ''
+  const { data: myMapelRaw } = useMataPelajaranList(
+    isGuru && mainTab === 'dimensi' && resolvedSemId
+      ? { semesterId: resolvedSemId, guruId: user?.id }
+      : undefined,
+    { enabled: isGuru && mainTab === 'dimensi' && !!resolvedSemId },
+  )
+  const myMapelList = useMemo(() => {
+    if (!myMapelRaw) return []
+    const arr = Array.isArray(myMapelRaw)
+      ? myMapelRaw
+      : ((myMapelRaw as { data?: unknown[] }).data ?? [])
+    return arr as { id: string; mataPelajaranTingkat?: { masterMapel?: { nama?: string } }; kelas?: { namaKelas?: string } }[]
+  }, [myMapelRaw])
 
   useEffect(() => {
     if (isGuru && activeSemList.length > 0 && !selectedSemId) {
@@ -173,89 +241,187 @@ function TugasContent() {
               : isAdmin ? "Pantau seluruh tugas di sekolah" : "Kelola tugas dan ujian untuk siswa Anda"
           }
           actions={
-            <div className="flex items-center gap-2">
-              {(isGuru || isAdmin) && (
-                <Button
-                  variant="secondary"
-                  leftIcon={<Archive size={16} />}
-                  onClick={() => setArsipOpen(true)}
-                >
-                  Arsip
-                </Button>
-              )}
-              {(isGuru || isAdmin) && (
-                <Button
-                  variant="secondary"
-                  leftIcon={<Copy size={16} />}
-                  onClick={() => setSalinOpen(true)}
-                >
-                  Salin Tugas
-                </Button>
-              )}
-              {isGuru && (
-                <Button leftIcon={<Plus size={16} />} onClick={() => setCreateOpen(true)}>
-                  Buat Tugas Baru
-                </Button>
-              )}
-            </div>
+            mainTab === 'tugas' ? (
+              <div className="flex items-center gap-2">
+                {(isGuru || isAdmin) && (
+                  <Button
+                    variant="secondary"
+                    leftIcon={<Archive size={16} />}
+                    onClick={() => setArsipOpen(true)}
+                  >
+                    Arsip
+                  </Button>
+                )}
+                {(isGuru || isAdmin) && (
+                  <Button
+                    variant="secondary"
+                    leftIcon={<Copy size={16} />}
+                    onClick={() => setSalinOpen(true)}
+                  >
+                    Salin Tugas
+                  </Button>
+                )}
+                {isGuru && (
+                  <Button leftIcon={<Plus size={16} />} onClick={() => setCreateOpen(true)}>
+                    Buat Tugas Baru
+                  </Button>
+                )}
+              </div>
+            ) : null
           }
         />
 
-        {/* Semester pills — hanya tampil jika 2+ semester aktif */}
-        {isGuru && activeSemList.length > 1 && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-gray-400 shrink-0">Semester:</span>
-            {activeSemList.map((sem) => (
+        {/* ── Tab bar — Tugas & Nilai | Dimensi Profil (guru only) ── */}
+        {isGuru && (
+          <div className="flex gap-0 border-b border-gray-200 dark:border-gray-700 -mt-2">
+            {([
+              { key: 'tugas',    label: 'Tugas & Nilai' },
+              { key: 'dimensi',  label: 'Dimensi Profil', icon: <Award className="w-3.5 h-3.5" /> },
+            ] as { key: MainTab; label: string; icon?: React.ReactNode }[]).map((t) => (
               <button
-                key={sem.id}
+                key={t.key}
                 type="button"
-                onClick={() => { setSelectedSemId(sem.id); setPage(1) }}
+                onClick={() => setMainTab(t.key)}
                 className={[
-                  'px-3 py-1 rounded-full text-xs font-semibold border transition-colors',
-                  selectedSemId === sem.id
-                    ? 'bg-blue-600 border-blue-600 text-white'
-                    : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600',
+                  'flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors',
+                  mainTab === t.key
+                    ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
                 ].join(' ')}
               >
-                {sem.nama}
+                {t.icon}
+                {t.label}
               </button>
             ))}
           </div>
         )}
 
-        <TugasFilterBar
-          search={search}
-          mapelTingkatId={mapelTingkatId}
-          kelasId={kelasId}
-          tujuan={tujuan || undefined}
-          bentuk={bentuk || undefined}
-          guruId={isGuru ? (user?.id ?? '') : ''}
-          onSearchChange={(v)       => { setSearch(v); setPage(1) }}
-          onMapelTingkatChange={(v) => { setMapelTingkatId(v); setKelasId(''); setPage(1) }}
-          onKelasChange={(v)        => { setKelasId(v); setPage(1) }}
-          onTujuanChange={(v)       => { setTujuan(v); setPage(1) }}
-          onBentukChange={(v)       => { setBentuk(v); setPage(1) }}
-          onReset={resetFilters}
-        />
+        {/* ── Tab: Tugas & Nilai ─────────────────────────────────── */}
+        {mainTab === 'tugas' && (
+          <>
+            {/* Semester pills — hanya tampil jika 2+ semester aktif */}
+            {isGuru && activeSemList.length > 1 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-gray-400 shrink-0">Semester:</span>
+                {activeSemList.map((sem) => (
+                  <button
+                    key={sem.id}
+                    type="button"
+                    onClick={() => { setSelectedSemId(sem.id); setPage(1) }}
+                    className={[
+                      'px-3 py-1 rounded-full text-xs font-semibold border transition-colors',
+                      selectedSemId === sem.id
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600',
+                    ].join(' ')}
+                  >
+                    {sem.nama}
+                  </button>
+                ))}
+              </div>
+            )}
 
-        <p className="text-xs text-gray-400 -mt-3">
-          Total{' '}
-          <span className="font-medium text-gray-600 dark:text-gray-300">
-            {meta.total} tugas
-          </span>
-        </p>
+            <TugasFilterBar
+              search={search}
+              mapelTingkatId={mapelTingkatId}
+              kelasId={kelasId}
+              tujuan={tujuan || undefined}
+              bentuk={bentuk || undefined}
+              guruId={isGuru ? (user?.id ?? '') : ''}
+              onSearchChange={(v)       => { setSearch(v); setPage(1) }}
+              onMapelTingkatChange={(v) => { setMapelTingkatId(v); setKelasId(''); setPage(1) }}
+              onKelasChange={(v)        => { setKelasId(v); setPage(1) }}
+              onTujuanChange={(v)       => { setTujuan(v); setPage(1) }}
+              onBentukChange={(v)       => { setBentuk(v); setPage(1) }}
+              onReset={resetFilters}
+            />
 
-        <TugasTable
-          data={list}
-          meta={meta}
-          isLoading={isLoading}
-          page={page}
-          showGuru={isAdmin}
-          onPageChange={setPage}
-          onEdit={handleEdit}
-          onDelete={(item) => setDeleteTarget(item)}
-          onSelect={handleSelect}
-        />
+            <p className="text-xs text-gray-400 -mt-3">
+              Total{' '}
+              <span className="font-medium text-gray-600 dark:text-gray-300">
+                {meta.total} tugas
+              </span>
+            </p>
+
+            <TugasTable
+              data={list}
+              meta={meta}
+              isLoading={isLoading}
+              page={page}
+              showGuru={isAdmin}
+              onPageChange={setPage}
+              onEdit={handleEdit}
+              onDelete={(item) => setDeleteTarget(item)}
+              onSelect={handleSelect}
+            />
+          </>
+        )}
+
+        {/* ── Tab: Dimensi Profil (guru only) ───────────────────── */}
+        {isGuru && mainTab === 'dimensi' && (
+          <div className="flex gap-4 items-start">
+            {/* Left: mapel list */}
+            <div className="w-56 flex-shrink-0 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-3">
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-1">
+                Mata Pelajaran
+              </p>
+              {myMapelList.length === 0 ? (
+                <p className="text-xs text-gray-400 italic px-1">
+                  Tidak ada mata pelajaran pada semester aktif.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  {myMapelList.map((m) => {
+                    const nama  = m.mataPelajaranTingkat?.masterMapel?.nama ?? m.id
+                    const kelas = m.kelas?.namaKelas ?? ''
+                    const isSel = dimensiMapelId === m.id
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setDimensiMapelId(m.id)}
+                        className={[
+                          'flex items-center gap-2 px-2.5 py-2 rounded-xl border text-left transition-all w-full',
+                          isSel
+                            ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 shadow-sm'
+                            : 'border-transparent hover:border-emerald-200 hover:bg-gray-50 dark:hover:bg-gray-800',
+                        ].join(' ')}
+                      >
+                        <div className={[
+                          'w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0',
+                          isSel ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-gray-100 dark:bg-gray-800',
+                        ].join(' ')}>
+                          <BookOpen size={13} className={isSel ? 'text-emerald-600' : 'text-gray-400'} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate leading-tight">{nama}</p>
+                          {kelas && <p className="text-[10px] text-gray-400 truncate">{kelas}</p>}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Right: penilaian grid */}
+            <div className="flex-1 min-w-0">
+              {dimensiMapelId ? (
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-4">
+                  <PenilaianDimensiTab
+                    mataPelajaranId={dimensiMapelId}
+                    mapelNama={myMapelList.find((m) => m.id === dimensiMapelId)?.mataPelajaranTingkat?.masterMapel?.nama}
+                  />
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 gap-3 bg-white dark:bg-gray-900 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                  <BookOpen className="h-10 w-10 text-gray-200 dark:text-gray-700" />
+                  <p className="text-sm text-gray-400">Pilih mata pelajaran di kiri untuk memulai penilaian</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Modals */}
         {isGuru && (
@@ -331,8 +497,8 @@ function TugasContent() {
       )
     }
 
-    // Main two-panel view
-    return <TugasSiswaPanel userId={user?.id ?? ''} />
+    // Main tabbed view: Tugas & Nilai | Profil Lulusan
+    return <TugasSiswaTabbed userId={user?.id ?? ''} semesterId={resolvedSemId} />
   }
 
   // Fallback

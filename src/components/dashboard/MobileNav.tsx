@@ -29,7 +29,7 @@ export function MobileNav() {
     <nav className="
       lg:hidden fixed bottom-0 left-0 right-0 z-40
       flex items-center
-      h-16 px-2
+      h-16 px-1
       bg-white/90 dark:bg-gray-900/90
       backdrop-blur-md
       border-t border-gray-200 dark:border-gray-800
@@ -53,15 +53,15 @@ export function MobileNav() {
             key={item.label}
             href={href}
             className={cn(
-              'relative flex-1 flex flex-col items-center justify-center gap-1 py-1',
+              'relative flex-1 flex flex-col items-center justify-center gap-0.5 py-1 px-0.5',
               'min-h-[44px] rounded-xl transition-colors',
               active
                 ? 'text-emerald-600 dark:text-emerald-400'
                 : 'text-gray-500 dark:text-gray-400',
             )}
           >
-            <Icon size={20} />
-            <span className="text-[10px] font-medium leading-none">{item.label}</span>
+            <Icon size={19} />
+            <span className="text-[9px] font-medium leading-tight text-center w-full">{item.label}</span>
           </Link>
         )
       })}

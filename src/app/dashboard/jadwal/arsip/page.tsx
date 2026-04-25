@@ -121,7 +121,7 @@ function JadwalTab({ semesterId, semNama, taNama }: { semesterId: string; semNam
       )}
 
       {!isLoading && items.length > 0 && (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 print:border-gray-300">
+        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 print:border-gray-300 bg-white dark:bg-gray-900">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-800/60 print:bg-gray-100">

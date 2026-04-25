@@ -32,6 +32,11 @@ const UsersIcon = () => (
       d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
   </svg>
 )
+const AwardIcon = () => (
+  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <circle cx="12" cy="8" r="6" /><path strokeLinecap="round" strokeLinejoin="round" d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" />
+  </svg>
+)
 const TrashIcon = () => (
   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round"
@@ -40,18 +45,22 @@ const TrashIcon = () => (
 )
 
 // ── Row — seluruh row clickable ───────────────────────────────
-function MapelTingkatRow({ item, onDetail }: {
-  item: MataPelajaranTingkat; onDetail: () => void
+function MapelTingkatRow({ item, onDetail, onDimensi }: {
+  item:      MataPelajaranTingkat
+  onDetail:  () => void
+  onDimensi: () => void
 }) {
   const deleteMutation  = useDeleteMapelTingkat()
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const guruCount     = item.guruMapel.length
+  const dimensiCount  = item._count?.dimensiProfil ?? 0
 
   return (
     <>
       <tr
         onClick={onDetail}
         className="border-b border-gray-100 dark:border-gray-700/50
-          hover:bg-emerald-30/50 dark:hover:bg-emerald-900/10
+          hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10
           cursor-pointer transition-colors group"
       >
         <td className="px-4 py-3">
@@ -70,39 +79,9 @@ function MapelTingkatRow({ item, onDetail }: {
             {KATEGORI_LABEL[item.masterMapel.kategori] ?? item.masterMapel.kategori}
           </Badge>
         </td>
-        <td className="px-4 py-3">
-          {item.guruMapel.length === 0 ? (
-            <span className="text-xs text-gray-400 dark:text-gray-500 italic">Belum ada guru</span>
-          ) : (
-            <div className="flex items-center gap-1.5">
-              <div className="flex -space-x-1.5">
-                {item.guruMapel.slice(0, 3).map((gm) => (
-                  <div key={gm.id} title={gm.guru.profile.namaLengkap}
-                    className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/30
-                      border-2 border-white dark:border-gray-900
-                      flex items-center justify-center
-                      text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
-                    {gm.guru.profile.namaLengkap.split(' ').slice(0,2).map((n: string) => n[0]).join('')}
-                  </div>
-                ))}
-                {item.guruMapel.length > 3 && (
-                  <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700
-                    border-2 border-white dark:border-gray-900
-                    flex items-center justify-center
-                    text-[10px] font-medium text-gray-500 dark:text-gray-400">
-                    +{item.guruMapel.length - 3}
-                  </div>
-                )}
-              </div>
-              <span className="text-xs text-gray-400 dark:text-gray-500">
-                {item.guruMapel.length} guru
-              </span>
-            </div>
-          )}
-        </td>
         <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-          {/* Tombol aksi — stopPropagation agar tidak trigger onDetail */}
-          <div className="flex items-center gap-1 justify-end">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {/* Kelola Guru button with count */}
             <button
               onClick={(e) => { e.stopPropagation(); onDetail() }}
               className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg
@@ -111,8 +90,20 @@ function MapelTingkatRow({ item, onDetail }: {
                 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
             >
               <UsersIcon />
-              Kelola Guru
+              Kelola Guru{guruCount > 0 && ` (${guruCount})`}
             </button>
+            {/* Dimensi Profil button with count */}
+            <button
+              onClick={(e) => { e.stopPropagation(); onDimensi() }}
+              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg
+                border border-purple-200 dark:border-purple-700/50
+                text-purple-600 dark:text-purple-400
+                hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+            >
+              <AwardIcon />
+              Dimensi Profil{dimensiCount > 0 && ` (${dimensiCount})`}
+            </button>
+            {/* Delete */}
             <button
               onClick={(e) => { e.stopPropagation(); setConfirmDelete(true) }}
               className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50
@@ -141,10 +132,11 @@ function MapelTingkatRow({ item, onDetail }: {
 }
 
 // ── Tabel per tingkat dengan filter ──────────────────────────
-function TingkatSection({ tingkat, search, onDetail }: {
-  tingkat:  TingkatKelas
-  search:   string
-  onDetail: (item: MataPelajaranTingkat) => void
+function TingkatSection({ tingkat, search, onDetail, onDimensi }: {
+  tingkat:   TingkatKelas
+  search:    string
+  onDetail:  (item: MataPelajaranTingkat) => void
+  onDimensi: (item: MataPelajaranTingkat) => void
 }) {
   const { data, isLoading } = useMapelTingkatByTingkat(tingkat.id)
 
@@ -197,10 +189,9 @@ function TingkatSection({ tingkat, search, onDetail }: {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-600/60">
               <tr>
-                {['Kode','Nama','Kategori','Guru Pengajar','Aksi'].map((h, i) => (
-                  <th key={h} className={`px-4 py-2.5 text-xs font-semibold text-gray-500
-                    dark:text-gray-400 uppercase tracking-wider
-                    ${i === 4 ? 'text-right' : 'text-left'}`}>
+                {['Kode','Nama','Kategori','Aksi'].map((h) => (
+                  <th key={h} className="px-4 py-2.5 text-xs font-semibold text-gray-500
+                    dark:text-gray-400 uppercase tracking-wider text-left">
                     {h}
                   </th>
                 ))}
@@ -208,7 +199,12 @@ function TingkatSection({ tingkat, search, onDetail }: {
             </thead>
             <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-700/50">
               {filtered.map((item) => (
-                <MapelTingkatRow key={item.id} item={item} onDetail={() => onDetail(item)} />
+                <MapelTingkatRow
+                  key={item.id}
+                  item={item}
+                  onDetail={() => onDetail(item)}
+                  onDimensi={() => onDimensi(item)}
+                />
               ))}
             </tbody>
           </table>
@@ -218,24 +214,42 @@ function TingkatSection({ tingkat, search, onDetail }: {
   )
 }
 
+// ── Reactive panel helpers ────────────────────────────────────
+// We keep only (id, tingkatId, initialTab) in state and derive the full
+// item from the live query so the SlideOver always reflects mutations.
+function usePanelItem(itemId: string | null, tingkatId: string | null) {
+  const { data } = useMapelTingkatByTingkat(tingkatId)
+  return useMemo(
+    () => (itemId && data ? (data.find((i) => i.id === itemId) ?? null) : null),
+    [itemId, data],
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────
 export default function MataPelajaranTingkatPage() {
   const { data: allTingkat, isLoading: loadingTingkat } = useTingkatKelasList()
 
-  const [formOpen,       setFormOpen]       = useState(false)
-  const [panelOpen,      setPanelOpen]      = useState(false)
-  const [panelItem,      setPanelItem]      = useState<MataPelajaranTingkat | null>(null)
-  const [search,         setSearch]         = useState('')
-  const [filterTingkat,  setFilterTingkat]  = useState<string>('') // '' = semua
+  const [formOpen,        setFormOpen]        = useState(false)
+  const [panelOpen,       setPanelOpen]       = useState(false)
+  const [panelItemId,     setPanelItemId]     = useState<string | null>(null)
+  const [panelTingkatId,  setPanelTingkatId]  = useState<string | null>(null)
+  const [panelInitialTab, setPanelInitialTab] = useState<'guru' | 'dimensi'>('guru')
+  const [search,          setSearch]          = useState('')
+  const [filterTingkat,   setFilterTingkat]   = useState<string>('')
 
-  const handleDetail = (item: MataPelajaranTingkat) => {
-    setPanelItem(item)
+  // Derive panelItem reactively from live query — fixes stale snapshot bug
+  const panelItem = usePanelItem(panelItemId, panelTingkatId)
+
+  const openPanel = (item: MataPelajaranTingkat, tab: 'guru' | 'dimensi' = 'guru') => {
+    setPanelItemId(item.id)
+    setPanelTingkatId(item.tingkatKelasId)
+    setPanelInitialTab(tab)
     setPanelOpen(true)
   }
 
   const handleClosePanel = () => {
     setPanelOpen(false)
-    setTimeout(() => setPanelItem(null), 300)
+    setTimeout(() => { setPanelItemId(null); setPanelTingkatId(null) }, 300)
   }
 
   // Tingkat yang ditampilkan — semua atau yang dipilih
@@ -319,7 +333,8 @@ export default function MataPelajaranTingkatPage() {
                 key={tingkat.id}
                 tingkat={tingkat}
                 search={search}
-                onDetail={handleDetail}
+                onDetail={(item) => openPanel(item, 'guru')}
+                onDimensi={(item) => openPanel(item, 'dimensi')}
               />
             ))}
           </div>
@@ -332,6 +347,7 @@ export default function MataPelajaranTingkatPage() {
         open={panelOpen}
         onClose={handleClosePanel}
         item={panelItem}
+        initialTab={panelInitialTab}
       />
     </>
   )

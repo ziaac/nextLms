@@ -3,7 +3,7 @@ import {
   QrCode, FileText, Award, Users, DollarSign, CreditCard,
   Settings, BarChart3, Home, Bell, UserCircle, School,
   BookMarked, ShieldCheck, Calendar, Layers,
-  Building2, FolderOpen, ListTodo,
+  Building2, FolderOpen, ListTodo, Star,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
 import { ST } from 'next/dist/shared/lib/utils'
@@ -212,6 +212,12 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Guru Mapel',
         href:  '/dashboard/mata-pelajaran-tingkat',
         icon:  BookOpen,
+        roles: ['ADMIN', 'SUPER_ADMIN'],
+      },
+      {
+        label: 'Dimensi Profil',
+        href: '/dashboard/master-dimensi-profil',
+        icon: Star,
         roles: ['ADMIN', 'SUPER_ADMIN'],
       },
       {

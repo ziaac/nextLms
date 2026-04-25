@@ -47,7 +47,7 @@ export function MatrixSiswaTable({ matrix }: Props) {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-gray-800">
+      <div className="overflow-x-auto rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
         <table className="min-w-max w-full text-sm">
           <thead>
             <tr className="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-100 dark:border-gray-700">

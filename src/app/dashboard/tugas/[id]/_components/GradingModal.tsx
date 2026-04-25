@@ -10,7 +10,7 @@ import { Modal }                   from '@/components/ui/Modal'
 import { Button }                  from '@/components/ui'
 import { Spinner }                 from '@/components/ui/Spinner'
 import { Badge }                   from '@/components/ui/Badge'
-import { useSubmissionDetail, useUpdateSubmissionStatus } from '@/hooks/tugas/useTugas'
+import { useSubmissionDetail, useUpdateSubmissionStatus, useNilaiManual } from '@/hooks/tugas/useTugas'
 import { getPresignedUrl }         from '@/lib/api/upload.api'
 import { toast }                   from 'sonner'
 import { format }                  from 'date-fns'
@@ -235,37 +235,135 @@ function NilaiReadOnly({
   )
 }
 
+// ── Manual Grading Form (untuk siswa yang belum submit) ───────────────
+interface ManualGradingFormProps {
+  tugasId:    string
+  siswaId:    string
+  namaSiswa:  string
+  bobot:      number
+  onDone:     () => void
+}
+
+function ManualGradingForm({ tugasId, siswaId, namaSiswa, bobot, onDone }: ManualGradingFormProps) {
+  const [nilai,   setNilai]   = useState('')
+  const [catatan, setCatatan] = useState('')
+  const mutation = useNilaiManual()
+
+  const handleSubmit = async () => {
+    const num = Number(nilai)
+    if (!nilai.trim() || isNaN(num) || num < 0 || num > bobot) {
+      toast.error(`Masukkan nilai antara 0 dan ${bobot}.`)
+      return
+    }
+    try {
+      await mutation.mutateAsync({
+        tugasId,
+        payload: { siswaId, nilai: num, catatan: catatan.trim() || undefined },
+      })
+      toast.success('Nilai berhasil disimpan!')
+      onDone()
+    } catch {
+      toast.error('Gagal menyimpan nilai.')
+    }
+  }
+
+  return (
+    <div className="space-y-5 p-5">
+      {/* Info siswa */}
+      <div className="flex items-center gap-3 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30">
+        <AlertTriangle size={15} className="text-amber-600 shrink-0" />
+        <div>
+          <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Siswa belum mengumpulkan</p>
+          <p className="text-xs text-amber-600 dark:text-amber-500 mt-0.5">
+            Nilai akan disimpan sebagai <em>dikumpulkan manual oleh guru</em>.
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
+          <Award size={12} /> Nilai untuk {namaSiswa} (maks. {bobot})
+        </label>
+        <input
+          type="number"
+          min={0}
+          max={bobot}
+          value={nilai}
+          onChange={(e) => setNilai(e.target.value)}
+          placeholder={`0 – ${bobot}`}
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-2xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-emerald-400"
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
+          <MessageSquare size={12} /> Catatan (opsional)
+        </label>
+        <textarea
+          value={catatan}
+          onChange={(e) => setCatatan(e.target.value)}
+          rows={3}
+          placeholder="Keterangan tambahan untuk siswa..."
+          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+      </div>
+
+      <Button
+        className="w-full"
+        loading={mutation.isPending}
+        disabled={mutation.isPending}
+        onClick={() => { void handleSubmit() }}
+      >
+        Simpan Nilai Manual
+      </Button>
+    </div>
+  )
+}
+
+// ── Student nav item ──────────────────────────────────────────────────
+export interface StudentNavItem {
+  pengumpulanId?: string   // undefined = belum submit
+  siswaId:        string
+  namaLengkap:    string
+}
+
 // ── Main Modal ────────────────────────────────────────────────────────
 interface Props {
   open:           boolean
   pengumpulanId:  string | null
+  siswaId?:       string           // diisi jika siswa belum submit (untuk manual grading)
+  namaSiswa?:     string           // diisi bersamaan dengan siswaId
   tugas:          TugasItem
-  students:       { pengumpulanId: string; namaLengkap: string }[]
-  onNavigate:     (id: string) => void
+  students:       StudentNavItem[]
+  onNavigate:     (item: StudentNavItem) => void
   onClose:        () => void
 }
 
-export function GradingModal({ open, pengumpulanId, tugas, students, onNavigate, onClose }: Props) {
+export function GradingModal({
+  open, pengumpulanId, siswaId, namaSiswa,
+  tugas, students, onNavigate, onClose,
+}: Props) {
   const [editMode, setEditMode] = useState(false)
 
   // Reset edit mode saat buka modal atau navigasi
-  useEffect(() => { setEditMode(false) }, [pengumpulanId, open])
+  useEffect(() => { setEditMode(false) }, [pengumpulanId, siswaId, open])
 
-  // Guard: jangan fetch jika modal tertutup atau id null
+  // Guard: jangan fetch jika modal tertutup atau tidak ada id
   const { data: sub, isLoading } = useSubmissionDetail(open && pengumpulanId ? pengumpulanId : null)
 
-  // Navigasi prev/next
-  const currentIdx = students.findIndex((s) => s.pengumpulanId === pengumpulanId)
+  // Navigasi prev/next — berdasarkan siswaId
+  const currentSiswaId = siswaId ?? sub?.siswa?.id ?? null
+  const currentIdx = students.findIndex((s) => s.siswaId === currentSiswaId)
   const hasPrev    = currentIdx > 0
   const hasNext    = currentIdx < students.length - 1
 
-  const goPrev = () => { if (hasPrev) onNavigate(students[currentIdx - 1].pengumpulanId) }
-  const goNext = () => { if (hasNext) onNavigate(students[currentIdx + 1].pengumpulanId) }
+  const goPrev = () => { if (hasPrev) onNavigate(students[currentIdx - 1]) }
+  const goNext = () => { if (hasNext) onNavigate(students[currentIdx + 1]) }
 
   // Derived
-  const siswa      = sub?.siswa
-  const namaSiswa  = siswa?.profile?.namaLengkap ?? 'Siswa'
-  const nisnSiswa  = siswa?.profile?.nisn ?? ''
+  const siswa          = sub?.siswa
+  const namaSiswaFetch = siswa?.profile?.namaLengkap ?? namaSiswa ?? 'Siswa'
+  const nisnSiswa      = siswa?.profile?.nisn ?? ''
   const fileKeys   = Array.isArray(sub?.fileUrls) ? (sub.fileUrls as string[]) : []
   const hasFiles   = fileKeys.length > 0
   const hasJawaban = !!sub?.jawaban
@@ -326,14 +424,22 @@ export function GradingModal({ open, pengumpulanId, tugas, students, onNavigate,
       )}
 
       {/* Konten */}
-      {!pengumpulanId ? (
+      {/* ── Case: belum submit → manual grading ─────────────────── */}
+      {!pengumpulanId && siswaId ? (
+        <ManualGradingForm
+          tugasId={tugas.id}
+          siswaId={siswaId}
+          namaSiswa={namaSiswa ?? 'Siswa'}
+          bobot={tugas.bobot}
+          onDone={() => {
+            if (hasNext) onNavigate(students[currentIdx + 1])
+            else onClose()
+          }}
+        />
+      ) : !pengumpulanId ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400 px-6 text-center">
           <AlertTriangle size={32} className="opacity-40" />
-          <p className="text-sm">
-            ID pengumpulan tidak tersedia. Pastikan backend mengembalikan field{' '}
-            <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">pengumpulanId</code>{' '}
-            pada response rekap.
-          </p>
+          <p className="text-sm">Pilih siswa dari tabel untuk mulai menilai.</p>
         </div>
       ) : isLoading || !sub ? (
         <div className="flex items-center justify-center py-20">
@@ -353,7 +459,7 @@ export function GradingModal({ open, pengumpulanId, tugas, students, onNavigate,
                 <User size={16} className="text-gray-500" />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{namaSiswa}</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{namaSiswaFetch}</p>
                 {nisnSiswa && <p className="text-xs text-gray-400">NISN: {nisnSiswa}</p>}
               </div>
               <div className="ml-auto shrink-0">
@@ -460,7 +566,7 @@ export function GradingModal({ open, pengumpulanId, tugas, students, onNavigate,
                 onDone={() => {
                   setEditMode(false)
                   // Jika masih ada siswa berikutnya, otomatis navigasi
-                  if (hasNext) onNavigate(students[currentIdx + 1].pengumpulanId)
+                  if (hasNext) onNavigate(students[currentIdx + 1])
                   else onClose()
                 }}
               />

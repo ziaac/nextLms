@@ -68,3 +68,12 @@ export interface UpdateSubmissionPayload {
 export const updateSubmissionStatus = (id: string, payload: UpdateSubmissionPayload) =>
   api.patch<PengumpulanTugas>(`${BASE}/pengumpulan/${id}/status`, payload).then((r) => r.data)
 
+export interface NilaiManualPayload {
+  siswaId: string
+  nilai:   number
+  catatan?: string
+}
+
+export const nilaiManualTugas = (tugasId: string, payload: NilaiManualPayload) =>
+  api.post<PengumpulanTugas>(`${BASE}/${tugasId}/nilai-manual`, payload).then((r) => r.data)
+

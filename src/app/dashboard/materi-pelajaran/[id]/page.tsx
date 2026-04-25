@@ -13,6 +13,16 @@ import {
   ArrowLeft, BookOpen, Download, Archive, Copy, Check, X, Loader2,
   Pencil, Clock, Eye, FileText, ChevronRight, ClipboardList,
 } from 'lucide-react'
+import DiskusiPanel from '@/components/diskusi/DiskusiPanel'
+import {
+  useDiskusiMateri,
+  useCreateDiskusiMateri,
+  useDeleteDiskusiMateri,
+  usePinDiskusiMateri,
+  useCreateBalasanMateri,
+  useDeleteBalasanMateri,
+  useToggleDiskusiMateri,
+} from '@/hooks/diskusi/useDiskusi'
 import { Button }                              from '@/components/ui/Button'
 import { Select }                              from '@/components/ui'
 import { Skeleton }                            from '@/components/ui'
@@ -127,6 +137,22 @@ function DetailMateriContent({ params: paramsPromise }: { params: Promise<{ id: 
   const namaMapel   = materi.mataPelajaran?.mataPelajaranTingkat?.masterMapel?.nama
   const namaKelas   = materi.mataPelajaran?.kelas?.namaKelas ?? materi.kelas?.namaKelas
   const status      = getStatusMateri(materi)
+
+  // ── Diskusi hooks ────────────────────────────────────────────
+  const diskusiQuery      = useDiskusiMateri(materi.id)
+  const createDiskusi     = useCreateDiskusiMateri(materi.id)
+  const deleteDiskusiMut  = useDeleteDiskusiMateri(materi.id)
+  const pinDiskusiMut     = usePinDiskusiMateri(materi.id)
+  const createBalasan     = useCreateBalasanMateri(materi.id)
+  const deleteBalasanMut  = useDeleteBalasanMateri(materi.id)
+  const toggleDiskusiMut  = useToggleDiskusiMateri(materi.id)
+  const [deletingDiskusiId, setDeletingDiskusiId] = useState<string | null>(null)
+  const [pinningDiskusiId,  setPinningDiskusiId]  = useState<string | null>(null)
+  const [replyingDiskusiId, setReplyingDiskusiId] = useState<string | null>(null)
+  const [deletingReplyId,   setDeletingReplyId]   = useState<string | null>(null)
+  const [diskusiAktif,      setDiskusiAktif]       = useState<boolean | undefined>(undefined)
+  // sync from server once loaded
+  const diskusiAktifValue = diskusiAktif ?? (materi as any).isDiskusiAktif ?? true
 
   return (
     <div className="pb-24">
@@ -374,6 +400,41 @@ function DetailMateriContent({ params: paramsPromise }: { params: Promise<{ id: 
               )}
             </Link>
           </div>
+
+          {/* Diskusi */}
+          {!isReadOnly && (
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700/60 bg-white dark:bg-gray-900 p-6">
+              <DiskusiPanel
+                items={diskusiQuery.data ?? []}
+                loading={diskusiQuery.isLoading}
+                isDiskusiAktif={diskusiAktifValue}
+                onToggleAktif={isGuru ? () => toggleDiskusiMut.mutateAsync().then(r => setDiskusiAktif((r as any).isDiskusiAktif)) : undefined}
+                onCreate={p => createDiskusi.mutateAsync(p)}
+                onDelete={id => {
+                  setDeletingDiskusiId(id)
+                  return deleteDiskusiMut.mutateAsync(id).finally(() => setDeletingDiskusiId(null))
+                }}
+                onPin={id => {
+                  setPinningDiskusiId(id)
+                  return pinDiskusiMut.mutateAsync(id).finally(() => setPinningDiskusiId(null))
+                }}
+                onReply={(diskusiId, isi) => {
+                  setReplyingDiskusiId(diskusiId)
+                  return createBalasan.mutateAsync({ diskusiId, payload: { isi } }).finally(() => setReplyingDiskusiId(null))
+                }}
+                onDeleteReply={id => {
+                  setDeletingReplyId(id)
+                  return deleteBalasanMut.mutateAsync(id).finally(() => setDeletingReplyId(null))
+                }}
+                creatingDiskusi={createDiskusi.isPending}
+                deletingId={deletingDiskusiId}
+                pinningId={pinningDiskusiId}
+                replyingId={replyingDiskusiId}
+                deletingReplyId={deletingReplyId}
+                contextLabel="materi"
+              />
+            </div>
+          )}
 
           {/* Tabs */}
           <div className="rounded-lg border border-gray-200 dark:border-gray-700/60 bg-white dark:bg-gray-900 overflow-hidden">

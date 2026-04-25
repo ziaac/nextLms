@@ -9,7 +9,13 @@
       "Bash(grep -E \"\\\\.\\(tsx?|jsx?\\)$\")",
       "Read(//d/projects/LMS-MAN/Code/nestAPI/src/modules/ekstrakurikuler/**)",
       "Bash(xargs grep *)",
-      "Bash(node -e \"const pkg = require\\('D:/projects/LMS-MAN/Code/nextjslms/package.json'\\); console.log\\('react:', pkg.dependencies?.react, 'next:', pkg.dependencies?.next\\)\")"
+      "Bash(node -e \"const pkg = require\\('D:/projects/LMS-MAN/Code/nextjslms/package.json'\\); console.log\\('react:', pkg.dependencies?.react, 'next:', pkg.dependencies?.next\\)\")",
+      "Bash(dir \"D:\\\\projects\\\\LMS-MAN\\\\Code\\\\nextjslms\\\\src\\\\app\\\\dashboard\" /b)",
+      "Bash(npx prisma *)",
+      "Bash(ls /mnt/)",
+      "Read(//d//**)",
+      "Bash(grep -v \"bg-white\\\\|bg-gray-9\\\\|#\\\\|//\")",
+      "Bash(npx tsx *)"
     ]
   }
 }

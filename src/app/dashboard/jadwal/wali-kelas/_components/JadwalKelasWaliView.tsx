@@ -85,7 +85,7 @@ export function JadwalKelasWaliView({ kelas, isLoading, hideStats = false }: Pro
       )}
 
       {/* Matrix table */}
-      <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="bg-gray-50 dark:bg-gray-800/60">

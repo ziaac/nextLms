@@ -97,6 +97,7 @@ export interface TugasItem {
   maxFileSize?: number
   allowedFileTypes: string[]
   isPublished: boolean
+  isDiskusiAktif: boolean
   quizSettings?: QuizSettings
   createdAt: string
   updatedAt: string

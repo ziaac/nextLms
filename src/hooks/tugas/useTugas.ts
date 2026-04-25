@@ -14,9 +14,10 @@ import {
   getSubmissionDetail,
   updateSubmissionStatus,
   bulkCopyTugas,
+  nilaiManualTugas,
 } from '@/lib/api/tugas.api'
 import { TugasQueryParams } from '@/types/tugas.types'
-import type { UpdateSubmissionPayload } from '@/lib/api/tugas.api'
+import type { UpdateSubmissionPayload, NilaiManualPayload } from '@/lib/api/tugas.api'
 
 export const tugasKeys = {
   all:          (params?: TugasQueryParams) => ['tugas', 'list', params ?? {}] as const,
@@ -131,6 +132,18 @@ export function useUpdateSubmissionStatus() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tugas', 'submission'] })
       qc.invalidateQueries({ queryKey: ['tugas', 'rekap'] })
+    },
+  })
+}
+
+export function useNilaiManual() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ tugasId, payload }: { tugasId: string; payload: NilaiManualPayload }) =>
+      nilaiManualTugas(tugasId, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tugas', 'rekap'] })
+      qc.invalidateQueries({ queryKey: ['tugas', 'submission'] })
     },
   })
 }

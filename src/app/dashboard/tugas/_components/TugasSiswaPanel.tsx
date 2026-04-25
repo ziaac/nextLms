@@ -626,9 +626,12 @@ export function TugasSiswaPanel({ userId }: Props) {
 
           {/* ── Tab: Nilai ── */}
           {tab === 'nilai' && (
-            nilaiLoading
-              ? <SkeletonRows />
-              : <NilaiTable items={displayNilai} showMapel={!selectedMapelId} />
+            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3">
+              {nilaiLoading
+                ? <SkeletonRows />
+                : <NilaiTable items={displayNilai} showMapel={!selectedMapelId} />
+              }
+            </div>
           )}
 
         </div>

@@ -279,7 +279,7 @@ export default function JadwalGuruPage() {
       </div>
 
       {/* ── Tabs ─────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-1 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center gap-1 border-b border-gray-200 dark:border-gray-700 overflow-x-auto overflow-y-hidden">
         <TabBtn
           active={activeTab === 'mengajar'}
           icon={<BookOpen className="h-3.5 w-3.5" />}
@@ -389,6 +389,7 @@ export default function JadwalGuruPage() {
           )}
         </div>
       )}
+
 
       {/* ── Modals ───────────────────────────────────────────────── */}
       <BukaSesiModal

@@ -77,6 +77,7 @@ export interface MataPelajaranTingkat {
   masterMapel:    Pick<MasterMapel, 'id' | 'kode' | 'nama' | 'kategori' | 'kelompok'>
   tingkatKelas:   Pick<TingkatKelas, 'id' | 'nama' | 'jenjang'>
   guruMapel:      GuruMapel[]
+  _count:         { dimensiProfil: number }
 }
 
 export interface CreateMapelTingkatPayload {

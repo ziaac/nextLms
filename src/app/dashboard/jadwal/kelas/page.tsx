@@ -37,8 +37,8 @@ const HARI_LIST: HariEnum[] = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SAB
 type TabKey = 'jadwal' | 'matrix'
 
 const TABS: { key: TabKey; label: string; Icon: React.ElementType }[] = [
-  { key: 'jadwal',  label: 'Jadwal Mingguan', Icon: Calendar        },
-  { key: 'matrix',  label: 'Matriks Absensi', Icon: TableProperties },
+  { key: 'jadwal', label: 'Jadwal Mingguan', Icon: Calendar        },
+  { key: 'matrix', label: 'Matriks Absensi', Icon: TableProperties },
 ]
 
 const STAT_KEYS: { key: string; label: string; color: string }[] = [

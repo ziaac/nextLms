@@ -44,6 +44,7 @@ export interface MateriItem {
   tujuanPembelajaran?: string | null
   tanggalPublikasi?:   string | null
   isPublished:         boolean
+  isDiskusiAktif:      boolean
   viewCount:           number
   minScreenTime:       number
   createdAt:           string

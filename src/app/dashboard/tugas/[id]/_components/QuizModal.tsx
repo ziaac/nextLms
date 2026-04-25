@@ -6,7 +6,7 @@ import {
 import {
   X, ChevronLeft, ChevronRight, CheckCircle2, Circle,
   AlertTriangle, Clock, Award, Eye, Send, BookOpen,
-  SkipForward, RotateCcw, Maximize2, Minimize2,
+  SkipForward, RotateCcw, Maximize2, Minimize2, LayoutGrid,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui'
@@ -104,7 +104,8 @@ export function QuizModal({ tugas, tugasId, onClose }: Props) {
   const [answers, setAnswers]           = useState<Record<string, string>>({})
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showNavPanel, setShowNavPanel] = useState(true)
+  const [showNavPanel, setShowNavPanel]           = useState(true)
+  const [showMobileNavPopup, setShowMobileNavPopup] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [totalTime, setTotalTime]       = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -749,26 +750,49 @@ export function QuizModal({ tugas, tugasId, onClose }: Props) {
             {/* ── Bottom nav ──────────────────────────────────────────── */}
             <div className="shrink-0 px-4 py-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
 
-              {/* Mobile navigation dots */}
-              <div className="md:hidden flex gap-1 overflow-x-auto pb-2 mb-2" style={{ scrollbarWidth: 'none' }}>
-                {shuffledSoal.map((s, i) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => setCurrentIdx(i)}
-                    className={cn(
-                      'shrink-0 w-7 h-7 rounded-lg text-[10px] font-bold transition-all',
-                      i === currentIdx
-                        ? 'bg-blue-600 text-white'
-                        : answers[s.id]
-                          ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-500',
-                    )}
+              {/* Mobile nav popup overlay */}
+              {showMobileNavPopup && (
+                <div
+                  className="md:hidden fixed inset-0 z-[110] flex flex-col justify-end"
+                  onClick={() => setShowMobileNavPopup(false)}
+                >
+                  <div
+                    className="bg-white dark:bg-gray-900 rounded-t-2xl border-t border-gray-200 dark:border-gray-800 p-4 pb-safe max-h-[60vh] flex flex-col"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-bold text-gray-800 dark:text-white">Navigasi Soal</p>
+                      <p className="text-xs text-gray-400">{answeredCount} / {totalQ} dijawab</p>
+                    </div>
+                    {/* Legend */}
+                    <div className="flex items-center gap-4 mb-3">
+                      <span className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                        <span className="w-3 h-3 rounded bg-emerald-100 dark:bg-emerald-900/30 inline-block" /> Dijawab
+                      </span>
+                      <span className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                        <span className="w-3 h-3 rounded bg-gray-100 dark:bg-gray-700 inline-block" /> Belum
+                      </span>
+                      <span className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                        <span className="w-3 h-3 rounded-full bg-gray-100 dark:bg-gray-700 inline-block" /> Essay
+                      </span>
+                    </div>
+                    {/* Grid */}
+                    <div className="flex flex-wrap gap-1.5 overflow-y-auto">
+                      {shuffledSoal.map((s, i) => (
+                        <QDot
+                          key={s.id}
+                          no={i + 1}
+                          answered={!!answers[s.id]}
+                          current={i === currentIdx}
+                          onClick={() => { setCurrentIdx(i); setShowMobileNavPopup(false) }}
+                          tipe={s.tipe}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center gap-2">
                 {/* Prev */}
@@ -782,6 +806,22 @@ export function QuizModal({ tugas, tugasId, onClose }: Props) {
                 >
                   <span className="hidden sm:inline">Sebelumnya</span>
                 </Button>
+
+                {/* Mobile: nav grid icon */}
+                <button
+                  type="button"
+                  onClick={() => setShowMobileNavPopup((v) => !v)}
+                  className="md:hidden relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600 transition-colors text-xs font-medium shrink-0"
+                  title="Navigasi soal"
+                >
+                  <LayoutGrid size={14} />
+                  <span className="tabular-nums">{currentIdx + 1}/{totalQ}</span>
+                  {unansweredSoal.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 text-white text-[9px] font-bold flex items-center justify-center">
+                      {unansweredSoal.length}
+                    </span>
+                  )}
+                </button>
 
                 <div className="flex-1" />
 

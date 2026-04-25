@@ -6,11 +6,22 @@ import { useAuthStore }    from '@/stores/auth.store'
 import {
   useTugasDetail, useTugasRekap, usePublishTugas, useMySubmission,
 } from '@/hooks/tugas/useTugas'
+import DiskusiPanel from '@/components/diskusi/DiskusiPanel'
+import {
+  useDiskusiTugas,
+  useCreateDiskusiTugas,
+  useDeleteDiskusiTugas,
+  usePinDiskusiTugas,
+  useCreateBalasanTugas,
+  useDeleteBalasanTugas,
+  useToggleDiskusiTugas,
+} from '@/hooks/diskusi/useDiskusi'
 import { Button }          from '@/components/ui'
 import { Badge }           from '@/components/ui/Badge'
 import { Spinner }         from '@/components/ui/Spinner'
 import { SiswaSubmitPanel } from './_components/SiswaSubmitPanel'
 import { GradingModal }    from './_components/GradingModal'
+import type { StudentNavItem } from './_components/GradingModal'
 import {
   ArrowLeft, Edit, Clock, FileText, Download,
   AlertCircle, Calendar, Settings, Award, CheckCircle2, Users,
@@ -49,9 +60,25 @@ export default function TugasDetailPage() {
   const publishMutation                                = usePublishTugas()
 
   // ── Modal state ───────────────────────────────────────────────────
-  const [activeTab,             setActiveTab]             = useState<'ringkasan' | 'pengumpulan'>('ringkasan')
-  const [showGradingModal,      setShowGradingModal]      = useState(false)
+  const [activeTab,         setActiveTab]         = useState<'ringkasan' | 'pengumpulan'>('ringkasan')
+  const [showGradingModal,  setShowGradingModal]  = useState(false)
   const [selectedPengumpulanId, setSelectedPengumpulanId] = useState<string | null>(null)
+  const [selectedSiswaId,   setSelectedSiswaId]   = useState<string | null>(null)
+  const [selectedNamaSiswa, setSelectedNamaSiswa] = useState<string>('')
+
+  // ── Diskusi hooks — must be before early returns ──────────────────
+  const diskusiQuery     = useDiskusiTugas(tugas?.id ?? null)
+  const createDiskusi    = useCreateDiskusiTugas(tugasId)
+  const deleteDiskusiMut = useDeleteDiskusiTugas(tugasId)
+  const pinDiskusiMut    = usePinDiskusiTugas(tugasId)
+  const createBalasan    = useCreateBalasanTugas(tugasId)
+  const deleteBalasanMut = useDeleteBalasanTugas(tugasId)
+  const toggleDiskusiMut = useToggleDiskusiTugas(tugasId)
+  const [deletingDiskusiId, setDeletingDiskusiId] = useState<string | null>(null)
+  const [pinningDiskusiId,  setPinningDiskusiId]  = useState<string | null>(null)
+  const [replyingDiskusiId, setReplyingDiskusiId] = useState<string | null>(null)
+  const [deletingReplyId,   setDeletingReplyId]   = useState<string | null>(null)
+  const [diskusiAktif,      setDiskusiAktif]       = useState<boolean | undefined>(undefined)
 
   // ── Loading / Error ───────────────────────────────────────────────
   if (isLoading) {
@@ -83,10 +110,12 @@ export default function TugasDetailPage() {
   const totalSubmitted = rekapList.filter((r) => r.sudahSubmit).length
   const submissionRate = totalSiswa ? Math.round((totalSubmitted / totalSiswa) * 100) : 0
 
-  // List siswa yang sudah submit — untuk navigasi di GradingModal
-  const submittedStudents = rekapList
-    .filter((r) => r.sudahSubmit && r.pengumpulanId)
-    .map((r) => ({ pengumpulanId: r.pengumpulanId!, namaLengkap: r.namaLengkap }))
+  // Semua siswa — termasuk belum submit — untuk navigasi di GradingModal
+  const allStudentsNav: StudentNavItem[] = rekapList.map((r) => ({
+    pengumpulanId: r.pengumpulanId,
+    siswaId:       r.siswaId,
+    namaLengkap:   r.namaLengkap,
+  }))
 
   const handlePublish = async () => {
     try {
@@ -97,8 +126,10 @@ export default function TugasDetailPage() {
     }
   }
 
-  const handleOpenGrading = (pengumpulanId: string | undefined | null) => {
-    setSelectedPengumpulanId(pengumpulanId ?? null)
+  const handleOpenGrading = (siswa: RekapPengumpulanItem) => {
+    setSelectedPengumpulanId(siswa.pengumpulanId ?? null)
+    setSelectedSiswaId(siswa.siswaId)
+    setSelectedNamaSiswa(siswa.namaLengkap)
     setShowGradingModal(true)
   }
 
@@ -448,10 +479,13 @@ export default function TugasDetailPage() {
                         <Button
                           variant="secondary"
                           size="sm"
-                          disabled={!siswa.sudahSubmit}
-                          onClick={() => handleOpenGrading(siswa.pengumpulanId)}
+                          onClick={() => handleOpenGrading(siswa)}
                         >
-                          {siswa.statusSubmit === StatusPengumpulan.DINILAI ? 'Lihat Nilai' : 'Beri Nilai'}
+                          {siswa.statusSubmit === StatusPengumpulan.DINILAI
+                            ? 'Lihat Nilai'
+                            : siswa.sudahSubmit
+                              ? 'Beri Nilai'
+                              : 'Nilai Manual'}
                         </Button>
                       </td>
                     </tr>
@@ -470,14 +504,59 @@ export default function TugasDetailPage() {
         </div>
       )}
 
+      {/* ── Diskusi ── */}
+      {tugas && (
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
+          <DiskusiPanel
+            items={diskusiQuery.data ?? []}
+            loading={diskusiQuery.isLoading}
+            isDiskusiAktif={diskusiAktif ?? tugas.isDiskusiAktif ?? true}
+            onToggleAktif={isGuruOrAdmin ? () => toggleDiskusiMut.mutateAsync().then(r => setDiskusiAktif((r as any).isDiskusiAktif)) : undefined}
+            onCreate={p => createDiskusi.mutateAsync(p)}
+            onDelete={id => {
+              setDeletingDiskusiId(id)
+              return deleteDiskusiMut.mutateAsync(id).finally(() => setDeletingDiskusiId(null))
+            }}
+            onPin={id => {
+              setPinningDiskusiId(id)
+              return pinDiskusiMut.mutateAsync(id).finally(() => setPinningDiskusiId(null))
+            }}
+            onReply={(diskusiId, isi) => {
+              setReplyingDiskusiId(diskusiId)
+              return createBalasan.mutateAsync({ diskusiId, payload: { isi } }).finally(() => setReplyingDiskusiId(null))
+            }}
+            onDeleteReply={id => {
+              setDeletingReplyId(id)
+              return deleteBalasanMut.mutateAsync(id).finally(() => setDeletingReplyId(null))
+            }}
+            creatingDiskusi={createDiskusi.isPending}
+            deletingId={deletingDiskusiId}
+            pinningId={pinningDiskusiId}
+            replyingId={replyingDiskusiId}
+            deletingReplyId={deletingReplyId}
+            contextLabel="tugas"
+          />
+        </div>
+      )}
+
       {/* ── Grading Modal ── */}
       <GradingModal
         open={showGradingModal}
         pengumpulanId={selectedPengumpulanId}
+        siswaId={selectedPengumpulanId ? undefined : (selectedSiswaId ?? undefined)}
+        namaSiswa={selectedNamaSiswa}
         tugas={tugas}
-        students={submittedStudents}
-        onNavigate={(id) => setSelectedPengumpulanId(id)}
-        onClose={() => { setShowGradingModal(false); setSelectedPengumpulanId(null) }}
+        students={allStudentsNav}
+        onNavigate={(item) => {
+          setSelectedPengumpulanId(item.pengumpulanId ?? null)
+          setSelectedSiswaId(item.siswaId)
+          setSelectedNamaSiswa(item.namaLengkap)
+        }}
+        onClose={() => {
+          setShowGradingModal(false)
+          setSelectedPengumpulanId(null)
+          setSelectedSiswaId(null)
+        }}
       />
     </div>
   )
