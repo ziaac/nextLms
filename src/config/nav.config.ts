@@ -113,7 +113,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Catatan Sikap',
         href: '/dashboard/sikap',
         icon: BookMarked,
-        roles: ['GURU', 'WALI_KELAS', 'ADMIN', 'SUPER_ADMIN'],
+        roles: ['GURU', 'WALI_KELAS', 'ADMIN', 'SUPER_ADMIN', 'SISWA'],
       },
       {
         label: 'Prestasi',

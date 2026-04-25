@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { semesterApi } from '@/lib/api/semester.api'
-import type { CreateSemesterPayload, UpdateSemesterPayload } from '@/types/tahun-ajaran.types'
+import type { CreateSemesterPayload, UpdateSemesterPayload, Semester } from '@/types/tahun-ajaran.types'
 import { useTahunAjaranActive } from '@/hooks/tahun-ajaran/useTahunAjaran'
+import type { ComboboxOption } from '@/components/ui/Combobox'
 
 // ── Query Keys ────────────────────────────────────────────────
 export const semesterKeys = {
@@ -81,6 +82,30 @@ export function useDeleteSemester() {
       qc.invalidateQueries({ queryKey: semesterKeys.active })
     },
   })
+}
+
+// ── Semester options dengan konteks tahun ajaran ──────────────
+/**
+ * Mengembalikan ComboboxOption[] dengan label lengkap "2024/2025 – Ganjil"
+ * serta semester aktif dan semesterId aktif, siap pakai di form.
+ */
+export function useSemesterOptions() {
+  const { data: taListRaw = [] } = useTahunAjaranActive()
+  const taList  = taListRaw as { id: string; nama: string; isActive: boolean }[]
+  const taAktif = taList.find((t) => t.isActive) ?? taList[0] ?? null
+
+  const { data: semListRaw = [], isLoading } = useSemesterByTahunAjaran(taAktif?.id ?? null)
+  const semList = semListRaw as Semester[]
+
+  const options: ComboboxOption[] = semList.map((s) => ({
+    value: s.id,
+    label: `${taAktif?.nama ?? '—'} – Sem. ${s.nama === 'GANJIL' ? 'Ganjil' : 'Genap'}`,
+    hint:  s.isActive ? 'Aktif' : undefined,
+  }))
+
+  const activeSem = semList.find((s) => s.isActive) ?? semList[0] ?? null
+
+  return { options, activeSem, taAktif, semList, isLoading }
 }
 
 // ── Label semester aktif (reusable) ──────────────────────────
