@@ -1,6 +1,6 @@
 'use client'
 
-import { User, Heart, Calendar, BarChart3, BookOpen, Award, CheckCircle2, ArrowRightLeft } from 'lucide-react'
+import { User, Heart, Calendar, BarChart3, BookOpen, Award, CheckCircle2, ArrowRightLeft, Download } from 'lucide-react'
 import { SlideOver, Button, Badge, Skeleton } from '@/components/ui'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/lib/axios'
@@ -13,7 +13,7 @@ import {
 import { formatTanggalSaja } from '@/lib/helpers/timezone'
 import { StatusSiswa, StatusAkhirTahun } from '@/types/kelas.types'
 import { getPublicFileUrl } from '@/lib/constants'
-import type { KelasSiswa, CatatanSikapRekap } from '@/types/kelas.types'
+import type { KelasSiswa, CatatanSikapRekap, NilaiRapor } from '@/types/kelas.types'
 
 const safeTanggal = (val: string | null | undefined) =>
   val ? formatTanggalSaja(val) : '—'
@@ -184,27 +184,73 @@ export function SiswaDetailPanel({ kelasSiswa, onClose, onMutasi, readOnly }: Pr
             }
           </Section>
 
-          {/* Nilai Rapor — FIX: mapelNama, nilaiPengetahuan, predikatPengetahuan */}
+          {/* Nilai Rapor */}
           <Section title="Nilai Rapor" icon={<BookOpen className="h-4 w-4" />}>
-            {loadNilai ? <StatsSkeleton count={3} />
-              : nilaiList.length > 0 ? (
-                <div className="rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700/60 overflow-hidden">
-                  {nilaiList.map((n, i) => (
-                    <div key={i} className="flex items-center justify-between px-3 py-2">
-                      <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
-                        {n.mapelNama}
-                      </span>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-sm font-bold text-gray-900 dark:text-white">
-                          {n.nilaiPengetahuan}
-                        </span>
-                        <Badge variant="default">{n.predikatPengetahuan}</Badge>
-                      </div>
-                    </div>
-                  ))}
+            {loadNilai ? <StatsSkeleton count={3} /> : nilaiList.length > 0 ? (
+              <div className="space-y-2">
+                {/* Export all */}
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => exportAllNilai(nilaiList, namaLengkap)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors"
+                  >
+                    <Download className="h-3 w-3" /> Export Semua
+                  </button>
                 </div>
-              ) : <Placeholder text="Belum ada data nilai rapor" />
-            }
+
+                {/* Table */}
+                <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-100 dark:border-gray-700/60">
+                        <th className="text-left px-3 py-2.5 font-semibold text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                          Mata Pelajaran
+                        </th>
+                        <th className="text-center px-2 py-2.5 font-semibold text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide w-10">
+                          KKM
+                        </th>
+                        <th className="text-center px-2 py-2.5 font-semibold text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                          Pengetahuan
+                        </th>
+                        <th className="text-center px-2 py-2.5 font-semibold text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                          Keterampilan
+                        </th>
+                        <th className="w-7 px-1" />
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 dark:divide-gray-700/40">
+                      {nilaiList.map((n, i) => (
+                        <tr key={i} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/30 transition-colors group">
+                          <td className="px-3 py-2.5 font-medium text-gray-800 dark:text-gray-200 max-w-[110px] truncate">
+                            {n.mapelNama}
+                          </td>
+                          <td className="px-2 py-2.5 text-center text-gray-400 dark:text-gray-500 tabular-nums">
+                            {n.kkm ?? '—'}
+                          </td>
+                          <td className="px-2 py-2.5 text-center">
+                            <NilaiCell nilai={n.nilaiPengetahuan} predikat={n.predikatPengetahuan} kkm={n.kkm} />
+                          </td>
+                          <td className="px-2 py-2.5 text-center">
+                            <NilaiCell nilai={n.nilaiKeterampilan} predikat={n.predikatKeterampilan} kkm={n.kkm} />
+                          </td>
+                          <td className="px-1 py-2.5 text-right">
+                            <button
+                              type="button"
+                              onClick={() => exportSingleNilai(n, namaLengkap)}
+                              title="Export baris ini"
+                              className="opacity-0 group-hover:opacity-100 p-1 rounded text-gray-300 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all"
+                            >
+                              <Download className="h-3 w-3" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : <Placeholder text="Belum ada data nilai rapor" />}
           </Section>
 
           {/* Prestasi — FIX: namaPrestasi (bukan nama) */}
@@ -303,4 +349,66 @@ function StatsSkeleton({ count }: { count: number }) {
 
 function Placeholder({ text }: { text: string }) {
   return <p className="text-sm text-gray-400 dark:text-gray-500 italic py-1">{text}</p>
+}
+
+// ── Nilai Rapor helpers ───────────────────────────────────────────────────────
+
+function NilaiCell({ nilai, predikat, kkm }: { nilai: number; predikat: string; kkm: number }) {
+  const lulus  = nilai >= kkm
+  const color  = lulus
+    ? 'text-emerald-700 dark:text-emerald-400'
+    : 'text-red-600 dark:text-red-400'
+  return (
+    <div className="inline-flex items-center gap-1 justify-center">
+      <span className={`font-bold tabular-nums ${color}`}>{nilai}</span>
+      {predikat && (
+        <span className="text-[9px] font-semibold px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+          {predikat}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function downloadCSV(content: string, filename: string) {
+  const blob = new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8;' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function exportAllNilai(nilaiList: NilaiRapor[], namaLengkap: string) {
+  const rows = [
+    ['Mata Pelajaran', 'KKM', 'Nilai Pengetahuan', 'Predikat', 'Nilai Keterampilan', 'Predikat Keterampilan'],
+    ...nilaiList.map((n) => [
+      n.mapelNama,
+      String(n.kkm ?? ''),
+      String(n.nilaiPengetahuan),
+      n.predikatPengetahuan,
+      String(n.nilaiKeterampilan),
+      n.predikatKeterampilan,
+    ]),
+  ]
+  const csv = rows.map((r) => r.map((c) => `"${c}"`).join(',')).join('\n')
+  downloadCSV(csv, `nilai-${namaLengkap.replace(/\s+/g, '_')}.csv`)
+}
+
+function exportSingleNilai(n: NilaiRapor, namaLengkap: string) {
+  const rows = [
+    ['Siswa', 'Mata Pelajaran', 'KKM', 'Nilai Pengetahuan', 'Predikat', 'Nilai Keterampilan', 'Predikat Keterampilan'],
+    [
+      namaLengkap,
+      n.mapelNama,
+      String(n.kkm ?? ''),
+      String(n.nilaiPengetahuan),
+      n.predikatPengetahuan,
+      String(n.nilaiKeterampilan),
+      n.predikatKeterampilan,
+    ],
+  ]
+  const csv = rows.map((r) => r.map((c) => `"${c}"`).join(',')).join('\n')
+  downloadCSV(csv, `nilai-${namaLengkap.replace(/\s+/g, '_')}-${n.mapelNama.replace(/\s+/g, '_')}.csv`)
 }

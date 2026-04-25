@@ -4,6 +4,7 @@ import { useState, useCallback }   from 'react'
 import {
   CheckCircle2, Clock, RefreshCw, AlertTriangle,
   FileText, Upload, X, Download, Award, MessageSquare,
+  PlayCircle,
 } from 'lucide-react'
 import { format }                  from 'date-fns'
 import { id as localeId }          from 'date-fns/locale'
@@ -16,6 +17,7 @@ import { getPresignedUrl }         from '@/lib/api/upload.api'
 import { toast }                   from 'sonner'
 import type { TugasItem, StatusPengumpulan } from '@/types/tugas.types'
 import { BentukTugas }             from '@/types/tugas.types'
+import { QuizModal }               from './QuizModal'
 
 // ── Status Badge ─────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<StatusPengumpulan, { label: string; color: string; icon: React.ReactNode }> = {
@@ -211,25 +213,26 @@ export function SiswaSubmitPanel({ tugas, tugasId }: Props) {
   const submitMutation = useSubmitTugas()
 
   // Form state
-  const [files,   setFiles]   = useState<{ key: string; name: string }[]>([])
-  const [jawaban, setJawaban] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [files,       setFiles]       = useState<{ key: string; name: string }[]>([])
+  const [jawaban,     setJawaban]     = useState('')
+  const [submitting,  setSubmitting]  = useState(false)
+  const [showQuizModal, setShowQuizModal] = useState(false)
 
-  const needsFile  = tugas.bentuk === BentukTugas.FILE_SUBMISSION || tugas.bentuk === BentukTugas.HYBRID
-  const needsText  = tugas.bentuk === BentukTugas.RICH_TEXT       || tugas.bentuk === BentukTugas.HYBRID
-  const isQuiz     = tugas.bentuk === BentukTugas.QUIZ_MULTIPLE_CHOICE || tugas.bentuk === BentukTugas.QUIZ_MIX
+  const needsFile = tugas.bentuk === BentukTugas.FILE_SUBMISSION || tugas.bentuk === BentukTugas.HYBRID
+  const needsText = tugas.bentuk === BentukTugas.RICH_TEXT       || tugas.bentuk === BentukTugas.HYBRID
+  const isQuiz    = tugas.bentuk === BentukTugas.QUIZ_MULTIPLE_CHOICE || tugas.bentuk === BentukTugas.QUIZ_MIX
 
-  const now        = new Date()
-  const deadline   = new Date(tugas.tanggalSelesai)
-  const openAt     = new Date(tugas.tanggalMulai)
-  const isOpen     = now >= openAt
-  const isPast     = now > deadline
-  const isLateOk   = isPast && tugas.allowLateSubmission
-  const isClosed   = isPast && !tugas.allowLateSubmission
+  const now      = new Date()
+  const deadline = new Date(tugas.tanggalSelesai)
+  const openAt   = new Date(tugas.tanggalMulai)
+  const isOpen   = now >= openAt
+  const isPast   = now > deadline
+  const isLateOk = isPast && tugas.allowLateSubmission
+  const isClosed = isPast && !tugas.allowLateSubmission
 
-  const canSubmit  = isOpen && (!isPast || isLateOk) && !isClosed
+  const canSubmit = isOpen && (!isPast || isLateOk) && !isClosed
 
-  const handleAddFile   = (key: string, name: string) => setFiles((p) => [...p, { key, name }])
+  const handleAddFile    = (key: string, name: string) => setFiles((p) => [...p, { key, name }])
   const handleRemoveFile = (key: string) => setFiles((p) => p.filter((f) => f.key !== key))
 
   const handleSubmit = async () => {
@@ -260,15 +263,63 @@ export function SiswaSubmitPanel({ tugas, tugasId }: Props) {
     }
   }
 
-  // ── Quiz placeholder ──────────────────────────────────────────
+  // ── Quiz panel ────────────────────────────────────────────────
   if (isQuiz) {
+    const quizSoalCount = tugas.soalKuis?.length ?? 0
+
+    // Show quiz modal when launched
+    if (showQuizModal) {
+      return (
+        <QuizModal
+          tugas={tugas}
+          tugasId={tugasId}
+          onClose={() => setShowQuizModal(false)}
+        />
+      )
+    }
+
     return (
-      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 space-y-3">
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 space-y-4">
         <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200">Pengerjaan Kuis</h3>
-        <div className="flex flex-col items-center py-8 gap-3 text-gray-400">
-          <Clock size={32} className="opacity-40" />
-          <p className="text-sm text-center">Fitur kuis interaktif segera hadir.<br />Hubungi guru untuk pengerjaan manual.</p>
+
+        {/* Info tiles */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 px-3 py-2.5 text-center">
+            <p className="text-lg font-bold text-gray-800 dark:text-white">{quizSoalCount}</p>
+            <p className="text-[10px] text-gray-400">Total Soal</p>
+          </div>
+          <div className="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 px-3 py-2.5 text-center">
+            <p className="text-lg font-bold text-gray-800 dark:text-white">{tugas.bobot}</p>
+            <p className="text-[10px] text-gray-400">Bobot Maks.</p>
+          </div>
         </div>
+
+        {/* Warnings */}
+        {!isOpen && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm text-gray-500">
+            <Clock size={14} /> Kuis dibuka pada {format(openAt, 'd MMM yyyy, HH:mm', { locale: localeId })}
+          </div>
+        )}
+        {isClosed && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
+            <AlertTriangle size={14} /> Waktu pengerjaan kuis sudah ditutup.
+          </div>
+        )}
+        {isLateOk && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 text-xs text-amber-700 dark:text-amber-400">
+            <AlertTriangle size={13} /> Waktu habis — pengumpulan terlambat ({tugas.lateSubmissionPenalty ?? 0}% penalti).
+          </div>
+        )}
+
+        {canSubmit && (
+          <Button
+            className="w-full"
+            onClick={() => setShowQuizModal(true)}
+            leftIcon={<PlayCircle size={16} />}
+          >
+            Mulai Kuis
+          </Button>
+        )}
       </div>
     )
   }

@@ -6,7 +6,10 @@
       "Read(//d/projects/LMS-MAN/Code/nextjslms/**)",
       "Bash(npx tsc *)",
       "Bash(npx --prefix \"D:/projects/LMS-MAN/Code/nextjslms\" tsc --noEmit --project \"D:/projects/LMS-MAN/Code/nextjslms/tsconfig.json\")",
-      "Bash(grep -E \"\\\\.\\(tsx?|jsx?\\)$\")"
+      "Bash(grep -E \"\\\\.\\(tsx?|jsx?\\)$\")",
+      "Read(//d/projects/LMS-MAN/Code/nestAPI/src/modules/ekstrakurikuler/**)",
+      "Bash(xargs grep *)",
+      "Bash(node -e \"const pkg = require\\('D:/projects/LMS-MAN/Code/nextjslms/package.json'\\); console.log\\('react:', pkg.dependencies?.react, 'next:', pkg.dependencies?.next\\)\")"
     ]
   }
 }

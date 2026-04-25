@@ -119,21 +119,17 @@ function EkskulContent() {
   const { user } = useAuthStore()
   const semLabel = useActiveSemesterLabel()
 
-  if (!user) return <div className="flex justify-center py-12"><Spinner /></div>
-
-  const isSiswa = user.role === 'SISWA'
-
-  // ── Filters ──────────────────────────────────────────────
+  // ── All hooks must come before any conditional return ──────
   const [search,     setSearch]     = useState('')
   const [hariFilter, setHariFilter] = useState<HariEnum | ''>('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
-  // ── Tahun ajaran aktif ────────────────────────────────────
   const { data: taListRaw = [] } = useTahunAjaranActive()
   const taList  = taListRaw as { id: string; nama: string }[]
   const taAktif = taList[0]
 
-  // ── Data ─────────────────────────────────────────────────
+  const isSiswa = user?.role === 'SISWA'
+
   const { data: listData, isLoading: loadingList } = useEkskulList({
     isActive: true,
     ...(hariFilter ? { jadwalHari: hariFilter } : {}),
@@ -168,6 +164,9 @@ function EkskulContent() {
   // ── Stats bar ────────────────────────────────────────────
   const myAktif   = myMemberships.filter((m) => m.status === 'AKTIF').length
   const myPending = myMemberships.filter((m) => m.status === 'NONAKTIF').length
+
+  // ── Guard ─────────────────────────────────────────────────
+  if (!user) return <div className="flex justify-center py-12"><Spinner /></div>
 
   return (
     <div className="space-y-5">

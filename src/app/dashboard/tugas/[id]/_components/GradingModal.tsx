@@ -4,7 +4,7 @@ import { useState, useEffect }     from 'react'
 import {
   Download, FileText, MessageSquare,
   CheckCircle2, RefreshCw, Award, AlertTriangle, User,
-  ChevronLeft, ChevronRight, Edit2,
+  ChevronLeft, ChevronRight, Edit2, ClipboardList,
 } from 'lucide-react'
 import { Modal }                   from '@/components/ui/Modal'
 import { Button }                  from '@/components/ui'
@@ -15,7 +15,7 @@ import { getPresignedUrl }         from '@/lib/api/upload.api'
 import { toast }                   from 'sonner'
 import { format }                  from 'date-fns'
 import { id as localeId }          from 'date-fns/locale'
-import { StatusPengumpulan }       from '@/types/tugas.types'
+import { StatusPengumpulan, BentukTugas, TipeSoalKuis } from '@/types/tugas.types'
 import type { TugasItem }          from '@/types/tugas.types'
 
 // ── File Viewer ───────────────────────────────────────────────────────
@@ -270,6 +270,21 @@ export function GradingModal({ open, pengumpulanId, tugas, students, onNavigate,
   const hasFiles   = fileKeys.length > 0
   const hasJawaban = !!sub?.jawaban
 
+  // Detect quiz submission — jawaban is JSON map of soalId → opsiId
+  const isQuiz = tugas.bentuk === BentukTugas.QUIZ_MULTIPLE_CHOICE ||
+                 tugas.bentuk === BentukTugas.QUIZ_MIX
+  let quizAnswers: Record<string, string> = {}
+  let isQuizJawaban = false
+  if (isQuiz && sub?.jawaban) {
+    try {
+      const parsed = JSON.parse(sub.jawaban as string)
+      if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+        quizAnswers = parsed as Record<string, string>
+        isQuizJawaban = true
+      }
+    } catch { /* regular text answer */ }
+  }
+
   const nilaiEntry = sub?.penilaian?.[0]
   const nilaiSaved = nilaiEntry?.nilai ?? null
   const showReadOnly = sub?.status === StatusPengumpulan.DINILAI && !editMode && nilaiSaved != null
@@ -363,8 +378,47 @@ export function GradingModal({ open, pengumpulanId, tugas, students, onNavigate,
               </div>
             )}
 
-            {/* Jawaban teks */}
-            {hasJawaban && (
+            {/* Quiz answers */}
+            {isQuizJawaban && tugas.soalKuis && tugas.soalKuis.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
+                  <ClipboardList size={12} /> Jawaban Kuis
+                </p>
+                <div className="space-y-2">
+                  {[...tugas.soalKuis].sort((a, b) => a.urutan - b.urutan).map((soal, idx) => {
+                    const selId   = quizAnswers[soal.id]
+                    const selOpsi = soal.opsi?.find((o) => o.id === selId)
+                    const isMC    = soal.tipe === TipeSoalKuis.MULTIPLE_CHOICE
+                    return (
+                      <div key={soal.id} className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-xs">
+                        <p className="font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                          {idx + 1}. {soal.pertanyaan}
+                        </p>
+                        {selId ? (
+                          <p className={`flex items-center gap-1.5 ${
+                            isMC
+                              ? selOpsi?.isCorrect
+                                ? 'text-emerald-600'
+                                : 'text-red-500'
+                              : 'text-blue-600'
+                          }`}>
+                            <CheckCircle2 size={11} />
+                            {isMC ? (selOpsi?.teks ?? '—') : `${selId.slice(0, 80)}${selId.length > 80 ? '…' : ''}`}
+                            {isMC && selOpsi?.isCorrect && <span className="ml-1 text-emerald-500">(Benar)</span>}
+                            {isMC && !selOpsi?.isCorrect && <span className="ml-1 text-red-400">(Salah)</span>}
+                          </p>
+                        ) : (
+                          <p className="text-gray-400 italic">Tidak dijawab</p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Jawaban teks (non-quiz) */}
+            {hasJawaban && !isQuizJawaban && (
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Jawaban Teks</p>
                 <div
@@ -374,7 +428,7 @@ export function GradingModal({ open, pengumpulanId, tugas, students, onNavigate,
               </div>
             )}
 
-            {!hasFiles && !hasJawaban && (
+            {!hasFiles && !hasJawaban && !isQuizJawaban && (
               <div className="flex flex-col items-center py-10 gap-2 text-gray-400">
                 <FileText size={28} className="opacity-30" />
                 <p className="text-sm">Tidak ada file atau jawaban yang dikumpulkan.</p>

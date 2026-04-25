@@ -58,6 +58,6 @@ export interface QueryMasterSikap {
 export const getMasterSikapList = (params?: QueryMasterSikap) =>
   api
     .get<MasterSikapListResponse>(MASTER, {
-      params: { limit: 200, ...params },
+      params: { limit: 100, isActive: true, ...params },
     })
     .then((r) => r.data)

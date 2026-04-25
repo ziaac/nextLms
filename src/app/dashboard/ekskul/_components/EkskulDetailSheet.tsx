@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Calendar, MapPin, Users, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { X, Calendar, MapPin, Users, Loader2, ChevronLeft, ChevronRight, Star, CheckCircle2, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEkskulDetail, useKegiatanEkskul, useDaftarMandiri } from '@/hooks/ekskul/useEkskul'
 import { useTahunAjaranActive } from '@/hooks/tahun-ajaran/useTahunAjaran'
@@ -85,8 +85,8 @@ export function EkskulDetailSheet({ ekskulId, onClose, myStatus, isSiswa }: Prop
                   <img src={ekskul.logoUrl} alt={ekskul.nama}
                     className="w-16 h-16 rounded-xl object-cover shrink-0 bg-gray-100 dark:bg-gray-800" />
                 ) : (
-                  <div className="w-16 h-16 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center shrink-0 text-2xl">
-                    🎯
+                  <div className="w-16 h-16 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
+                    <Star size={24} className="text-emerald-400" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0 space-y-1">
@@ -205,11 +205,11 @@ export function EkskulDetailSheet({ ekskulId, onClose, myStatus, isSiswa }: Prop
           <div className="shrink-0 px-5 py-4 border-t border-gray-100 dark:border-gray-800">
             {myStatus === 'AKTIF' ? (
               <div className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-                ✅ Anda sudah menjadi anggota aktif
+                <CheckCircle2 size={15} /> Anda sudah menjadi anggota aktif
               </div>
             ) : myStatus === 'NONAKTIF' ? (
               <div className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-sm font-medium">
-                ⏳ Menunggu persetujuan pembina
+                <Clock size={15} /> Menunggu persetujuan pembina
               </div>
             ) : (
               <button type="button" onClick={handleDaftar}
