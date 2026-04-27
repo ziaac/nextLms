@@ -30,7 +30,7 @@ export function KelasDetailPanel({ kelas, onClose, onEdit, onDelete, onNavigateS
             {kelas.kodeKelas && <Badge variant="default">{kelas.kodeKelas}</Badge>}
           </div>
 
-          <div className="rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700/60 overflow-hidden">
+          <div className="rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700/60">
             <InfoRow icon={<User className="h-4 w-4 text-gray-400" />} label="Wali Kelas" value={kelas.waliKelas?.profile.namaLengkap ?? 'Belum ditentukan'} />
             <InfoRow icon={<MapPin className="h-4 w-4 text-gray-400" />} label="Ruangan" value={kelas.ruangan?.nama ?? '\u2014'} />
             <InfoRow icon={<Hash className="h-4 w-4 text-gray-400" />} label="Kuota Maksimal" value={`${kelas.kuotaMaksimal} siswa`} />

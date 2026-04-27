@@ -59,7 +59,7 @@ export function KinerjaSemesterTab({ guruId, semesterId }: Props) {
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1">
           Rincian Per Mata Pelajaran
         </p>
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800 overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800">
           {data.rincianPerMapel.map((r: import('@/types').KinerjaGuruRincian, i: number) => (
             <div key={i} className="flex items-center gap-3 px-4 py-3">
               <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">

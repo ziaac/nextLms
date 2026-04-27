@@ -152,7 +152,7 @@ function SubDimensiRow({
 }) {
   const [expanded, setExpanded] = useState(false)
   return (
-    <div className="rounded-xl border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-900 overflow-hidden">
+    <div className="rounded-xl border border-gray-100 dark:border-gray-700/50 bg-white dark:bg-gray-900">
       <div className="flex items-center gap-3 px-3 py-2.5">
         <button type="button" onClick={() => setExpanded((v) => !v)} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
           <ChevronRight className={cn('w-3.5 h-3.5 transition-transform', expanded && 'rotate-90')} />
@@ -253,7 +253,7 @@ function DimensiCard({ dimensi }: { dimensi: DimensiProfil }) {
 
   return (
     <>
-      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-700">
         {/* Dimensi header */}
         {editingDimensi ? (
           <div className="p-4">

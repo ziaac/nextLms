@@ -152,8 +152,8 @@ export default function TugasDetailPage() {
       const status = mySubmission?.status ?? 'none'
       const cfg    = SISWA_STATUS_CFG[status as keyof typeof SISWA_STATUS_CFG] ?? SISWA_STATUS_CFG.none
       return (
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800 flex items-center gap-3">
-          <div className={cn('w-10 h-10 rounded-full flex items-center justify-center',
+        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-800 flex items-center gap-2 sm:gap-3">
+          <div className={cn('w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0',
             status === StatusPengumpulan.DINILAI   ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' :
             status === StatusPengumpulan.REVISI    ? 'bg-amber-50  dark:bg-amber-900/20  text-amber-600'  :
             status === StatusPengumpulan.SUBMITTED ? 'bg-blue-50   dark:bg-blue-900/20   text-blue-600'   :
@@ -162,20 +162,21 @@ export default function TugasDetailPage() {
             {cfg.icon}
           </div>
           <div>
-            <p className="text-[10px] text-gray-500 uppercase font-semibold">Status Kamu</p>
-            <p className={cn('text-sm font-medium', cfg.color)}>{cfg.label}</p>
+            <p className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold">Status Kamu</p>
+            <p className={cn('text-xs sm:text-sm font-medium', cfg.color)}>{cfg.label}</p>
           </div>
         </div>
       )
     }
     return (
-      <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600">
-          <Users size={20} />
+      <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-800 flex items-center gap-2 sm:gap-3">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 shrink-0">
+          <Users size={16} className="sm:hidden" />
+          <Users size={20} className="hidden sm:block" />
         </div>
         <div>
-          <p className="text-[10px] text-gray-500 uppercase font-semibold">Pengumpulan</p>
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          <p className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold">Kumpul</p>
+          <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">
             {isLoadingRekap ? '...' : `${totalSubmitted} / ${totalSiswa} (${submissionRate}%)`}
           </p>
         </div>
@@ -184,45 +185,46 @@ export default function TugasDetailPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-20">
+    <div className="max-w-7xl mx-auto space-y-6 pb-20 min-w-0">
 
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+        <div className="flex items-center gap-3 min-w-0">
           <Button
             variant="secondary"
             onClick={() => router.push('/dashboard/tugas')}
-            className="w-10 h-10 !p-0 flex items-center justify-center rounded-lg shrink-0"
+            className="w-9 h-9 sm:w-10 sm:h-10 !p-0 flex items-center justify-center rounded-lg shrink-0"
           >
-            <ArrowLeft className="h-5 w-5 text-gray-500" />
+            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
           </Button>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5 mb-1">
               {!isSiswa && (
-                <Badge variant={tugas.isPublished ? 'success' : 'warning'} className="text-[10px] px-2 py-0.5">
+                <Badge variant={tugas.isPublished ? 'success' : 'warning'} className="text-[10px] px-2 py-0.5 shrink-0">
                   {tugas.isPublished ? 'Dipublikasikan' : 'Draft'}
                 </Badge>
               )}
-              <Badge variant="default" className="text-[10px] px-2 py-0.5 bg-gray-50 dark:bg-gray-800">
+              <Badge variant="default" className="text-[10px] px-2 py-0.5 bg-gray-50 dark:bg-gray-800 shrink-0">
                 {tugas.tujuan.replace(/_/g, ' ')}
               </Badge>
             </div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
+            <h1 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white leading-tight break-words">
               {tugas.judul}
             </h1>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 mt-0.5 truncate">
               {tugas.mataPelajaran?.mataPelajaranTingkat?.masterMapel?.nama ?? 'Mapel'} • Kelas {tugas.kelas?.namaKelas ?? tugas.kelasId}
             </p>
           </div>
         </div>
 
         {isGuruOrAdmin && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
             <Button
               variant={tugas.isPublished ? 'secondary' : 'primary'}
               size="sm"
               loading={publishMutation.isPending}
               onClick={handlePublish}
+              className="text-xs sm:text-sm"
             >
               {tugas.isPublished ? 'Batalkan Publikasi' : 'Publikasikan'}
             </Button>
@@ -231,47 +233,54 @@ export default function TugasDetailPage() {
               size="sm"
               leftIcon={<Edit size={14} />}
               onClick={() => router.push(`/dashboard/tugas/${tugas.id}/edit`)}
+              className="text-xs sm:text-sm"
             >
-              Edit Tugas
+              Edit
             </Button>
           </div>
         )}
       </div>
 
       {/* ── Info Cards ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {/* Card 1: Tenggat */}
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600">
-            <Calendar size={20} />
+        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-800 flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 shrink-0">
+            <Calendar size={16} className="sm:hidden" />
+            <Calendar size={20} className="hidden sm:block" />
           </div>
-          <div>
-            <p className="text-[10px] text-gray-500 uppercase font-semibold">Tenggat Waktu</p>
-            <p className={cn('text-sm font-medium', isDeadlinePast ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100')}>
-              {formatDateTime(tugas.tanggalSelesai)}
+          <div className="min-w-0">
+            <p className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold">Tenggat</p>
+            <p className={cn('text-xs sm:text-sm font-medium leading-tight', isDeadlinePast ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100')}>
+              {format(new Date(tugas.tanggalSelesai), 'dd MMM yy')}
+            </p>
+            <p className={cn('text-[10px]', isDeadlinePast ? 'text-red-500' : 'text-gray-400')}>
+              {format(new Date(tugas.tanggalSelesai), 'HH:mm')}
             </p>
           </div>
         </div>
 
         {/* Card 2: Bobot */}
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-600">
-            <Award size={20} />
+        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-800 flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-600 shrink-0">
+            <Award size={16} className="sm:hidden" />
+            <Award size={20} className="hidden sm:block" />
           </div>
           <div>
-            <p className="text-[10px] text-gray-500 uppercase font-semibold">Bobot Maksimal</p>
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{tugas.bobot} Poin</p>
+            <p className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold">Bobot</p>
+            <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">{tugas.bobot} Poin</p>
           </div>
         </div>
 
         {/* Card 3: Format */}
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600">
-            <Settings size={20} />
+        <div className="bg-white dark:bg-gray-900 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-800 flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 shrink-0">
+            <Settings size={16} className="sm:hidden" />
+            <Settings size={20} className="hidden sm:block" />
           </div>
-          <div>
-            <p className="text-[10px] text-gray-500 uppercase font-semibold">Format Kumpul</p>
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 capitalize">
+          <div className="min-w-0">
+            <p className="text-[9px] sm:text-[10px] text-gray-500 uppercase font-semibold">Format</p>
+            <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100 capitalize truncate">
               {tugas.bentuk.replace(/_/g, ' ').toLowerCase()}
             </p>
           </div>
@@ -283,42 +292,46 @@ export default function TugasDetailPage() {
 
       {/* ── Tabs — hanya tampil untuk guru/admin ── */}
       {isGuruOrAdmin && (
-        <div className="flex border-b border-gray-200 dark:border-gray-800">
-          <button
-            onClick={() => setActiveTab('ringkasan')}
-            className={cn(
-              'px-6 py-3 text-sm font-medium border-b-2 transition-colors',
-              activeTab === 'ringkasan'
-                ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
-            )}
-          >
-            Ringkasan Tugas
-          </button>
-          <button
-            onClick={() => setActiveTab('pengumpulan')}
-            className={cn(
-              'px-6 py-3 text-sm font-medium border-b-2 transition-colors',
-              activeTab === 'pengumpulan'
-                ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
-            )}
-          >
-            Pengumpulan Siswa ({isLoadingRekap ? '…' : totalSubmitted})
-          </button>
-          {tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET && (
-            <button
-              onClick={() => setActiveTab('worksheet')}
-              className={cn(
-                'px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5',
-                activeTab === 'worksheet'
-                  ? 'border-violet-600 text-violet-600 dark:text-violet-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
+        <div className="grid grid-cols-1">
+          <div className="overflow-x-auto border-b border-gray-200 dark:border-gray-800 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex">
+              <button
+                onClick={() => setActiveTab('ringkasan')}
+                className={cn(
+                  'px-4 sm:px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0',
+                  activeTab === 'ringkasan'
+                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
+                )}
+              >
+                Ringkasan Tugas
+              </button>
+              <button
+                onClick={() => setActiveTab('pengumpulan')}
+                className={cn(
+                  'px-4 sm:px-6 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0',
+                  activeTab === 'pengumpulan'
+                    ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
+                )}
+              >
+                Pengumpulan ({isLoadingRekap ? '…' : totalSubmitted})
+              </button>
+              {tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET && (
+                <button
+                  onClick={() => setActiveTab('worksheet')}
+                  className={cn(
+                    'px-4 sm:px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0',
+                    activeTab === 'worksheet'
+                      ? 'border-violet-600 text-violet-600 dark:text-violet-400'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
+                  )}
+                >
+                  <LayoutTemplate size={14} /> Builder Worksheet
+                </button>
               )}
-            >
-              <LayoutTemplate size={14} /> Builder Worksheet
-            </button>
-          )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -327,7 +340,7 @@ export default function TugasDetailPage() {
         <>
         {/* WorksheetPlayer untuk siswa — full width di atas instruksi */}
         {isSiswa && tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET && (
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm grid grid-cols-1">
             <WorksheetPlayer
                   tugasId={tugasId}
                   tujuanTugas={tugas.tujuan}
@@ -336,7 +349,7 @@ export default function TugasDetailPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-w-0">
 
           {/* Mobile: submit panel di atas konten (non-worksheet) */}
           {isSiswa && tugas.bentuk !== BentukTugas.INTERACTIVE_WORKSHEET && (
@@ -346,8 +359,8 @@ export default function TugasDetailPage() {
           )}
 
           {/* Kolom kiri: instruksi + lampiran */}
-          <div className={cn('space-y-6', isSiswa && tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET ? 'lg:col-span-3' : 'lg:col-span-2')}>
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
+          <div className={cn('space-y-6 min-w-0', isSiswa && tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET ? 'lg:col-span-3' : 'lg:col-span-2')}>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 grid grid-cols-1">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Instruksi Tugas</h2>
 
               {tugas.deskripsi && (
@@ -357,13 +370,13 @@ export default function TugasDetailPage() {
               )}
 
               <div
-                className="prose dark:prose-invert max-w-none text-sm"
+                className="prose dark:prose-invert max-w-none text-sm break-words [overflow-wrap:anywhere]"
                 dangerouslySetInnerHTML={{ __html: tugas.instruksi || '<p class="text-gray-400 italic">Tidak ada instruksi tertulis.</p>' }}
               />
             </div>
 
             {tugas.fileUrls && tugas.fileUrls.length > 0 && (
-              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 grid grid-cols-1">
                 <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <FileText size={16} className="text-blue-500" />
                   Lampiran File
@@ -393,7 +406,7 @@ export default function TugasDetailPage() {
 
           {/* Kolom kanan — disembunyikan saat INTERACTIVE_WORKSHEET siswa (player sudah full-width di atas) */}
           {!(isSiswa && tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET) && (
-          <div className="space-y-6">
+          <div className="space-y-6 min-w-0">
             {/* Desktop: submit panel (non-worksheet only) */}
             {isSiswa && (
               <div className="hidden lg:block">
@@ -409,44 +422,44 @@ export default function TugasDetailPage() {
                   <button
                     type="button"
                     onClick={() => setActiveTab('worksheet')}
-                    className="w-full flex items-center gap-3 p-4 rounded-2xl border-2 border-dashed border-violet-300 dark:border-violet-700 bg-violet-50 dark:bg-violet-900/10 hover:border-violet-400 dark:hover:border-violet-600 hover:bg-violet-100 dark:hover:bg-violet-900/20 transition-colors group text-left"
+                    className="w-full flex items-center gap-3 p-4 rounded-2xl border-2 border-dashed border-violet-300 dark:border-violet-700 bg-violet-50 dark:bg-violet-900/10 hover:border-violet-400 dark:hover:border-violet-600 hover:bg-violet-100 dark:hover:bg-violet-900/20 transition-colors group text-left min-w-0"
                   >
                     <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400 shrink-0">
                       <LayoutTemplate size={18} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-violet-800 dark:text-violet-300">Builder Worksheet</p>
-                      <p className="text-xs text-violet-500 dark:text-violet-500 mt-0.5">Upload halaman & tambah widget interaktif</p>
+                      <p className="text-sm font-semibold text-violet-800 dark:text-violet-300 truncate">Builder Worksheet</p>
+                      <p className="text-xs text-violet-500 dark:text-violet-500 mt-0.5 truncate">Upload halaman & tambah widget interaktif</p>
                     </div>
                     <ArrowRight size={16} className="text-violet-400 group-hover:text-violet-600 shrink-0 transition-colors" />
                   </button>
                 )}
 
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 grid grid-cols-1">
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Pengaturan Pengumpulan</h3>
                   <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
-                    <li className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-800/50">
-                      <span>Mulai Dibuka</span>
-                      <span className="font-medium">{formatDateTime(tugas.tanggalMulai)}</span>
+                    <li className="flex justify-between items-center gap-2 py-2 border-b border-gray-50 dark:border-gray-800/50 min-w-0">
+                      <span className="shrink-0">Mulai Dibuka</span>
+                      <span className="font-medium text-right text-xs sm:text-sm break-words">{formatDateTime(tugas.tanggalMulai)}</span>
                     </li>
-                    <li className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-800/50">
-                      <span>Terlambat Diizinkan?</span>
-                      <span className="font-medium">
+                    <li className="flex justify-between items-center gap-2 py-2 border-b border-gray-50 dark:border-gray-800/50 min-w-0">
+                      <span className="shrink-0">Terlambat Diizinkan?</span>
+                      <span className="font-medium shrink-0">
                         {tugas.allowLateSubmission
                           ? <Badge variant="success" className="text-[10px]">Ya (-{tugas.lateSubmissionPenalty}% Poin)</Badge>
                           : <Badge variant="danger" className="text-[10px]">Tidak</Badge>}
                       </span>
                     </li>
                     {tugas.maxFileSize && (
-                      <li className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-800/50">
-                        <span>Maks Ukuran File</span>
-                        <span className="font-medium">{(tugas.maxFileSize / (1024 * 1024)).toFixed(0)} MB</span>
+                      <li className="flex justify-between items-center gap-2 py-2 border-b border-gray-50 dark:border-gray-800/50 min-w-0">
+                        <span className="shrink-0">Maks Ukuran File</span>
+                        <span className="font-medium shrink-0">{(tugas.maxFileSize / (1024 * 1024)).toFixed(0)} MB</span>
                       </li>
                     )}
                     {tugas.allowedFileTypes && tugas.allowedFileTypes.length > 0 && (
-                      <li className="flex justify-between items-center py-2">
-                        <span>Format File</span>
-                        <span className="font-medium text-xs">{tugas.allowedFileTypes.join(', ')}</span>
+                      <li className="flex justify-between items-center gap-2 py-2 min-w-0">
+                        <span className="shrink-0">Format File</span>
+                        <span className="font-medium text-xs text-right break-words">{tugas.allowedFileTypes.join(', ')}</span>
                       </li>
                     )}
                   </ul>
@@ -456,7 +469,7 @@ export default function TugasDetailPage() {
 
             {/* Materi terkait — tampil untuk semua role */}
             {tugas.materiPelajarans && tugas.materiPelajarans.length > 0 && (
-              <div className="bg-blue-50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/30 p-5">
+              <div className="bg-blue-50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/30 p-5 grid grid-cols-1">
                 <h3 className="text-xs font-bold text-blue-800 dark:text-blue-400 uppercase tracking-wider mb-3">
                   Materi Terkait
                 </h3>
@@ -478,105 +491,90 @@ export default function TugasDetailPage() {
 
       {/* ── Tab Pengumpulan (Guru/Admin) ── */}
       {activeTab === 'pengumpulan' && isGuruOrAdmin && (
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm grid grid-cols-1">
           {isLoadingRekap ? (
             <div className="flex justify-center py-12"><Spinner /></div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm whitespace-nowrap">
-                <thead className="bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
+            /* overflow-x-auto — horizontal scroll tabel di mobile */
+            <div className="overflow-x-auto touch-pan-x">
+              <table className="w-full text-left text-sm whitespace-nowrap min-w-[640px]">
+                <thead className="bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800 text-xs">
                   <tr>
-                    <th className="px-6 py-4 font-medium">Siswa</th>
-                    <th className="px-6 py-4 font-medium">Status</th>
-                    <th className="px-6 py-4 font-medium">Nilai</th>
-                    <th className="px-6 py-4 font-medium">Waktu Submit</th>
-                    <th className="px-6 py-4 font-medium">Terlambat</th>
-                    <th className="px-6 py-4 font-medium text-right">Aksi</th>
+                    <th className="px-3 sm:px-5 py-3 font-semibold">Siswa</th>
+                    <th className="px-3 sm:px-5 py-3 font-semibold">Status</th>
+                    <th className="px-3 sm:px-5 py-3 font-semibold">Nilai</th>
+                    <th className="px-3 sm:px-5 py-3 font-semibold">Waktu Submit</th>
+                    <th className="px-3 sm:px-5 py-3 font-semibold">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                   {rekapList.map((siswa) => (
                     <tr key={siswa.siswaId} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs font-bold text-gray-500">
+                      {/* Siswa */}
+                      <td className="px-3 sm:px-5 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-[11px] font-bold text-gray-500 shrink-0">
                             {siswa.nomorAbsen ?? '-'}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{siswa.namaLengkap}</p>
-                            <p className="text-xs text-gray-400">NISN: {siswa.nisn ?? '-'}</p>
+                            <p className="font-medium text-gray-900 dark:text-white text-xs sm:text-sm">{siswa.namaLengkap}</p>
+                            <p className="text-[10px] text-gray-400">{siswa.nisn ?? '-'}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      {/* Status */}
+                      <td className="px-3 sm:px-5 py-3">
                         {siswa.statusSubmit === StatusPengumpulan.DINILAI ? (
                           <Badge variant="success">Dinilai</Badge>
                         ) : siswa.statusSubmit === StatusPengumpulan.REVISI ? (
                           <Badge variant="warning">Revisi</Badge>
                         ) : siswa.sudahSubmit ? (
-                          <Badge variant="info">Sudah Kumpul</Badge>
+                          <Badge variant="info">Kumpul</Badge>
                         ) : (
-                          <Badge variant="danger">Belum Kumpul</Badge>
+                          <Badge variant="danger">Belum</Badge>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-gray-700 dark:text-gray-300 font-medium">
-                        {siswa.nilai != null ? `${siswa.nilai} / ${tugas.bobot}` : '—'}
+                      {/* Nilai */}
+                      <td className="px-3 sm:px-5 py-3 font-semibold text-gray-700 dark:text-gray-300">
+                        {siswa.nilai != null ? (
+                          <span className="text-emerald-600 dark:text-emerald-400">{siswa.nilai}</span>
+                        ) : '—'}
                       </td>
-                      <td className="px-6 py-4 text-gray-500">
-                        {siswa.tanggalSubmit
-                          ? format(new Date(siswa.tanggalSubmit), 'dd/MM/yyyy HH:mm')
-                          : '—'}
-                      </td>
-                      <td className="px-6 py-4">
-                        {siswa.isLate ? (
-                          <span className="flex items-center gap-1 text-amber-600 text-xs font-medium">
-                            <AlertCircle size={14} /> Ya
+                      {/* Waktu Submit */}
+                      <td className="px-3 sm:px-5 py-3 text-gray-500 text-xs">
+                        {siswa.tanggalSubmit ? (
+                          <span className={siswa.isLate ? 'text-amber-600' : ''}>
+                            {format(new Date(siswa.tanggalSubmit), 'dd/MM/yy HH:mm')}
+                            {siswa.isLate && <span className="ml-1 text-[10px]">⚠</span>}
                           </span>
                         ) : '—'}
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {/* Tombol Lihat Hasil — hanya untuk yang sudah submit */}
-                          {siswa.sudahSubmit && (
-                            <button
-                              type="button"
-                              title="Lihat hasil kerja siswa"
-                              onClick={() => handleOpenGrading(siswa)}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 text-xs font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                            >
-                              <Eye size={13} />
-                              {tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET
-                                ? 'Lihat Worksheet'
-                                : 'Lihat Jawaban'}
-                            </button>
-                          )}
-
-                          {/* Tombol Nilai / aksi utama */}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenGrading(siswa)}
-                            className={cn(
-                              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
-                              siswa.statusSubmit === StatusPengumpulan.DINILAI
-                                ? 'border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
-                                : siswa.sudahSubmit
-                                  ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
-                                  : 'border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800',
-                            )}
-                          >
-                            {siswa.statusSubmit === StatusPengumpulan.DINILAI
-                              ? <><Star size={12} /> Sudah Dinilai</>
+                      {/* Aksi */}
+                      <td className="px-3 sm:px-5 py-3">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenGrading(siswa)}
+                          className={cn(
+                            'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap',
+                            siswa.statusSubmit === StatusPengumpulan.DINILAI
+                              ? 'border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
                               : siswa.sudahSubmit
-                                ? <><Award size={12} /> Beri Nilai</>
-                                : 'Nilai Manual'}
-                          </button>
-                        </div>
+                                ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
+                                : 'border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800',
+                          )}
+                        >
+                          {siswa.statusSubmit === StatusPengumpulan.DINILAI
+                            ? <><Star size={11} /> Dinilai</>
+                            : siswa.sudahSubmit
+                              ? <><Eye size={11} /> Nilai</>
+                              : <><Eye size={11} /> Buka</>}
+                        </button>
                       </td>
                     </tr>
                   ))}
                   {rekapList.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
+                      <td colSpan={5} className="px-5 py-12 text-center text-gray-400 text-sm">
                         Belum ada siswa di kelas ini.
                       </td>
                     </tr>
@@ -590,11 +588,13 @@ export default function TugasDetailPage() {
 
       {/* ── Worksheet Builder (Guru/Admin + INTERACTIVE_WORKSHEET worksheet tab) ── */}
       {isGuruOrAdmin && tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET && activeTab === 'worksheet' && (
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-            <Settings size={16} className="text-blue-500" />
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm grid grid-cols-1">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 grid grid-cols-1">
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <Settings size={16} className="text-blue-500 shrink-0" />
             <h2 className="text-base font-semibold text-gray-900 dark:text-white">Builder Worksheet Interaktif</h2>
-            <span className="ml-auto text-xs text-gray-400">Upload halaman worksheet lalu tambahkan widget interaktif di atasnya</span>
+            <span className="text-xs text-gray-400 hidden sm:inline">Upload halaman worksheet lalu tambahkan widget interaktif di atasnya</span>
+            </div>
           </div>
           <div className="p-5" style={{ minHeight: '75vh' }}>
             <WorksheetBuilder tugasId={tugasId} />
@@ -604,7 +604,7 @@ export default function TugasDetailPage() {
 
       {/* ── Diskusi ── */}
       {tugas && (
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 grid grid-cols-1">
           <DiskusiPanel
             items={diskusiQuery.data ?? []}
             loading={diskusiQuery.isLoading}

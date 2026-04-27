@@ -60,7 +60,7 @@ export function MapelCardSiswa({
   return (
     <div
       className={[
-        'rounded-2xl border bg-white dark:bg-gray-900 p-5 flex flex-col gap-4',
+        'rounded-2xl border bg-white dark:bg-gray-900 p-5 flex flex-col gap-4 grid grid-cols-1',
         'hover:shadow-sm transition-shadow cursor-pointer',
         readOnly ? 'border-gray-100 dark:border-gray-800 opacity-80' : 'border-gray-100 dark:border-gray-800',
       ].join(' ')}
@@ -101,10 +101,10 @@ export function MapelCardSiswa({
       )}
 
       {/* Jadwal */}
-      <div className="flex items-center gap-1.5 text-xs">
+      <div className="flex items-center gap-1.5 text-xs min-w-0">
         <Clock className="w-3.5 h-3.5 shrink-0 text-gray-400" />
         {jadwalText ? (
-          <span className="text-gray-600">{jadwalText}</span>
+          <span className="text-gray-600 truncate">{jadwalText}</span>
         ) : (
           <span className="text-amber-500 italic">Jadwal belum ditentukan</span>
         )}

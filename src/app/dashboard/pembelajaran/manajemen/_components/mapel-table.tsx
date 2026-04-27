@@ -100,7 +100,7 @@ export function MapelTable({
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="rounded-2xl border border-gray-200">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
@@ -157,7 +157,7 @@ export function MapelTable({
       )}
 
       {/* Desktop */}
-      <div className="hidden md:block rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="hidden md:block rounded-2xl border border-gray-200">
         <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[900px]">
           <thead className="bg-gray-50 border-b border-gray-200">

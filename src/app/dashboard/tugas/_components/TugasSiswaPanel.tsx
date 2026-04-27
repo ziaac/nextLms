@@ -645,7 +645,7 @@ export function TugasSiswaPanel({ userId, semesterId }: Props) {
 
           {/* ── Tab: Nilai ── */}
           {tab === 'nilai' && (
-            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3">
+            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 px-4 py-3 grid grid-cols-1">
               {nilaiLoading
                 ? <SkeletonRows />
                 : <NilaiTable items={displayNilai} showMapel={!selectedMapelId} />

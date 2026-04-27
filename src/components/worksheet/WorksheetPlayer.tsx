@@ -126,7 +126,7 @@ export function WorksheetPlayer({ tugasId, isReadOnly = false, tujuanTugas, tang
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 min-w-0">
 
       {/* ── Status bar ── */}
       <div className="flex flex-col gap-2">

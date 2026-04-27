@@ -104,7 +104,7 @@ function JadwalTab({ semesterId, semNama, taNama }: { semesterId: string; semNam
 
       {isLoading && (
         <div className="space-y-2 animate-pulse">
-          <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-700">
             <div className="h-10 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700" />
             {[1,2,3,4,5].map((i) => (
               <div key={i} className="h-16 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900" />

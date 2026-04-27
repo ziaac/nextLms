@@ -50,7 +50,7 @@ export function DokumenPengajaranTable({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-900">
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         {/* Header */}
         <div className={`grid gap-4 px-5 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide ${colClass}`}>
           {showGuru && <span>Guru</span>}
@@ -166,7 +166,7 @@ export function DokumenPengajaranTable({
 
 function TableSkeleton() {
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden animate-pulse">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 animate-pulse">
       <div className="h-10 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700" />
       {[...Array(5)].map((_, i) => (
         <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-gray-100 dark:border-gray-800">

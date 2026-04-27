@@ -20,7 +20,7 @@ export function KelasBelajarTable({ data, isLoading }: Props) {
   // ── Loading skeleton ──────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="rounded-2xl border border-gray-200">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
@@ -63,7 +63,7 @@ export function KelasBelajarTable({ data, isLoading }: Props) {
   return (
     <>
       {/* Desktop */}
-      <div className="hidden md:block rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="hidden md:block rounded-2xl border border-gray-200">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>

@@ -83,7 +83,7 @@ export default function RuanganPage() {
       </div>
 
       {/* Tabel */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200">
         {isLoading ? (
           <div className="p-6 space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (

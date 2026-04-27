@@ -405,7 +405,7 @@ function DetailMateriContent({ params: paramsPromise }: { params: Promise<{ id: 
 
           {/* Diskusi */}
           {!isReadOnly && (
-            <div className="rounded-lg border border-gray-200 dark:border-gray-700/60 bg-white dark:bg-gray-900 p-6">
+            <div className="rounded-lg border border-gray-200 dark:border-gray-700/60 bg-white dark:bg-gray-900 p-6 grid grid-cols-1">
               <DiskusiPanel
                 items={diskusiQuery.data ?? []}
                 loading={diskusiQuery.isLoading}

@@ -35,6 +35,14 @@ function getSvgPathFromStroke(points: number[][]): string {
 
 // ── DrawingCanvas ─────────────────────────────────────────────────────────
 
+/**
+ * VBOX: logical coordinate space for device-independent drawing.
+ * All points are normalized to [0, VBOX] so strokes scale correctly
+ * across different screen / window sizes (mobile ↔ desktop).
+ * Stroke sizes are also stored in VBOX units.
+ */
+const VBOX = 1000
+
 interface DrawingCanvasProps {
   value?:      string
   onChange?:   (v: string) => void
@@ -46,9 +54,28 @@ interface DrawingCanvasProps {
 interface DrawPath {
   points:   [number, number, number][]
   color:    string
-  size:     number    // ukuran tersimpan per path (fix bug render)
+  size:     number    // ukuran dalam VBOX units (device-independent)
   opacity:  number    // 0.0 – 1.0
   eraser?:  boolean   // path penghapus
+}
+
+/**
+ * Format v2: { v: 2, paths: DrawPath[] } — koordinat dinormalisasi ke VBOX.
+ * Format lama (legacy): DrawPath[] langsung — koordinat piksel absolut.
+ * Keduanya dibaca dengan benar; hanya format v2 yang ditulis.
+ */
+function parsePaths(raw: string | undefined): DrawPath[] {
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed))                           return parsed          // legacy
+    if (parsed?.v === 2 && Array.isArray(parsed.paths)) return parsed.paths    // v2
+    return []
+  } catch { return [] }
+}
+
+function serializePaths(paths: DrawPath[]): string {
+  return JSON.stringify({ v: 2, paths })
 }
 
 const DRAW_COLORS = ['#1d4ed8', '#dc2626', '#16a34a', '#d97706', '#7c3aed', '#0f172a']
@@ -63,9 +90,7 @@ const OPACITIES   = [
 function DrawingCanvas({ value, onChange, isReadOnly, bgColor, label }: DrawingCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const [paths, setPaths] = useState<DrawPath[]>(() => {
-    try { return value ? JSON.parse(value) : [] } catch { return [] }
-  })
+  const [paths, setPaths] = useState<DrawPath[]>(() => parsePaths(value))
   const [currentPath, setCurrentPath] = useState<[number, number, number][]>([])
   const [isDrawing,   setIsDrawing]   = useState(false)
   const [color,       setColor]       = useState('#1d4ed8')
@@ -75,12 +100,25 @@ function DrawingCanvas({ value, onChange, isReadOnly, bgColor, label }: DrawingC
 
   // Sync value → paths untuk grading / read-only
   useEffect(() => {
-    try { setPaths(value ? JSON.parse(value) : []) } catch { setPaths([]) }
+    setPaths(parsePaths(value))
   }, [value])
 
+  // Normalise pointer position ke VBOX coordinate space agar coretan
+  // tampil identik di semua ukuran layar.
   const getRelativePos = (e: React.PointerEvent): [number, number, number] => {
     const rect = containerRef.current!.getBoundingClientRect()
-    return [e.clientX - rect.left, e.clientY - rect.top, e.pressure || 0.5]
+    return [
+      (e.clientX - rect.left) / rect.width  * VBOX,
+      (e.clientY - rect.top)  / rect.height * VBOX,
+      e.pressure || 0.5,
+    ]
+  }
+
+  // Skala ukuran stroke fisik (px) ke VBOX units.
+  const getScaledSize = (physicalPx: number): number => {
+    const rect = containerRef.current?.getBoundingClientRect()
+    const refW = rect && rect.width > 0 ? rect.width : VBOX
+    return physicalPx * (VBOX / refW)
   }
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -99,16 +137,17 @@ function DrawingCanvas({ value, onChange, isReadOnly, bgColor, label }: DrawingC
     if (!isDrawing || isReadOnly) return
     setIsDrawing(false)
     if (currentPath.length > 2) {
+      const physicalSize = isEraser ? strokeSize * 3 : strokeSize
       const newPath: DrawPath = {
         points:  currentPath,
         color:   isEraser ? '#ffffff' : color,
-        size:    isEraser ? strokeSize * 3 : strokeSize,
+        size:    getScaledSize(physicalSize), // simpan dalam VBOX units
         opacity: isEraser ? 1 : opacity,
         eraser:  isEraser,
       }
       const newPaths = [...paths, newPath]
       setPaths(newPaths)
-      onChange?.(JSON.stringify(newPaths))
+      onChange?.(serializePaths(newPaths))
     }
     setCurrentPath([])
   }
@@ -116,12 +155,12 @@ function DrawingCanvas({ value, onChange, isReadOnly, bgColor, label }: DrawingC
   const undoLast = () => {
     const newPaths = paths.slice(0, -1)
     setPaths(newPaths)
-    onChange?.(JSON.stringify(newPaths))
+    onChange?.(serializePaths(newPaths))
   }
 
   const clearAll = () => {
     setPaths([])
-    onChange?.('[]')
+    onChange?.(serializePaths([]))
   }
 
   const activeColor = isEraser ? '#ffffff' : color
@@ -282,7 +321,19 @@ function DrawingCanvas({ value, onChange, isReadOnly, bgColor, label }: DrawingC
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerUp}
       >
-        <svg width="100%" height="100%" style={{ display: 'block' }}>
+        {/*
+          * viewBox="0 0 VBOX VBOX" + preserveAspectRatio="none":
+          * Semua koordinat path tersimpan dalam ruang logis [0, VBOX].
+          * SVG otomatis menskalakan ke ukuran container aktual,
+          * sehingga coretan tampil proporsional di semua ukuran layar.
+          */}
+        <svg
+          viewBox={`0 0 ${VBOX} ${VBOX}`}
+          preserveAspectRatio="none"
+          width="100%"
+          height="100%"
+          style={{ display: 'block' }}
+        >
           {/* Normal paths */}
           {paths.filter((p) => !p.eraser).map((p, i) => {
             const stroke = getStroke(p.points, { size: p.size, thinning: 0.5, smoothing: 0.5, streamline: 0.5 })
@@ -302,9 +353,10 @@ function DrawingCanvas({ value, onChange, isReadOnly, bgColor, label }: DrawingC
               return <path key={i} d={getSvgPathFromStroke(stroke)} fill="black" />
             })}
           </g>
-          {/* Current path preview */}
+          {/* Current path preview — ukuran juga dinormalisasi ke VBOX */}
           {currentPath.length > 2 && (() => {
-            const previewSize = isEraser ? strokeSize * 3 : strokeSize
+            const physicalPreview = isEraser ? strokeSize * 3 : strokeSize
+            const previewSize = getScaledSize(physicalPreview)
             const stroke = getStroke(currentPath, { size: previewSize, thinning: 0.5, smoothing: 0.5, streamline: 0.5 })
             return (
               <path

@@ -118,8 +118,8 @@ export default function PembelajaranGuruPage() {
   return (
     <div className="space-y-6">
       {/* Header — back button circle + judul + actions */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <div className="flex items-start justify-between gap-4 min-w-0">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           <button
             type="button"
             onClick={() => router.push('/dashboard/kelas-belajar/guru')}
@@ -128,25 +128,28 @@ export default function PembelajaranGuruPage() {
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Pembelajaran Saya</h1>
-            <p className="text-sm text-gray-500 mt-0.5">
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">Pembelajaran Saya</h1>
+            <p className="text-sm text-gray-500 mt-0.5 truncate">
               Mata pelajaran semester aktif
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <Button
             variant="secondary"
             leftIcon={<CalendarDays className="w-4 h-4" />}
             onClick={() => router.push(jadwalUrl)}
+            className="whitespace-nowrap"
           >
-            Jadwal Saya
+            <span className="hidden sm:inline">Jadwal Saya</span>
+            <span className="sm:hidden">Jadwal</span>
           </Button>
           <Button
             variant="secondary"
             leftIcon={<Archive className="w-4 h-4" />}
             onClick={() => setArsipOpen(true)}
+            className="whitespace-nowrap"
           >
             Arsip
           </Button>

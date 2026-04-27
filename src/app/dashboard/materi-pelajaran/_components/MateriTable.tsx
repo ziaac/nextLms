@@ -34,8 +34,9 @@ function SkeletonRow() {
 export function MateriTable({ data, meta, isLoading, page, onPageChange, onSelect }: Props) {
   return (
     <div className="space-y-3">
-      <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-900">
-        <table className="w-full text-sm">
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 grid grid-cols-1">
+        <div className="overflow-x-auto touch-pan-x">
+        <table className="w-full text-sm min-w-[560px]">
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60">
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Judul</th>
@@ -125,6 +126,7 @@ export function MateriTable({ data, meta, isLoading, page, onPageChange, onSelec
             }
           </tbody>
         </table>
+        </div>
       </div>
 
       {meta.totalPages > 1 && (

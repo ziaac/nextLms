@@ -163,7 +163,7 @@ function TugasContent() {
     const meta = listData?.meta ?? { total: 0, page: 1, limit: 20, lastPage: 1 }
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 min-w-0">
         {/* Back button — Pembelajaran Saya atau kembali dari filter materi */}
         {materiId ? (
           <button
@@ -197,11 +197,12 @@ function TugasContent() {
           }
           actions={
             mainTab === 'tugas' ? (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {(isGuru || isAdmin) && (
                   <Button
                     variant="secondary"
-                    leftIcon={<Archive size={16} />}
+                    size="sm"
+                    leftIcon={<Archive size={14} />}
                     onClick={() => setArsipOpen(true)}
                   >
                     Arsip
@@ -210,15 +211,16 @@ function TugasContent() {
                 {(isGuru || isAdmin) && (
                   <Button
                     variant="secondary"
-                    leftIcon={<Copy size={16} />}
+                    size="sm"
+                    leftIcon={<Copy size={14} />}
                     onClick={() => setSalinOpen(true)}
                   >
-                    Salin Tugas
+                    Salin
                   </Button>
                 )}
                 {isGuru && (
-                  <Button leftIcon={<Plus size={16} />} onClick={() => setCreateOpen(true)}>
-                    Buat Tugas Baru
+                  <Button size="sm" leftIcon={<Plus size={14} />} onClick={() => setCreateOpen(true)}>
+                    Buat Tugas
                   </Button>
                 )}
               </div>
@@ -228,26 +230,28 @@ function TugasContent() {
 
         {/* ── Tab bar — Tugas & Nilai | Dimensi Profil (guru only) ── */}
         {isGuru && (
-          <div className="flex gap-0 border-b border-gray-200 dark:border-gray-700 -mt-2">
-            {([
-              { key: 'tugas',    label: 'Tugas & Nilai' },
-              { key: 'dimensi',  label: 'Dimensi Profil', icon: <Award className="w-3.5 h-3.5" /> },
-            ] as { key: MainTab; label: string; icon?: React.ReactNode }[]).map((t) => (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => setMainTab(t.key)}
-                className={[
-                  'flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors',
-                  mainTab === t.key
-                    ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
-                ].join(' ')}
-              >
-                {t.icon}
-                {t.label}
-              </button>
-            ))}
+          <div className="overflow-x-auto border-b border-gray-200 dark:border-gray-700 -mt-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex min-w-full w-max">
+              {([
+                { key: 'tugas',    label: 'Tugas & Nilai' },
+                { key: 'dimensi',  label: 'Dimensi Profil', icon: <Award className="w-3.5 h-3.5" /> },
+              ] as { key: MainTab; label: string; icon?: React.ReactNode }[]).map((t) => (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => setMainTab(t.key)}
+                  className={[
+                    'flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap',
+                    mainTab === t.key
+                      ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
+                  ].join(' ')}
+                >
+                  {t.icon}
+                  {t.label}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -314,9 +318,9 @@ function TugasContent() {
 
         {/* ── Tab: Dimensi Profil (guru only) ───────────────────── */}
         {isGuru && mainTab === 'dimensi' && (
-          <div className="flex gap-4 items-start">
+          <div className="flex flex-col sm:flex-row gap-4 items-start">
             {/* Left: mapel list */}
-            <div className="w-56 flex-shrink-0 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-3">
+            <div className="w-full sm:w-56 sm:flex-shrink-0 bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-3">
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-1">
                 Mata Pelajaran
               </p>

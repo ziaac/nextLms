@@ -40,7 +40,7 @@ export function MasterJamTable({ data, onEdit }: Props) {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-900">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
       {/* Header */}
       <div className="grid grid-cols-[48px_1fr_100px_100px_80px_80px_100px_120px] gap-3 px-5 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
         <span className="text-center">No</span>

@@ -141,7 +141,7 @@ export function WorksheetBuilder({ tugasId, readOnly = false }: Props) {
     >
 
       {/* ── Toolbar bar ── */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2 flex-wrap min-w-0">
 
         {/* Widget drag tools */}
         <div className="flex items-center gap-1.5 p-1.5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex-wrap">
@@ -229,15 +229,40 @@ export function WorksheetBuilder({ tugasId, readOnly = false }: Props) {
       </div>
 
       {/* ── Main layout: Navigator | Canvas | Inspector ── */}
-      <div className="flex gap-3 flex-1 min-h-0">
+      <div className="flex flex-col md:flex-row gap-3 flex-1 min-h-0">
 
-        {/* Left: Page Navigator */}
-        <div className="w-36 flex-shrink-0 overflow-y-auto">
+        {/* Left: Page Navigator — hidden on mobile (prevents overflow) */}
+        <div className="hidden md:block md:w-36 md:flex-shrink-0 md:overflow-y-auto">
           <PageNavigator />
         </div>
 
         {/* Center: Canvas */}
         <div className="flex-1 min-w-0 flex flex-col gap-1.5 min-h-0">
+
+          {/* Mobile-only: horizontal page thumbnail strip (Navigator is hidden on mobile) */}
+          {store.halaman.length > 0 && (
+            <div className="flex md:hidden gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              {store.halaman.map((h, i) => (
+                <button
+                  key={h.id}
+                  type="button"
+                  onClick={() => store.setHalamanAktif(i)}
+                  className={cn(
+                    'shrink-0 w-12 aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all',
+                    store.halamanAktifIndex === i
+                      ? 'border-blue-500 shadow-sm'
+                      : 'border-gray-200 dark:border-gray-700',
+                  )}
+                >
+                  {h.imageUrl
+                    ? <img src={h.imageUrl} alt={`Hal ${i+1}`} className="w-full h-full object-cover" />
+                    : <div className="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-[9px] text-gray-400">{i+1}</div>
+                  }
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Canvas header — info halaman + ganti gambar */}
           {store.halaman.length > 0 && (
             <div className="flex items-center justify-between px-2">
@@ -278,9 +303,9 @@ export function WorksheetBuilder({ tugasId, readOnly = false }: Props) {
           </div>
         </div>
 
-        {/* Right: Inspector */}
+        {/* Right: Inspector — hidden on mobile */}
         <div className={cn(
-          'w-56 flex-shrink-0 rounded-xl border border-gray-200 dark:border-gray-700',
+          'hidden md:flex flex-col md:w-56 md:flex-shrink-0 rounded-xl border border-gray-200 dark:border-gray-700',
           'bg-white dark:bg-gray-900 overflow-hidden',
           'transition-all duration-200',
           selectedWidget ? 'opacity-100' : 'opacity-50',

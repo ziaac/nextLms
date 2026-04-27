@@ -103,7 +103,7 @@ export default function MapelMasterTable({ data, isLoading, onEdit }: {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-600/60 overflow-hidden">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-600/60">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-600/60">

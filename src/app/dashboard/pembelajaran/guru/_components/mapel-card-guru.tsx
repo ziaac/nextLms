@@ -104,7 +104,7 @@ export function MapelCardGuru({ mapel, tahunAjaranId, semesterId, onKlik }: Prop
 
   return (
     <div
-      className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 flex flex-col gap-3.5 hover:shadow-md transition-shadow cursor-pointer"
+      className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 flex flex-col gap-3.5 hover:shadow-md transition-shadow cursor-pointer grid grid-cols-1"
       onClick={() => onKlik(mapel)}
     >
       {/* Header */}
@@ -131,10 +131,10 @@ export function MapelCardGuru({ mapel, tahunAjaranId, semesterId, onKlik }: Prop
       </div>
 
       {/* Jadwal */}
-      <div className="flex items-center gap-1.5 text-xs">
+      <div className="flex items-center gap-1.5 text-xs min-w-0">
         <Clock className="w-3.5 h-3.5 shrink-0 text-gray-400" />
         {jadwalText ? (
-          <span className="text-gray-600 dark:text-gray-300">{jadwalText}</span>
+          <span className="text-gray-600 dark:text-gray-300 truncate">{jadwalText}</span>
         ) : (
           <span className="text-amber-500 italic">Jadwal belum ditentukan</span>
         )}

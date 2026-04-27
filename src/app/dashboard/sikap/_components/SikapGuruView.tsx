@@ -192,7 +192,7 @@ export function SikapGuruView({ currentUserId, canDeleteAny }: Props) {
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden md:block overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="hidden md:block rounded-xl border border-gray-200 dark:border-gray-700">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-800/50 text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">

@@ -37,7 +37,7 @@ export function KelasRingkasanTable({ data, isLoading, semesterId, onRefresh }: 
 
   return (
     <>
-      <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-900">
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         {/* Hint bar */}
         <div className="flex items-center gap-2 px-5 py-2 bg-emerald-50 dark:bg-emerald-900/10 border-b border-emerald-100 dark:border-emerald-800/30">
           <Info className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" />
@@ -222,7 +222,7 @@ export function KelasRingkasanTable({ data, isLoading, semesterId, onRefresh }: 
 
 function TableSkeleton() {
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden animate-pulse">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 animate-pulse">
       <div className="h-8 bg-emerald-50 dark:bg-emerald-900/10 border-b border-emerald-100" />
       <div className="h-10 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700" />
       {[...Array(6)].map((_, i) => (

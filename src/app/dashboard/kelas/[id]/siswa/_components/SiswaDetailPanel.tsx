@@ -200,7 +200,7 @@ export function SiswaDetailPanel({ kelasSiswa, onClose, onMutasi, readOnly }: Pr
                 </div>
 
                 {/* Table */}
-                <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900">
+                <div className="rounded-xl border border-gray-100 dark:border-gray-700/60 bg-white dark:bg-gray-900">
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-100 dark:border-gray-700/60">

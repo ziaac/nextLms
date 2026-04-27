@@ -83,21 +83,21 @@ function BalasanCard({ balasan, myId, myRole, onDelete, deleting }: BalasanCardP
     <div className="flex gap-2 group">
       <Avatar name={nama} foto={balasan.user.profile?.fotoUrl} />
       <div className="flex-1 min-w-0">
-        <div className="flex items-baseline gap-2">
-          <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">{nama}</span>
-          <span className="text-xs text-gray-400">{fmtDate(balasan.createdAt)}</span>
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <span className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{nama}</span>
+          <span className="text-[10px] sm:text-xs text-gray-400 whitespace-nowrap">{fmtDate(balasan.createdAt)}</span>
           {canDelete && (
             <button
               onClick={() => onDelete(balasan.id)}
               disabled={deleting}
-              className="ml-auto opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity"
+              className="ml-auto opacity-60 sm:opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity"
               title="Hapus balasan"
             >
               {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
             </button>
           )}
         </div>
-        <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap mt-0.5">{balasan.isi}</p>
+        <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap mt-0.5">{balasan.isi}</p>
       </div>
     </div>
   )
@@ -146,34 +146,34 @@ function DiskusiCard({
       item.isPrivate && !isOwner && !isGuru(myRole) ? 'hidden' : '',
     ].join(' ')}>
       {/* header */}
-      <div className="flex items-start gap-3 p-4">
+      <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4">
         <Avatar name={nama} foto={item.user.profile?.fotoUrl} />
         <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">{nama}</span>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
+            <span className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{nama}</span>
             {item.isPrivate && (
-              <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                <Lock size={10} /> Private
+              <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 shrink-0">
+                <Lock size={9} /> Private
               </span>
             )}
             {item.isPinned && (
-              <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
-                <Pin size={10} /> Disematkan
+              <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 shrink-0">
+                <Pin size={9} /> Pin
               </span>
             )}
-            <span className="text-xs text-gray-400 ml-auto">{fmtDate(item.createdAt)}</span>
+            <span className="text-[10px] sm:text-xs text-gray-400 ml-auto whitespace-nowrap">{fmtDate(item.createdAt)}</span>
           </div>
-          <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{item.isi}</p>
+          <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">{item.isi}</p>
         </div>
       </div>
 
       {/* action bar */}
-      <div className="flex items-center gap-1 px-4 pb-3 border-t border-gray-100 dark:border-gray-700 pt-2">
+      <div className="flex flex-wrap items-center gap-1 px-3 sm:px-4 pb-2 sm:pb-3 border-t border-gray-100 dark:border-gray-700 pt-2">
         <button
           onClick={() => setShowReply(v => !v)}
-          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-indigo-600 transition-colors px-2 py-1 rounded-md hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+          className="flex items-center gap-1 text-xs text-gray-500 hover:text-indigo-600 transition-colors px-2 py-1 rounded-md hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
         >
-          <MessageSquare size={13} />
+          <MessageSquare size={12} />
           Balas {item.balasan.length > 0 && `(${item.balasan.length})`}
         </button>
 
@@ -182,8 +182,8 @@ function DiskusiCard({
             onClick={() => setExpanded(v => !v)}
             className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-            {expanded ? 'Sembunyikan' : 'Lihat'} balasan
+            {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+            {expanded ? 'Sembunyikan' : 'Lihat'}
           </button>
         )}
 
@@ -196,8 +196,8 @@ function DiskusiCard({
               className="text-gray-400 hover:text-amber-500 p-1.5 rounded-md hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
             >
               {pinning
-                ? <Loader2 size={13} className="animate-spin" />
-                : item.isPinned ? <PinOff size={13} /> : <Pin size={13} />
+                ? <Loader2 size={12} className="animate-spin" />
+                : item.isPinned ? <PinOff size={12} /> : <Pin size={12} />
               }
             </button>
           )}
@@ -208,7 +208,7 @@ function DiskusiCard({
               title="Hapus diskusi"
               className="text-gray-400 hover:text-red-500 p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
-              {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+              {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
             </button>
           )}
         </div>
@@ -216,25 +216,25 @@ function DiskusiCard({
 
       {/* reply form */}
       {showReply && (
-        <div className="px-4 pb-4">
+        <div className="px-3 sm:px-4 pb-3 sm:pb-4">
           <div className="flex gap-2">
             <textarea
               value={replyText}
               onChange={e => setReplyText(e.target.value)}
               placeholder="Tulis balasan…"
               rows={2}
-              className="flex-1 text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 resize-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="flex-1 text-xs sm:text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 resize-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleReply() }}
             />
             <button
               onClick={handleReply}
               disabled={replying || !replyText.trim()}
-              className="self-end px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+              className="self-end px-2.5 sm:px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors shrink-0"
             >
-              {replying ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+              {replying ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
             </button>
           </div>
-          <p className="text-xs text-gray-400 mt-1">Ctrl+Enter untuk kirim</p>
+          <p className="text-[10px] text-gray-400 mt-1 hidden sm:block">Ctrl+Enter untuk kirim</p>
         </div>
       )}
 
@@ -288,10 +288,10 @@ export default function DiskusiPanel({
   return (
     <section className="space-y-5">
       {/* header */}
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-gray-800 dark:text-gray-100">
-          <MessageCircle size={18} className="text-indigo-500" />
-          Diskusi {contextLabel}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="flex items-center gap-2 text-sm sm:text-base font-semibold text-gray-800 dark:text-gray-100">
+          <MessageCircle size={16} className="text-indigo-500 shrink-0" />
+          <span>Diskusi {contextLabel}</span>
           {!diskusiOff && items.length > 0 && (
             <span className="text-xs font-normal text-gray-400">({items.length})</span>
           )}
@@ -301,13 +301,13 @@ export default function DiskusiPanel({
           <button
             onClick={() => onToggleAktif()}
             className={[
-              'text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors',
+              'text-xs px-2.5 sm:px-3 py-1.5 rounded-lg border font-medium transition-colors whitespace-nowrap',
               diskusiOff
                 ? 'border-green-400 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
                 : 'border-red-300 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20',
             ].join(' ')}
           >
-            {diskusiOff ? 'Aktifkan Diskusi' : 'Nonaktifkan Diskusi'}
+            {diskusiOff ? 'Aktifkan' : 'Nonaktifkan'}
           </button>
         )}
       </div>
@@ -321,7 +321,7 @@ export default function DiskusiPanel({
 
       {/* compose */}
       {(!diskusiOff || guru) && (
-        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 space-y-3">
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 sm:p-4 space-y-2 sm:space-y-3">
           <textarea
             value={isi}
             onChange={e => setIsi(e.target.value)}
@@ -330,26 +330,26 @@ export default function DiskusiPanel({
             className="w-full text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 resize-none bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleSubmit() }}
           />
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             {guru && (
-              <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
+              <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={isPrivate}
                   onChange={e => setIsPrivate(e.target.checked)}
                   className="rounded"
                 />
-                <Lock size={12} className="text-amber-500" />
-                Private (hanya guru)
+                <Lock size={11} className="text-amber-500" />
+                <span className="whitespace-nowrap">Private</span>
               </label>
             )}
-            <p className="text-xs text-gray-400">Ctrl+Enter untuk kirim</p>
+            <p className="text-xs text-gray-400 hidden sm:block">Ctrl+Enter untuk kirim</p>
             <button
               onClick={handleSubmit}
               disabled={!isi.trim() || !!creatingDiskusi}
-              className="ml-auto flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+              className="ml-auto flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 bg-indigo-600 text-white text-xs sm:text-sm rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors whitespace-nowrap"
             >
-              {creatingDiskusi ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+              {creatingDiskusi ? <Loader2 size={14} className="animate-spin" /> : <Send size={13} />}
               Kirim
             </button>
           </div>
