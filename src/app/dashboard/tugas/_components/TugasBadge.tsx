@@ -25,11 +25,12 @@ export function TujuanBadge({ tujuan }: { tujuan: TujuanTugas }) {
 
 export function BentukBadge({ bentuk }: { bentuk: BentukTugas }) {
   const mapping: Record<BentukTugas, { label: string; color: string }> = {
-    [BentukTugas.FILE_SUBMISSION]:      { label: 'File Upload', color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
-    [BentukTugas.RICH_TEXT]:            { label: 'Ketik Langsung', color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
-    [BentukTugas.HYBRID]:               { label: 'Hybrid', color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
-    [BentukTugas.QUIZ_MULTIPLE_CHOICE]: { label: 'Quiz (PG)', color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
-    [BentukTugas.QUIZ_MIX]:             { label: 'Quiz (Mix)', color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
+    [BentukTugas.FILE_SUBMISSION]:        { label: 'File Upload',   color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
+    [BentukTugas.RICH_TEXT]:              { label: 'Ketik Langsung', color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
+    [BentukTugas.HYBRID]:                 { label: 'Hybrid',         color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
+    [BentukTugas.QUIZ_MULTIPLE_CHOICE]:   { label: 'Quiz (PG)',      color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
+    [BentukTugas.QUIZ_MIX]:               { label: 'Quiz (Mix)',     color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
+    [BentukTugas.INTERACTIVE_WORKSHEET]:  { label: 'Worksheet',      color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400' },
   }
 
   const { label, color } = mapping[bentuk] || mapping[BentukTugas.FILE_SUBMISSION]

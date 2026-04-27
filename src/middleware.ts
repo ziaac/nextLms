@@ -14,9 +14,10 @@ const PUBLIC_ROUTES = [
   '/pendaftaran-ulang',
   '/login',
   '/jadwal-publik',
+  '/siswa-baru',        // formulir daftar ulang — publik, tanpa login
 ]
 
-const PUBLIC_PREFIXES = ['/berita/', '/galeri/', '/jadwal-publik/']
+const PUBLIC_PREFIXES = ['/berita/', '/galeri/', '/jadwal-publik/', '/siswa-baru/']
 
 // File statis publik di-root yang tidak butuh auth
 const PUBLIC_FILES = [

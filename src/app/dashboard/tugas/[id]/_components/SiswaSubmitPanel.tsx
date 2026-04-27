@@ -4,19 +4,19 @@ import { useState, useCallback }   from 'react'
 import {
   CheckCircle2, Clock, RefreshCw, AlertTriangle,
   FileText, Upload, X, Download, Award, MessageSquare,
-  PlayCircle,
+  PlayCircle, RotateCcw,
 } from 'lucide-react'
 import { format }                  from 'date-fns'
 import { id as localeId }          from 'date-fns/locale'
 import { Button }                  from '@/components/ui'
 import { Spinner }                 from '@/components/ui/Spinner'
 import { RichTextEditor }          from '@/components/ui/RichTextEditor'
-import { useSubmitTugas, useMySubmission } from '@/hooks/tugas/useTugas'
+import { useSubmitTugas, useMySubmission, useTarikKembali } from '@/hooks/tugas/useTugas'
 import { uploadApi }               from '@/lib/api/upload.api'
 import { getPresignedUrl }         from '@/lib/api/upload.api'
 import { toast }                   from 'sonner'
 import type { TugasItem, StatusPengumpulan } from '@/types/tugas.types'
-import { BentukTugas }             from '@/types/tugas.types'
+import { BentukTugas, TujuanTugas } from '@/types/tugas.types'
 import { QuizModal }               from './QuizModal'
 
 // ── Status Badge ─────────────────────────────────────────────────────
@@ -210,7 +210,8 @@ interface Props {
 
 export function SiswaSubmitPanel({ tugas, tugasId }: Props) {
   const { data: submission, isLoading: loadingSubmission } = useMySubmission(tugasId)
-  const submitMutation = useSubmitTugas()
+  const submitMutation    = useSubmitTugas()
+  const tarikKembaliMutation = useTarikKembali()
 
   // Form state
   const [files,       setFiles]       = useState<{ key: string; name: string }[]>([])
@@ -278,6 +279,50 @@ export function SiswaSubmitPanel({ tugas, tugasId }: Props) {
       )
     }
 
+    // ── Kuis sudah dikumpulkan — tampilkan hasil ───────────────
+    if (submission && !loadingSubmission) {
+      const quizStatus  = submission.status
+      const nilaiEntry  = submission.penilaian?.[0]
+      const nilaiValue  = nilaiEntry?.nilai ?? null
+      const isDinilaiQ  = quizStatus === 'DINILAI'
+
+      return (
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 space-y-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200">Pengerjaan Kuis</h3>
+            <StatusBadge status={quizStatus} />
+          </div>
+
+          {submission.tanggalSubmit && (
+            <p className="text-xs text-gray-400">
+              Dikumpulkan: {format(new Date(submission.tanggalSubmit), 'd MMM yyyy, HH:mm', { locale: localeId })}
+              {submission.isLate && <span className="ml-2 text-amber-500 font-medium">· Terlambat</span>}
+            </p>
+          )}
+
+          {isDinilaiQ && nilaiValue !== null && (
+            <NilaiDisplay penilaian={submission.penilaian} catatan={submission.catatan} />
+          )}
+
+          {!isDinilaiQ && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-900/30 text-xs text-blue-700 dark:text-blue-300">
+              <Clock size={13} /> Menunggu penilaian dari guru.
+            </div>
+          )}
+
+          {/* Tombol lihat jawaban */}
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => setShowQuizModal(true)}
+            leftIcon={<PlayCircle size={16} />}
+          >
+            Lihat Jawaban Kuis
+          </Button>
+        </div>
+      )
+    }
+
     return (
       <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 space-y-4">
         <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200">Pengerjaan Kuis</h3>
@@ -335,16 +380,50 @@ export function SiswaSubmitPanel({ tugas, tugasId }: Props) {
 
   // ── Already Submitted ─────────────────────────────────────────
   if (submission) {
-    const status = submission.status
-    const isRevisi = status === 'REVISI'
-    const isDinilai = status === 'DINILAI'
+    const status      = submission.status
+    const isRevisi    = status === 'REVISI'
+    const isDraft     = status === 'DRAFT'    // dikembalikan guru atau tarik kembali sendiri
+    const isDinilai   = status === 'DINILAI'
+    // Bisa resubmit jika: REVISI atau DRAFT (dikembalikan) — selama deadline belum lewat
+    const canResubmit = (isRevisi || isDraft) && canSubmit
+
+    // Siswa boleh tarik kembali jika: SUBMITTED + bukan UTS/UAS + deadline belum lewat
+    const canTarikKembali = status === 'SUBMITTED' &&
+      !isPast &&
+      tugas.tujuan !== TujuanTugas.UTS &&
+      tugas.tujuan !== TujuanTugas.UAS
+
+    const handleTarikKembali = async () => {
+      try {
+        await tarikKembaliMutation.mutateAsync(tugasId)
+        toast.success('Pengumpulan berhasil ditarik kembali. Kamu bisa mengubah jawaban.')
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message ?? 'Gagal menarik kembali pengumpulan.')
+      }
+    }
 
     return (
       <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 space-y-5">
         {/* Header */}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200">Pengumpulan Tugas</h3>
-          <StatusBadge status={status} />
+          <div className="flex items-center gap-2">
+            <StatusBadge status={status} />
+            {canTarikKembali && (
+              <button
+                type="button"
+                disabled={tarikKembaliMutation.isPending}
+                onClick={() => { void handleTarikKembali() }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-orange-300 text-orange-600 bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:border-orange-700 dark:text-orange-400 disabled:opacity-50 transition-colors"
+              >
+                {tarikKembaliMutation.isPending
+                  ? <RefreshCw size={11} className="animate-spin" />
+                  : <RotateCcw size={11} />
+                }
+                Tarik Kembali
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Waktu submit */}
@@ -362,11 +441,12 @@ export function SiswaSubmitPanel({ tugas, tugasId }: Props) {
           <NilaiDisplay penilaian={submission.penilaian} catatan={submission.catatan} />
         )}
 
-        {/* Catatan revisi */}
-        {isRevisi && submission.catatan && (
+        {/* Catatan revisi / dikembalikan */}
+        {(isRevisi || isDraft) && submission.catatan && (
           <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800">
             <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 mb-2">
-              <AlertTriangle size={12} /> Catatan Revisi dari Guru
+              <AlertTriangle size={12} />
+              {isDraft ? 'Catatan dari Guru (Dikembalikan)' : 'Catatan Revisi dari Guru'}
             </p>
             <p className="text-sm text-amber-900 dark:text-amber-200">{submission.catatan}</p>
           </div>
@@ -389,10 +469,14 @@ export function SiswaSubmitPanel({ tugas, tugasId }: Props) {
           </div>
         )}
 
-        {/* Revisi: tampilkan form ulang */}
-        {isRevisi && canSubmit && (
+        {/* Resubmit form — untuk REVISI (diminta guru) maupun DRAFT (dikembalikan/tarik kembali) */}
+        {canResubmit && (
           <div className="space-y-4 pt-2 border-t border-gray-100 dark:border-gray-800">
-            <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Submit Revisi (ke-{submission.revisiKe + 1})</p>
+            <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+              {isDraft
+                ? 'Kumpulkan Kembali'
+                : `Submit Revisi (ke-${submission.revisiKe + 1})`}
+            </p>
             {needsFile && (
               <FileUploadArea
                 files={files}
@@ -406,7 +490,7 @@ export function SiswaSubmitPanel({ tugas, tugasId }: Props) {
               <RichTextEditor
                 value={jawaban}
                 onChange={setJawaban}
-                placeholder="Tulis ulang jawabanmu di sini..."
+                placeholder={isDraft ? 'Tulis jawabanmu di sini...' : 'Tulis ulang jawabanmu di sini...'}
                 minHeight="160px"
               />
             )}
@@ -416,7 +500,7 @@ export function SiswaSubmitPanel({ tugas, tugasId }: Props) {
               onClick={() => { void handleSubmit() }}
               className="w-full"
             >
-              Kirim Revisi
+              {isDraft ? 'Kumpulkan Tugas' : 'Kirim Revisi'}
             </Button>
           </div>
         )}

@@ -5,7 +5,7 @@ import api from '@/lib/axios'
 export interface DiskusiUser {
   id: string
   role: string
-  profile: { namaLengkap: string; foto: string | null } | null
+  profile: { namaLengkap: string; fotoUrl: string | null } | null
 }
 
 export interface BalasanItem {
@@ -48,7 +48,7 @@ export const deleteDiskusiMateri = (diskusiId: string) =>
   api.delete<{ message: string }>(`/materi-pelajaran/diskusi/${diskusiId}`).then(r => r.data)
 
 export const pinDiskusiMateri = (diskusiId: string) =>
-  api.patch<{ id: string; isPinned: boolean }>(`/materi-pelajaran/diskusi/${diskusiId}/pin`).then(r => r.data)
+  api.patch<{ id: string; isPinned: boolean }>(`/materi-pelajaran/diskusi/${diskusiId}/pin`, {}).then(r => r.data)
 
 export const createBalasanMateri = (diskusiId: string, payload: CreateBalasanPayload) =>
   api.post<BalasanItem>(`/materi-pelajaran/diskusi/${diskusiId}/balasan`, payload).then(r => r.data)
@@ -57,7 +57,7 @@ export const deleteBalasanMateri = (balasanId: string) =>
   api.delete<{ message: string }>(`/materi-pelajaran/diskusi/balasan/${balasanId}`).then(r => r.data)
 
 export const toggleDiskusiMateri = (materiId: string) =>
-  api.patch<{ id: string; isDiskusiAktif: boolean }>(`/materi-pelajaran/${materiId}/diskusi/toggle`).then(r => r.data)
+  api.patch<{ id: string; isDiskusiAktif: boolean }>(`/materi-pelajaran/${materiId}/diskusi/toggle`, {}).then(r => r.data)
 
 // ─── Tugas ───────────────────────────────────────────────────────────────────
 
@@ -71,7 +71,7 @@ export const deleteDiskusiTugas = (diskusiId: string) =>
   api.delete<{ message: string }>(`/tugas/diskusi/${diskusiId}`).then(r => r.data)
 
 export const pinDiskusiTugas = (diskusiId: string) =>
-  api.patch<{ id: string; isPinned: boolean }>(`/tugas/diskusi/${diskusiId}/pin`).then(r => r.data)
+  api.patch<{ id: string; isPinned: boolean }>(`/tugas/diskusi/${diskusiId}/pin`, {}).then(r => r.data)
 
 export const createBalasanTugas = (diskusiId: string, payload: CreateBalasanPayload) =>
   api.post<BalasanItem>(`/tugas/diskusi/${diskusiId}/balasan`, payload).then(r => r.data)
@@ -80,4 +80,4 @@ export const deleteBalasanTugas = (balasanId: string) =>
   api.delete<{ message: string }>(`/tugas/diskusi/balasan/${balasanId}`).then(r => r.data)
 
 export const toggleDiskusiTugas = (tugasId: string) =>
-  api.patch<{ id: string; isDiskusiAktif: boolean }>(`/tugas/${tugasId}/diskusi/toggle`).then(r => r.data)
+  api.patch<{ id: string; isDiskusiAktif: boolean }>(`/tugas/${tugasId}/diskusi/toggle`, {}).then(r => r.data)

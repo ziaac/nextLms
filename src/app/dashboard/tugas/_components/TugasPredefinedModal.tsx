@@ -118,6 +118,7 @@ export function TugasPredefinedModal({ open, onClose, guruId }: Props) {
       { label: 'Hybrid (Teks + File)', value: BentukTugas.HYBRID },
       { label: 'Quiz (Multiple Choice)', value: BentukTugas.QUIZ_MULTIPLE_CHOICE },
       { label: 'Quiz (Campuran)', value: BentukTugas.QUIZ_MIX },
+      { label: 'Interactive Worksheet (LKS Interaktif)', value: BentukTugas.INTERACTIVE_WORKSHEET },
     ]
   }, [tujuan])
 

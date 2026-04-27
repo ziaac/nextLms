@@ -15,7 +15,14 @@
       "Bash(ls /mnt/)",
       "Read(//d//**)",
       "Bash(grep -v \"bg-white\\\\|bg-gray-9\\\\|#\\\\|//\")",
-      "Bash(npx tsx *)"
+      "Bash(npx tsx *)",
+      "Bash(npm install *)",
+      "Bash(echo \"EXIT:$?\")",
+      "PowerShell(Set-Location \"D:\\\\projects\\\\LMS-MAN\\\\Code\\\\nestAPI\"; npx tsc --noEmit 2>&1; Write-Host \"EXIT:$LASTEXITCODE\")",
+      "Read(//d/projects/LMS-MAN/Code/nestAPI/**)",
+      "Bash(npm list *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('sharp:', p.dependencies?.sharp ?? 'NOT FOUND'\\); console.log\\('node version target:', p.engines?.node ?? 'not specified'\\)\")",
+      "Bash(node -e \"const s=require\\('sharp'\\); console.log\\('sharp version:', s.versions?.sharp || 'ok'\\)\")"
     ]
   }
 }

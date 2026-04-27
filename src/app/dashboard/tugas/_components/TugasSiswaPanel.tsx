@@ -7,8 +7,9 @@ import { useActiveSemesterLabel }         from '@/hooks/semester/useSemester'
 import {
   Archive, Library, Book, BookOpen,
   Clock, AlertCircle, Award, ArrowLeft,
-  ClipboardList, CheckCircle2,
+  ClipboardList, CheckCircle2, Star,
 } from 'lucide-react'
+import { ProfilLulusanSiswa } from '@/components/dimensi-profil/ProfilLulusanSiswa'
 import { cn }                             from '@/lib/utils'
 import { format, isPast, isToday, differenceInHours } from 'date-fns'
 import { id as localeId }                 from 'date-fns/locale'
@@ -33,11 +34,12 @@ const TUJUAN_STAT_CONFIG: { key: TujuanTugas; label: string; color: string }[] =
 ]
 
 const BENTUK_LABEL: Record<BentukTugas, string> = {
-  FILE_SUBMISSION:      'File',
-  RICH_TEXT:            'Tulis',
-  HYBRID:               'Hybrid',
-  QUIZ_MULTIPLE_CHOICE: 'Quiz MC',
-  QUIZ_MIX:             'Quiz Mix',
+  FILE_SUBMISSION:       'File',
+  RICH_TEXT:             'Tulis',
+  HYBRID:                'Hybrid',
+  QUIZ_MULTIPLE_CHOICE:  'Quiz MC',
+  QUIZ_MIX:              'Quiz Mix',
+  INTERACTIVE_WORKSHEET: 'Worksheet',
 }
 
 const TUJUAN_LABEL: Record<TujuanTugas, string> = {
@@ -272,13 +274,13 @@ function SkeletonRows() {
 // MAIN PANEL
 // ═══════════════════════════════════════════════════════════════
 
-interface Props { userId: string }
+interface Props { userId: string; semesterId?: string }
 
-export function TugasSiswaPanel({ userId }: Props) {
+export function TugasSiswaPanel({ userId, semesterId }: Props) {
   const router   = useRouter()
   const semLabel = useActiveSemesterLabel()
 
-  const [tab,             setTab]             = useState<'tugas' | 'nilai'>('tugas')
+  const [tab,             setTab]             = useState<'tugas' | 'nilai' | 'dimensi'>('tugas')
   const [selectedMapelId, setSelectedMapelId] = useState('')
   const [arsipOpen,       setArsipOpen]       = useState(false)
 
@@ -348,12 +350,12 @@ export function TugasSiswaPanel({ userId }: Props) {
 
   // ── Sidebar count (tab-aware) ─────────────────────────────────
   const getSidebarCount = (mapelId: string) => {
-    if (tab === 'tugas') return mapelGroups.find((g) => g.id === mapelId)?.items.length ?? 0
+    if (tab === 'tugas' || tab === 'dimensi') return mapelGroups.find((g) => g.id === mapelId)?.items.length ?? 0
     return allNilai.filter((n) => n.mataPelajaranId === mapelId).length
   }
-  const totalCount = tab === 'tugas' ? allTugas.length : allNilai.length
+  const totalCount = tab === 'nilai' ? allNilai.length : allTugas.length
 
-  const showSidebar = !isLoading && mapelGroups.length > 1
+  const showSidebar = !isLoading && mapelGroups.length > 1 && tab !== 'dimensi'
 
   // ─────────────────────────────────────────────────────────────
   return (
@@ -371,7 +373,7 @@ export function TugasSiswaPanel({ userId }: Props) {
           </button>
           <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 shrink-0" />
           <div className="min-w-0">
-            <h1 className="text-base font-bold text-gray-900 dark:text-gray-100 leading-tight">Tugas & Nilai</h1>
+            <h1 className="text-base font-bold text-gray-900 dark:text-gray-100 leading-tight">Tugas, Nilai dan Dimensi Profil</h1>
             <p className="text-xs text-gray-500 dark:text-gray-400">{semLabel ?? 'Memuat...'}</p>
           </div>
         </div>
@@ -390,50 +392,67 @@ export function TugasSiswaPanel({ userId }: Props) {
         className="flex border-b border-gray-200 dark:border-gray-800"
         style={{ scrollbarWidth: 'none' } as React.CSSProperties}
       >
-        {(['tugas', 'nilai'] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={cn(
-              'inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors',
-              tab === t
-                ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
-            )}
-          >
-            {t === 'tugas' ? (
-              <>
-                <ClipboardList size={14} />
-                Tugas
-                {!isLoading && allTugas.length > 0 && (
-                  <span className={cn(
-                    'text-[10px] font-bold px-1.5 py-0.5 rounded-full tabular-nums',
-                    tab === 'tugas'
-                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                      : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
-                  )}>
-                    {allTugas.length}
-                  </span>
-                )}
-              </>
-            ) : (
-              <>
-                <CheckCircle2 size={14} />
-                Nilai
-                {!nilaiLoading && nilaiStats.dinilai > 0 && (
-                  <span className={cn(
-                    'text-[10px] font-bold px-1.5 py-0.5 rounded-full tabular-nums',
-                    tab === 'nilai'
-                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                      : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
-                  )}>
-                    {nilaiStats.dinilai}
-                  </span>
-                )}
-              </>
-            )}
-          </button>
-        ))}
+        {/* Tugas */}
+        <button
+          onClick={() => setTab('tugas')}
+          className={cn(
+            'inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors',
+            tab === 'tugas'
+              ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
+          )}
+        >
+          <ClipboardList size={14} />
+          Tugas
+          {!isLoading && allTugas.length > 0 && (
+            <span className={cn(
+              'text-[10px] font-bold px-1.5 py-0.5 rounded-full tabular-nums',
+              tab === 'tugas'
+                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
+            )}>
+              {allTugas.length}
+            </span>
+          )}
+        </button>
+
+        {/* Nilai */}
+        <button
+          onClick={() => setTab('nilai')}
+          className={cn(
+            'inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors',
+            tab === 'nilai'
+              ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
+          )}
+        >
+          <CheckCircle2 size={14} />
+          Nilai
+          {!nilaiLoading && nilaiStats.dinilai > 0 && (
+            <span className={cn(
+              'text-[10px] font-bold px-1.5 py-0.5 rounded-full tabular-nums',
+              tab === 'nilai'
+                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
+            )}>
+              {nilaiStats.dinilai}
+            </span>
+          )}
+        </button>
+
+        {/* Dimensi Profil */}
+        <button
+          onClick={() => setTab('dimensi')}
+          className={cn(
+            'inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors',
+            tab === 'dimensi'
+              ? 'border-violet-500 text-violet-600 dark:text-violet-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
+          )}
+        >
+          <Star size={14} />
+          Dimensi Profil
+        </button>
       </div>
 
       {/* ── Mini stats (context-aware) ── */}
@@ -636,6 +655,19 @@ export function TugasSiswaPanel({ userId }: Props) {
 
         </div>
       </div>
+
+      {/* ── Tab: Dimensi Profil ── */}
+      {tab === 'dimensi' && (
+        semesterId
+          ? <ProfilLulusanSiswa siswaId={userId} semesterId={semesterId} />
+          : (
+            <div className="py-20 text-center text-gray-400">
+              <Star className="w-8 h-8 mx-auto mb-3 opacity-20" />
+              <p className="text-sm font-medium">Semester aktif tidak ditemukan</p>
+              <p className="text-xs mt-1 opacity-70">Data dimensi profil tidak dapat dimuat</p>
+            </div>
+          )
+      )}
 
       <SiswaTugasArsipSlideOver open={arsipOpen} onClose={() => setArsipOpen(false)} />
     </div>

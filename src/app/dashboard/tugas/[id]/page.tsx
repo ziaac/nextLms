@@ -1,6 +1,6 @@
 'use client'
 
-import { useState }        from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuthStore }    from '@/stores/auth.store'
 import {
@@ -21,10 +21,15 @@ import { Badge }           from '@/components/ui/Badge'
 import { Spinner }         from '@/components/ui/Spinner'
 import { SiswaSubmitPanel } from './_components/SiswaSubmitPanel'
 import { GradingModal }    from './_components/GradingModal'
+import { BentukTugas }     from '@/types/tugas.types'
+import { WorksheetPlayer } from '@/components/worksheet/WorksheetPlayer'
+import { WorksheetBuilder } from '@/components/worksheet/WorksheetBuilder'
+import { WorksheetGradingView } from '@/components/worksheet/WorksheetGradingView'
 import type { StudentNavItem } from './_components/GradingModal'
 import {
-  ArrowLeft, Edit, Clock, FileText, Download,
-  AlertCircle, Calendar, Settings, Award, CheckCircle2, Users,
+  ArrowLeft, ArrowRight, Edit, Clock, FileText, Download,
+  AlertCircle, Calendar, Settings, Award, CheckCircle2, Users, LayoutTemplate,
+  Eye, Star,
 } from 'lucide-react'
 import { format }          from 'date-fns'
 import { id as localeId }  from 'date-fns/locale'
@@ -60,7 +65,15 @@ export default function TugasDetailPage() {
   const publishMutation                                = usePublishTugas()
 
   // ── Modal state ───────────────────────────────────────────────────
-  const [activeTab,         setActiveTab]         = useState<'ringkasan' | 'pengumpulan'>('ringkasan')
+  const [activeTab, setActiveTab] = useState<'ringkasan' | 'pengumpulan' | 'worksheet'>('ringkasan')
+
+  // Auto-select tab dari URL ?tab= (misal redirect dari halaman buat)
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab')
+    if (tab === 'worksheet') setActiveTab('worksheet')
+    else if (tab === 'pengumpulan') setActiveTab('pengumpulan')
+  }, [])
+
   const [showGradingModal,  setShowGradingModal]  = useState(false)
   const [selectedPengumpulanId, setSelectedPengumpulanId] = useState<string | null>(null)
   const [selectedSiswaId,   setSelectedSiswaId]   = useState<string | null>(null)
@@ -293,22 +306,47 @@ export default function TugasDetailPage() {
           >
             Pengumpulan Siswa ({isLoadingRekap ? '…' : totalSubmitted})
           </button>
+          {tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET && (
+            <button
+              onClick={() => setActiveTab('worksheet')}
+              className={cn(
+                'px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5',
+                activeTab === 'worksheet'
+                  ? 'border-violet-600 text-violet-600 dark:text-violet-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
+              )}
+            >
+              <LayoutTemplate size={14} /> Builder Worksheet
+            </button>
+          )}
         </div>
       )}
 
       {/* ── Tab Ringkasan — guru/admin + siswa langsung tanpa tab ── */}
       {(activeTab === 'ringkasan' || isSiswa) && (
+        <>
+        {/* WorksheetPlayer untuk siswa — full width di atas instruksi */}
+        {isSiswa && tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET && (
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 shadow-sm">
+            <WorksheetPlayer
+                  tugasId={tugasId}
+                  tujuanTugas={tugas.tujuan}
+                  tanggalSelesai={tugas.tanggalSelesai}
+                />
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {/* Mobile: submit panel di atas konten */}
-          {isSiswa && (
+          {/* Mobile: submit panel di atas konten (non-worksheet) */}
+          {isSiswa && tugas.bentuk !== BentukTugas.INTERACTIVE_WORKSHEET && (
             <div className="lg:hidden order-first">
               <SiswaSubmitPanel tugas={tugas} tugasId={tugasId} />
             </div>
           )}
 
           {/* Kolom kiri: instruksi + lampiran */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className={cn('space-y-6', isSiswa && tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET ? 'lg:col-span-3' : 'lg:col-span-2')}>
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Instruksi Tugas</h2>
 
@@ -353,9 +391,10 @@ export default function TugasDetailPage() {
             )}
           </div>
 
-          {/* Kolom kanan */}
+          {/* Kolom kanan — disembunyikan saat INTERACTIVE_WORKSHEET siswa (player sudah full-width di atas) */}
+          {!(isSiswa && tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET) && (
           <div className="space-y-6">
-            {/* Desktop: submit panel */}
+            {/* Desktop: submit panel (non-worksheet only) */}
             {isSiswa && (
               <div className="hidden lg:block">
                 <SiswaSubmitPanel tugas={tugas} tugasId={tugasId} />
@@ -365,6 +404,24 @@ export default function TugasDetailPage() {
             {/* Guru/admin: pengaturan + materi */}
             {!isSiswa && (
               <>
+                {/* Shortcut ke builder worksheet */}
+                {tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('worksheet')}
+                    className="w-full flex items-center gap-3 p-4 rounded-2xl border-2 border-dashed border-violet-300 dark:border-violet-700 bg-violet-50 dark:bg-violet-900/10 hover:border-violet-400 dark:hover:border-violet-600 hover:bg-violet-100 dark:hover:bg-violet-900/20 transition-colors group text-left"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400 shrink-0">
+                      <LayoutTemplate size={18} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-violet-800 dark:text-violet-300">Builder Worksheet</p>
+                      <p className="text-xs text-violet-500 dark:text-violet-500 mt-0.5">Upload halaman & tambah widget interaktif</p>
+                    </div>
+                    <ArrowRight size={16} className="text-violet-400 group-hover:text-violet-600 shrink-0 transition-colors" />
+                  </button>
+                )}
+
                 <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Pengaturan Pengumpulan</h3>
                   <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
@@ -414,7 +471,9 @@ export default function TugasDetailPage() {
               </div>
             )}
           </div>
+          )}
         </div>
+        </>
       )}
 
       {/* ── Tab Pengumpulan (Guru/Admin) ── */}
@@ -476,17 +535,42 @@ export default function TugasDetailPage() {
                         ) : '—'}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleOpenGrading(siswa)}
-                        >
-                          {siswa.statusSubmit === StatusPengumpulan.DINILAI
-                            ? 'Lihat Nilai'
-                            : siswa.sudahSubmit
-                              ? 'Beri Nilai'
-                              : 'Nilai Manual'}
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                          {/* Tombol Lihat Hasil — hanya untuk yang sudah submit */}
+                          {siswa.sudahSubmit && (
+                            <button
+                              type="button"
+                              title="Lihat hasil kerja siswa"
+                              onClick={() => handleOpenGrading(siswa)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 text-xs font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                            >
+                              <Eye size={13} />
+                              {tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET
+                                ? 'Lihat Worksheet'
+                                : 'Lihat Jawaban'}
+                            </button>
+                          )}
+
+                          {/* Tombol Nilai / aksi utama */}
+                          <button
+                            type="button"
+                            onClick={() => handleOpenGrading(siswa)}
+                            className={cn(
+                              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                              siswa.statusSubmit === StatusPengumpulan.DINILAI
+                                ? 'border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+                                : siswa.sudahSubmit
+                                  ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
+                                  : 'border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800',
+                            )}
+                          >
+                            {siswa.statusSubmit === StatusPengumpulan.DINILAI
+                              ? <><Star size={12} /> Sudah Dinilai</>
+                              : siswa.sudahSubmit
+                                ? <><Award size={12} /> Beri Nilai</>
+                                : 'Nilai Manual'}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -501,6 +585,20 @@ export default function TugasDetailPage() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Worksheet Builder (Guru/Admin + INTERACTIVE_WORKSHEET worksheet tab) ── */}
+      {isGuruOrAdmin && tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET && activeTab === 'worksheet' && (
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
+            <Settings size={16} className="text-blue-500" />
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">Builder Worksheet Interaktif</h2>
+            <span className="ml-auto text-xs text-gray-400">Upload halaman worksheet lalu tambahkan widget interaktif di atasnya</span>
+          </div>
+          <div className="p-5" style={{ minHeight: '75vh' }}>
+            <WorksheetBuilder tugasId={tugasId} />
+          </div>
         </div>
       )}
 

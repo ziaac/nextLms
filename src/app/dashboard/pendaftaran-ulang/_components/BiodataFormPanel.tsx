@@ -30,6 +30,7 @@ export function BiodataFormPanel({ item, onClose }: Props) {
         id:                item.id,
         nama:              item.nama,
         noPendaftaran:     item.noPendaftaran,
+        tanggalLahir:      item.tanggalLahir,   // pre-fill date meski belum ada biodata
         jalurPendaftaran:  item.jalurPendaftaran,
         tahunAjaran:       item.tahunAjaran,
         status:            item.status,

@@ -26,53 +26,53 @@ export function useDiskusiMateri(materiId: string | null) {
   })
 }
 
-export function useCreateDiskusiMateri(materiId: string) {
+export function useCreateDiskusiMateri(materiId: string | null) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: CreateDiskusiPayload) => createDiskusiMateri(materiId, payload),
-    onSuccess:  () => qc.invalidateQueries({ queryKey: diskusiKeys.materi(materiId) }),
+    mutationFn: (payload: CreateDiskusiPayload) => createDiskusiMateri(materiId!, payload),
+    onSuccess:  () => qc.invalidateQueries({ queryKey: diskusiKeys.materi(materiId ?? '') }),
   })
 }
 
-export function useDeleteDiskusiMateri(materiId: string) {
+export function useDeleteDiskusiMateri(materiId: string | null) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (diskusiId: string) => deleteDiskusiMateri(diskusiId),
-    onSuccess:  () => qc.invalidateQueries({ queryKey: diskusiKeys.materi(materiId) }),
+    onSuccess:  () => qc.invalidateQueries({ queryKey: diskusiKeys.materi(materiId ?? '') }),
   })
 }
 
-export function usePinDiskusiMateri(materiId: string) {
+export function usePinDiskusiMateri(materiId: string | null) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (diskusiId: string) => pinDiskusiMateri(diskusiId),
-    onSuccess:  () => qc.invalidateQueries({ queryKey: diskusiKeys.materi(materiId) }),
+    onSuccess:  () => qc.invalidateQueries({ queryKey: diskusiKeys.materi(materiId ?? '') }),
   })
 }
 
-export function useCreateBalasanMateri(materiId: string) {
+export function useCreateBalasanMateri(materiId: string | null) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ diskusiId, payload }: { diskusiId: string; payload: CreateBalasanPayload }) =>
       createBalasanMateri(diskusiId, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: diskusiKeys.materi(materiId) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: diskusiKeys.materi(materiId ?? '') }),
   })
 }
 
-export function useDeleteBalasanMateri(materiId: string) {
+export function useDeleteBalasanMateri(materiId: string | null) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (balasanId: string) => deleteBalasanMateri(balasanId),
-    onSuccess:  () => qc.invalidateQueries({ queryKey: diskusiKeys.materi(materiId) }),
+    onSuccess:  () => qc.invalidateQueries({ queryKey: diskusiKeys.materi(materiId ?? '') }),
   })
 }
 
-export function useToggleDiskusiMateri(materiId: string) {
+export function useToggleDiskusiMateri(materiId: string | null) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: () => toggleDiskusiMateri(materiId),
+    mutationFn: () => toggleDiskusiMateri(materiId!),
     onSuccess:  () => {
-      qc.invalidateQueries({ queryKey: diskusiKeys.materi(materiId) })
+      qc.invalidateQueries({ queryKey: diskusiKeys.materi(materiId ?? '') })
       qc.invalidateQueries({ queryKey: ['materi-pelajaran'] })
     },
   })

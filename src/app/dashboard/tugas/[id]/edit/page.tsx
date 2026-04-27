@@ -13,7 +13,7 @@ import { SalinKelasLainPanel } from '../../_components/SalinKelasLainPanel'
 import type { TugasPayload, SoalKuisPayload, QuizSettings } from '@/types/tugas.types'
 import { ModePengerjaan } from '@/types/tugas.types'
 import { uploadApi } from '@/lib/api/upload.api'
-import { ArrowLeft, Save, RefreshCw, Check, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Save, RefreshCw, Check, X, LayoutTemplate } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -321,10 +321,20 @@ function TugasEditInner() {
               Simpan Perubahan
             </Button>
 
-            <Button variant="secondary" className="w-full"
-              onClick={() => router.push(`/dashboard/tugas/${tugasId}`)}>
-              Batal & Kembali
-            </Button>
+            {tugas?.bentuk === 'INTERACTIVE_WORKSHEET' ? (
+              <Button
+                className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+                rightIcon={<ArrowRight size={15} />}
+                onClick={() => router.push(`/dashboard/tugas/${tugasId}?tab=worksheet`)}
+              >
+                Buka Builder Worksheet
+              </Button>
+            ) : (
+              <Button variant="secondary" className="w-full"
+                onClick={() => router.push(`/dashboard/tugas/${tugasId}`)}>
+                Batal & Kembali
+              </Button>
+            )}
 
             <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
               <label className="flex items-center justify-between cursor-pointer">

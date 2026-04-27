@@ -81,7 +81,7 @@ function BalasanCard({ balasan, myId, myRole, onDelete, deleting }: BalasanCardP
 
   return (
     <div className="flex gap-2 group">
-      <Avatar name={nama} foto={balasan.user.profile?.foto} />
+      <Avatar name={nama} foto={balasan.user.profile?.fotoUrl} />
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2">
           <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">{nama}</span>
@@ -147,7 +147,7 @@ function DiskusiCard({
     ].join(' ')}>
       {/* header */}
       <div className="flex items-start gap-3 p-4">
-        <Avatar name={nama} foto={item.user.profile?.foto} />
+        <Avatar name={nama} foto={item.user.profile?.fotoUrl} />
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">{nama}</span>

@@ -15,6 +15,8 @@ import {
   updateSubmissionStatus,
   bulkCopyTugas,
   nilaiManualTugas,
+  tarikKembaliSubmission,
+  kembalikanPengumpulan,
 } from '@/lib/api/tugas.api'
 import { TugasQueryParams } from '@/types/tugas.types'
 import type { UpdateSubmissionPayload, NilaiManualPayload } from '@/lib/api/tugas.api'
@@ -158,5 +160,33 @@ export function useBulkCopyTugas() {
       tanggalSelesai?: string
     }) => bulkCopyTugas(payload),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tugas'] }),
+  })
+}
+
+/** Siswa menarik kembali pengumpulan SUBMITTED → DRAFT */
+export function useTarikKembali() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (tugasId: string) => tarikKembaliSubmission(tugasId),
+    onSuccess: (_data, tugasId) => {
+      qc.invalidateQueries({ queryKey: tugasKeys.mySubmission(tugasId) })
+      qc.invalidateQueries({ queryKey: tugasKeys.detail(tugasId) })
+      qc.invalidateQueries({ queryKey: ['tugas', 'rekap'] })
+      // Invalidate worksheet jawaban agar WorksheetPlayer reload status → editable
+      qc.invalidateQueries({ queryKey: ['worksheet', 'jawaban', 'me', tugasId] })
+    },
+  })
+}
+
+/** Guru mengembalikan pengumpulan siswa SUBMITTED → DRAFT */
+export function useKembalikanPengumpulan() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (pengumpulanId: string) => kembalikanPengumpulan(pengumpulanId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tugas', 'submission'] })
+      qc.invalidateQueries({ queryKey: ['tugas', 'rekap'] })
+      qc.invalidateQueries({ queryKey: ['worksheet', 'grading'] })
+    },
   })
 }

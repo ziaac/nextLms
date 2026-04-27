@@ -77,3 +77,13 @@ export interface NilaiManualPayload {
 export const nilaiManualTugas = (tugasId: string, payload: NilaiManualPayload) =>
   api.post<PengumpulanTugas>(`${BASE}/${tugasId}/nilai-manual`, payload).then((r) => r.data)
 
+// --- TARIK KEMBALI / KEMBALIKAN ---
+
+/** Siswa menarik kembali pengumpulan (SUBMITTED → DRAFT), hanya boleh sebelum deadline */
+export const tarikKembaliSubmission = (tugasId: string) =>
+  api.patch<PengumpulanTugas>(`${BASE}/${tugasId}/tarik-kembali`, {}).then((r) => r.data)
+
+/** Guru mengembalikan pengumpulan ke siswa (SUBMITTED → DRAFT), bukan UTS/UAS */
+export const kembalikanPengumpulan = (pengumpulanId: string) =>
+  api.patch<PengumpulanTugas>(`${BASE}/pengumpulan/${pengumpulanId}/kembalikan`, {}).then((r) => r.data)
+

@@ -122,6 +122,7 @@ export interface VerifikasiIdentitasResult {
   id: string
   nama: string
   noPendaftaran: string
+  tanggalLahir: string          // dari siswaLulus — pre-fill form meski belum ada biodata
   jalurPendaftaran: JalurPendaftaran | null
   tahunAjaran: { nama: string }
   status: StatusSiswaLulus

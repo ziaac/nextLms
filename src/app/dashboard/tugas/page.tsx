@@ -15,7 +15,6 @@ import { TugasPredefinedModal }            from './_components/TugasPredefinedMo
 import { ArsipTugasSlideOver }             from './_components/ArsipTugasSlideOver'
 import { SalinTugasModal }                from './_components/SalinTugasModal'
 import { PenilaianDimensiTab }             from '@/components/dimensi-profil/PenilaianDimensiTab'
-import { ProfilLulusanSiswa }             from '@/components/dimensi-profil/ProfilLulusanSiswa'
 import type { TugasItem, TujuanTugas, BentukTugas } from '@/types/tugas.types'
 import { TugasSiswaList }                  from './_components/TugasSiswaList'
 import { TugasSiswaPanel }                from './_components/TugasSiswaPanel'
@@ -25,50 +24,6 @@ const ADMIN_ROLES = ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA']
 const GURU_ROLES  = ['GURU', 'WALI_KELAS']
 const SISWA_ROLES = ['SISWA']
 
-// ── Siswa tabbed view (Tugas & Nilai | Dimensi Profil) ───────
-function TugasSiswaTabbed({ userId, semesterId }: { userId: string; semesterId: string }) {
-  const [tab, setTab] = useState<'tugas' | 'dimensi'>('tugas')
-
-  return (
-    <div className="space-y-5">
-      {/* Page title */}
-      <div>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Tugas, Nilai dan Dimensi Profil</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Lihat tugas, nilai, dan penilaian dimensi profil Anda</p>
-      </div>
-
-      {/* Tab bar */}
-      <div className="flex gap-0 border-b border-gray-200 dark:border-gray-700">
-        {([
-          { key: 'tugas',   label: 'Tugas & Nilai' },
-          { key: 'dimensi', label: 'Dimensi Profil', icon: <Award className="w-3.5 h-3.5" /> },
-        ] as { key: 'tugas' | 'dimensi'; label: string; icon?: React.ReactNode }[]).map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            className={[
-              'flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold border-b-2 transition-colors',
-              tab === t.key
-                ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300',
-            ].join(' ')}
-          >
-            {t.icon}
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {tab === 'tugas'   && <TugasSiswaPanel userId={userId} />}
-      {tab === 'dimensi' && (
-        semesterId
-          ? <ProfilLulusanSiswa siswaId={userId} semesterId={semesterId} />
-          : <p className="text-sm text-gray-400 italic text-center py-10">Semester aktif tidak ditemukan.</p>
-      )}
-    </div>
-  )
-}
 
 export default function TugasPage() {
   return <Suspense><TugasContent /></Suspense>
@@ -497,8 +452,8 @@ function TugasContent() {
       )
     }
 
-    // Main tabbed view: Tugas & Nilai | Profil Lulusan
-    return <TugasSiswaTabbed userId={user?.id ?? ''} semesterId={resolvedSemId} />
+    // Main view: Tugas | Nilai | Dimensi Profil (tabs inside panel)
+    return <TugasSiswaPanel userId={user?.id ?? ''} semesterId={resolvedSemId} />
   }
 
   // Fallback

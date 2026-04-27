@@ -41,8 +41,8 @@ function toDateParts(dateStr: string | null | undefined) {
 export function FormBiodata({ session, existingBiodata, onDone }: Props) {
   const currentYear = new Date().getFullYear()
 
-  // Parse existing tanggalLahir for date dropdowns
-  const initDate = toDateParts(existingBiodata?.tanggalLahir)
+  // Parse tanggalLahir: biodata dulu (lebih akurat), fallback ke siswaLulus
+  const initDate = toDateParts(existingBiodata?.tanggalLahir ?? session.tanggalLahir)
 
   const [step, setStep] = useState(1)
   const [saving, setSaving] = useState(false)

@@ -104,6 +104,21 @@ function DetailMateriContent({ params: paramsPromise }: { params: Promise<{ id: 
 
   const bulkCopy = useBulkCopyMateri()
 
+  // ── Diskusi hooks — HARUS dipanggil sebelum early return ────────────────
+  // Gunakan materi?.id ?? null agar aman saat masih loading
+  const diskusiQuery      = useDiskusiMateri(materi?.id ?? null)
+  const createDiskusi     = useCreateDiskusiMateri(materi?.id ?? null)
+  const deleteDiskusiMut  = useDeleteDiskusiMateri(materi?.id ?? null)
+  const pinDiskusiMut     = usePinDiskusiMateri(materi?.id ?? null)
+  const createBalasan     = useCreateBalasanMateri(materi?.id ?? null)
+  const deleteBalasanMut  = useDeleteBalasanMateri(materi?.id ?? null)
+  const toggleDiskusiMut  = useToggleDiskusiMateri(materi?.id ?? null)
+  const [deletingDiskusiId, setDeletingDiskusiId] = useState<string | null>(null)
+  const [pinningDiskusiId,  setPinningDiskusiId]  = useState<string | null>(null)
+  const [replyingDiskusiId, setReplyingDiskusiId] = useState<string | null>(null)
+  const [deletingReplyId,   setDeletingReplyId]   = useState<string | null>(null)
+  const [diskusiAktif,      setDiskusiAktif]       = useState<boolean | undefined>(undefined)
+
   const handleCopy = async () => {
     if (!materi || copyTargetIds.size === 0) return
     try {
@@ -138,20 +153,7 @@ function DetailMateriContent({ params: paramsPromise }: { params: Promise<{ id: 
   const namaKelas   = materi.mataPelajaran?.kelas?.namaKelas ?? materi.kelas?.namaKelas
   const status      = getStatusMateri(materi)
 
-  // ── Diskusi hooks ────────────────────────────────────────────
-  const diskusiQuery      = useDiskusiMateri(materi.id)
-  const createDiskusi     = useCreateDiskusiMateri(materi.id)
-  const deleteDiskusiMut  = useDeleteDiskusiMateri(materi.id)
-  const pinDiskusiMut     = usePinDiskusiMateri(materi.id)
-  const createBalasan     = useCreateBalasanMateri(materi.id)
-  const deleteBalasanMut  = useDeleteBalasanMateri(materi.id)
-  const toggleDiskusiMut  = useToggleDiskusiMateri(materi.id)
-  const [deletingDiskusiId, setDeletingDiskusiId] = useState<string | null>(null)
-  const [pinningDiskusiId,  setPinningDiskusiId]  = useState<string | null>(null)
-  const [replyingDiskusiId, setReplyingDiskusiId] = useState<string | null>(null)
-  const [deletingReplyId,   setDeletingReplyId]   = useState<string | null>(null)
-  const [diskusiAktif,      setDiskusiAktif]       = useState<boolean | undefined>(undefined)
-  // sync from server once loaded
+  // sync diskusiAktif from server once loaded
   const diskusiAktifValue = diskusiAktif ?? (materi as any).isDiskusiAktif ?? true
 
   return (

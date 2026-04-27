@@ -18,7 +18,7 @@ import { QuizBuilder } from '../_components/QuizBuilder'
 import { SalinKelasLainPanel } from '../_components/SalinKelasLainPanel'
 import { useAuthStore } from '@/stores/auth.store'
 import {
-  ArrowLeft, Save, Check, RefreshCw, Loader2, Link2, X
+  ArrowLeft, Save, Check, RefreshCw, X, ArrowRight, LayoutTemplate,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -67,8 +67,9 @@ function TugasCreateInner() {
     }
   }, [params])
 
-  const isUjian = predefined.tujuan === 'UTS' || predefined.tujuan === 'UAS'
-  const isRemedial = predefined.tujuan === 'REMEDIAL'
+  const isUjian      = predefined.tujuan === 'UTS' || predefined.tujuan === 'UAS'
+  const isRemedial   = predefined.tujuan === 'REMEDIAL'
+  const isWorksheet  = predefined.bentuk === 'INTERACTIVE_WORKSHEET'
 
   // ── Form state ────────────────────────────────────────────
   const [judul,               setJudul]               = useState('')
@@ -229,6 +230,20 @@ function TugasCreateInner() {
         </div>
       </div>
 
+      {/* ── Info banner khusus INTERACTIVE_WORKSHEET ── */}
+      {isWorksheet && (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800">
+          <LayoutTemplate size={18} className="text-violet-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-violet-800 dark:text-violet-300">Tugas Interactive Worksheet</p>
+            <p className="text-xs text-violet-600 dark:text-violet-400 mt-0.5 leading-relaxed">
+              Langkah 1 dari 2: Isi detail tugas (judul, jadwal, instruksi) lalu klik <strong>Simpan Draft</strong>.{' '}
+              Setelah tersimpan, Anda akan diarahkan ke <strong>Builder Worksheet</strong> untuk mengunggah halaman dan menambahkan widget interaktif.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ── Main layout: 2 columns ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -356,8 +371,19 @@ function TugasCreateInner() {
             >
               {isPublished ? 'Simpan & Publikasikan' : (savedId ? 'Simpan Perubahan' : 'Simpan Draft')}
             </Button>
-            
-            {savedId && (
+
+            {/* Setelah tersimpan: tombol kontekstual */}
+            {savedId && isWorksheet && (
+              <Button
+                className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+                rightIcon={<ArrowRight size={15} />}
+                onClick={() => router.push(`/dashboard/tugas/${savedId}?tab=worksheet`)}
+              >
+                Lanjut ke Builder Worksheet
+              </Button>
+            )}
+
+            {savedId && !isWorksheet && (
               <Button
                 variant="secondary"
                 className="w-full"

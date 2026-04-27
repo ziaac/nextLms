@@ -4,19 +4,21 @@ import { useState, useEffect }     from 'react'
 import {
   Download, FileText, MessageSquare,
   CheckCircle2, RefreshCw, Award, AlertTriangle, User,
-  ChevronLeft, ChevronRight, Edit2, ClipboardList,
+  ChevronLeft, ChevronRight, Edit2, ClipboardList, Eye, Star, RotateCcw, Loader2,
 } from 'lucide-react'
+import { cn }                       from '@/lib/utils'
 import { Modal }                   from '@/components/ui/Modal'
 import { Button }                  from '@/components/ui'
 import { Spinner }                 from '@/components/ui/Spinner'
 import { Badge }                   from '@/components/ui/Badge'
-import { useSubmissionDetail, useUpdateSubmissionStatus, useNilaiManual } from '@/hooks/tugas/useTugas'
+import { useSubmissionDetail, useUpdateSubmissionStatus, useNilaiManual, useKembalikanPengumpulan } from '@/hooks/tugas/useTugas'
 import { getPresignedUrl }         from '@/lib/api/upload.api'
 import { toast }                   from 'sonner'
 import { format }                  from 'date-fns'
 import { id as localeId }          from 'date-fns/locale'
-import { StatusPengumpulan, BentukTugas, TipeSoalKuis } from '@/types/tugas.types'
+import { StatusPengumpulan, BentukTugas, TipeSoalKuis, TujuanTugas } from '@/types/tugas.types'
 import type { TugasItem }          from '@/types/tugas.types'
+import { WorksheetGradingView }    from '@/components/worksheet/WorksheetGradingView'
 
 // ── File Viewer ───────────────────────────────────────────────────────
 function FileList({ fileKeys }: { fileKeys: string[] }) {
@@ -76,10 +78,12 @@ interface GradingFormProps {
   bobot:          number
   initialNilai?:  number | null
   initialCatatan?: string
+  /** Kuis tidak mendukung REVISI — sembunyikan tab Minta Revisi */
+  isQuiz?:        boolean
   onDone: () => void
 }
 
-function GradingForm({ pengumpulanId, bobot, initialNilai, initialCatatan, onDone }: GradingFormProps) {
+function GradingForm({ pengumpulanId, bobot, initialNilai, initialCatatan, isQuiz, onDone }: GradingFormProps) {
   const [nilai,   setNilai]   = useState(initialNilai != null ? String(initialNilai) : '')
   const [catatan, setCatatan] = useState(initialCatatan ?? '')
   const [action,  setAction]  = useState<StatusPengumpulan>(StatusPengumpulan.DINILAI)
@@ -127,7 +131,7 @@ function GradingForm({ pengumpulanId, bobot, initialNilai, initialCatatan, onDon
 
   return (
     <div className="space-y-4">
-      {/* Pilih aksi */}
+      {/* Pilih aksi — REVISI disembunyikan untuk kuis */}
       <div className="flex gap-2">
         <button
           type="button"
@@ -141,18 +145,20 @@ function GradingForm({ pengumpulanId, bobot, initialNilai, initialCatatan, onDon
         >
           <CheckCircle2 size={15} /> Beri Nilai
         </button>
-        <button
-          type="button"
-          onClick={() => setAction(StatusPengumpulan.REVISI)}
-          className={[
-            'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border transition-colors',
-            action === StatusPengumpulan.REVISI
-              ? 'bg-amber-50 border-amber-400 text-amber-700 dark:bg-amber-900/20 dark:border-amber-600 dark:text-amber-300'
-              : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-amber-300 hover:text-amber-600',
-          ].join(' ')}
-        >
-          <RefreshCw size={15} /> Minta Revisi
-        </button>
+        {!isQuiz && (
+          <button
+            type="button"
+            onClick={() => setAction(StatusPengumpulan.REVISI)}
+            className={[
+              'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border transition-colors',
+              action === StatusPengumpulan.REVISI
+                ? 'bg-amber-50 border-amber-400 text-amber-700 dark:bg-amber-900/20 dark:border-amber-600 dark:text-amber-300'
+                : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-amber-300 hover:text-amber-600',
+            ].join(' ')}
+          >
+            <RefreshCw size={15} /> Minta Revisi
+          </button>
+        )}
       </div>
 
       {/* Input nilai */}
@@ -343,13 +349,21 @@ export function GradingModal({
   open, pengumpulanId, siswaId, namaSiswa,
   tugas, students, onNavigate, onClose,
 }: Props) {
-  const [editMode, setEditMode] = useState(false)
+  const [editMode,       setEditMode]       = useState(false)
+  const [kembalikanOpen, setKembalikanOpen] = useState(false)
+  // Tab khusus worksheet: 'kerja' = lihat hasil, 'nilai' = beri nilai
+  const [gradingTab,  setGradingTab]  = useState<'kerja' | 'nilai'>('kerja')
 
-  // Reset edit mode saat buka modal atau navigasi
-  useEffect(() => { setEditMode(false) }, [pengumpulanId, siswaId, open])
+  // Reset saat buka modal atau navigasi
+  useEffect(() => {
+    setEditMode(false)
+    setGradingTab('kerja')
+    setKembalikanOpen(false)
+  }, [pengumpulanId, siswaId, open])
 
   // Guard: jangan fetch jika modal tertutup atau tidak ada id
   const { data: sub, isLoading } = useSubmissionDetail(open && pengumpulanId ? pengumpulanId : null)
+  const kembalikanMutation = useKembalikanPengumpulan()
 
   // Navigasi prev/next — berdasarkan siswaId
   const currentSiswaId = siswaId ?? sub?.siswa?.id ?? null
@@ -367,6 +381,9 @@ export function GradingModal({
   const fileKeys   = Array.isArray(sub?.fileUrls) ? (sub.fileUrls as string[]) : []
   const hasFiles   = fileKeys.length > 0
   const hasJawaban = !!sub?.jawaban
+
+  // Detect bentuk
+  const isWorksheet = tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET
 
   // Detect quiz submission — jawaban is JSON map of soalId → opsiId
   const isQuiz = tugas.bentuk === BentukTugas.QUIZ_MULTIPLE_CHOICE ||
@@ -386,6 +403,26 @@ export function GradingModal({
   const nilaiEntry = sub?.penilaian?.[0]
   const nilaiSaved = nilaiEntry?.nilai ?? null
   const showReadOnly = sub?.status === StatusPengumpulan.DINILAI && !editMode && nilaiSaved != null
+
+  // Guru boleh kembalikan ke siswa jika: status SUBMITTED + bukan UTS/UAS + bukan kuis
+  // Kuis tidak punya mekanisme pengerjaan ulang, sehingga kembalikan tidak bermakna
+  const canKembalikan = sub?.status === StatusPengumpulan.SUBMITTED &&
+    tugas.tujuan !== TujuanTugas.UTS &&
+    tugas.tujuan !== TujuanTugas.UAS &&
+    !isQuiz
+
+  const handleKembalikan = async () => {
+    if (!pengumpulanId) return
+    try {
+      await kembalikanMutation.mutateAsync(pengumpulanId)
+      toast.success('Pengumpulan dikembalikan ke siswa. Siswa dapat mengubah jawabannya.')
+      setKembalikanOpen(false)
+      if (hasNext) onNavigate(students[currentIdx + 1])
+      else onClose()
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? 'Gagal mengembalikan pengumpulan.')
+    }
+  }
 
   return (
     <Modal
@@ -423,6 +460,36 @@ export function GradingModal({
         </div>
       )}
 
+      {/* ── Tab bar — khusus worksheet yang sudah submit ─────────── */}
+      {isWorksheet && pengumpulanId && currentSiswaId && (
+        <div className="flex border-b border-gray-100 dark:border-gray-800 shrink-0 px-5">
+          <button
+            type="button"
+            onClick={() => setGradingTab('kerja')}
+            className={cn(
+              'flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
+              gradingTab === 'kerja'
+                ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300',
+            )}
+          >
+            <Eye size={14} /> Lihat Hasil Kerja
+          </button>
+          <button
+            type="button"
+            onClick={() => setGradingTab('nilai')}
+            className={cn(
+              'flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
+              gradingTab === 'nilai'
+                ? 'border-amber-500 text-amber-600 dark:text-amber-400'
+                : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300',
+            )}
+          >
+            <Star size={14} /> Beri Nilai
+          </button>
+        </div>
+      )}
+
       {/* Konten */}
       {/* ── Case: belum submit → manual grading ─────────────────── */}
       {!pengumpulanId && siswaId ? (
@@ -447,6 +514,83 @@ export function GradingModal({
             <p className="text-sm text-gray-400">Data pengumpulan tidak ditemukan.</p>
           )}
         </div>
+      ) : isWorksheet && currentSiswaId ? (
+        /* ── Worksheet: tab Lihat Kerja atau Beri Nilai ─────── */
+        gradingTab === 'kerja' ? (
+          <div className="flex-1 overflow-y-auto p-5">
+            <WorksheetGradingView
+              tugasId={tugas.id}
+              siswaId={currentSiswaId}
+              namaSiswa={namaSiswaFetch}
+              onClose={() => {
+                if (hasNext) onNavigate(students[currentIdx + 1])
+                else onClose()
+              }}
+            />
+          </div>
+        ) : (
+          /* ── Tab Nilai untuk worksheet ───────────────────── */
+          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+            {/* Info siswa */}
+            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+              <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shrink-0">
+                <User size={16} className="text-gray-500" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{namaSiswaFetch}</p>
+                {nisnSiswa && <p className="text-xs text-gray-400">NISN: {nisnSiswa}</p>}
+              </div>
+              <div className="ml-auto shrink-0">
+                <StatusBadge status={sub.status} />
+              </div>
+            </div>
+
+            {/* Tombol kembalikan ke siswa */}
+            {canKembalikan && (
+              <div className="rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/10 p-3.5 flex items-center gap-3">
+                <RotateCcw size={15} className="text-orange-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-orange-700 dark:text-orange-400">Kembalikan ke Siswa</p>
+                  <p className="text-[11px] text-orange-600/70 dark:text-orange-500 mt-0.5">Status kembali ke Draft, siswa bisa mengubah jawaban.</p>
+                </div>
+                <button
+                  type="button"
+                  disabled={kembalikanMutation.isPending}
+                  onClick={() => { void handleKembalikan() }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-orange-400 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30 disabled:opacity-50 transition-colors whitespace-nowrap"
+                >
+                  {kembalikanMutation.isPending
+                    ? <><Loader2 size={11} className="animate-spin" /> Memproses…</>
+                    : <><RotateCcw size={11} /> Kembalikan</>
+                  }
+                </button>
+              </div>
+            )}
+
+            {showReadOnly ? (
+              <NilaiReadOnly
+                nilai={nilaiSaved!}
+                catatan={sub.catatan}
+                bobot={tugas.bobot}
+                onEdit={() => setEditMode(true)}
+              />
+            ) : (
+              <GradingForm
+                pengumpulanId={pengumpulanId}
+                bobot={tugas.bobot}
+                initialNilai={nilaiSaved}
+                initialCatatan={sub.catatan}
+                isQuiz={isQuiz}
+                onDone={() => {
+                  setEditMode(false)
+                  setGradingTab('kerja')
+                  if (hasNext) onNavigate(students[currentIdx + 1])
+                  else onClose()
+                }}
+              />
+            )}
+          </div>
+        )
       ) : (
         <div className="flex flex-col lg:flex-row flex-1 min-h-0">
 
@@ -550,6 +694,32 @@ export function GradingModal({
               <p className="text-xs text-gray-400 mt-0.5">Bobot maks. {tugas.bobot} poin</p>
             </div>
 
+            {/* Tombol kembalikan ke siswa */}
+            {canKembalikan && (
+              <div className="rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/10 p-3.5 space-y-2.5">
+                <div className="flex items-start gap-2">
+                  <RotateCcw size={14} className="text-orange-500 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs font-semibold text-orange-700 dark:text-orange-400">Kembalikan ke Siswa?</p>
+                    <p className="text-[11px] text-orange-600/70 dark:text-orange-500 mt-0.5 leading-snug">
+                      Status kembali ke Draft, siswa bisa memperbaiki dan mengumpulkan ulang.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={kembalikanMutation.isPending}
+                  onClick={() => { void handleKembalikan() }}
+                  className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold border border-orange-400 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30 disabled:opacity-50 transition-colors"
+                >
+                  {kembalikanMutation.isPending
+                    ? <><Loader2 size={11} className="animate-spin" /> Memproses…</>
+                    : <><RotateCcw size={11} /> Kembalikan ke Siswa</>
+                  }
+                </button>
+              </div>
+            )}
+
             {showReadOnly ? (
               <NilaiReadOnly
                 nilai={nilaiSaved!}
@@ -563,6 +733,7 @@ export function GradingModal({
                 bobot={tugas.bobot}
                 initialNilai={nilaiSaved}
                 initialCatatan={sub.catatan}
+                isQuiz={isQuiz}
                 onDone={() => {
                   setEditMode(false)
                   // Jika masih ada siswa berikutnya, otomatis navigasi
