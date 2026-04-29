@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { PageHeader, Button } from '@/components/ui'
+import { PageHeader, Button, Skeleton } from '@/components/ui'
 import { useHarianLog } from '@/hooks/guru-log/useGuruLog'
 import { useUser } from '@/hooks/users/useUsers'
 import { useAuthStore } from '@/stores/auth.store'
@@ -13,15 +13,16 @@ import { ArsipSlideOver }     from './_components/ArsipSlideOver'
 import { toast } from 'sonner'
 import { Archive, Plus, ArrowLeft } from 'lucide-react'
 
-export default function LogLckhPage() {
+// ── Inner component — pakai useSearchParams di sini ──────────────────────────
+function LogLckhContent() {
   const router       = useRouter()
   const searchParams = useSearchParams()
   const { user }     = useAuthStore()
 
   // Mode manajemen: ada ?guruId di URL dan user adalah manajemen
-  const guruIdParam   = searchParams.get('guruId') ?? undefined
-  const bulanParam    = searchParams.get('bulan')
-  const tahunParam    = searchParams.get('tahun')
+  const guruIdParam     = searchParams.get('guruId') ?? undefined
+  const bulanParam      = searchParams.get('bulan')
+  const tahunParam      = searchParams.get('tahun')
   const isManajemenMode = !!guruIdParam && isManajemen(user?.role)
 
   const now = new Date()
@@ -116,5 +117,14 @@ export default function LogLckhPage() {
         <ArsipSlideOver open={arsipOpen} onClose={() => setArsipOpen(false)} />
       )}
     </div>
+  )
+}
+
+// ── Page export — bungkus dengan Suspense ─────────────────────────────────────
+export default function LogLckhPage() {
+  return (
+    <Suspense fallback={<Skeleton className="h-80 w-full rounded-2xl" />}>
+      <LogLckhContent />
+    </Suspense>
   )
 }
