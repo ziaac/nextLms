@@ -12,7 +12,7 @@ import { GaleriSection } from './_sections/GaleriSection'
 export const revalidate = 300 // ISR 5 menit
 
 export default async function HomePage() {
-  const [profil, slider, fitur, beritaData, galeriAlbums, stats, menu] = await Promise.allSettled([
+  const [profil, slider, fitur, beritaData, galeriAlbums, stats, menu, aktivitas] = await Promise.allSettled([
     publicApi.profil(),
     publicApi.slider(),
     publicApi.fitur(),
@@ -20,6 +20,7 @@ export default async function HomePage() {
     publicApi.galeriAlbum(),
     publicApi.stats(),
     publicApi.menu(),
+    publicApi.aktivitasSemester(),
   ])
 
   const profilData   = profil.status     === 'fulfilled' ? profil.value         : null
@@ -29,6 +30,7 @@ export default async function HomePage() {
   const albums       = galeriAlbums.status === 'fulfilled' ? galeriAlbums.value : []
   const statsData    = stats.status      === 'fulfilled' ? stats.value          : null
   const menuData     = menu.status       === 'fulfilled' ? menu.value           : []
+  const aktivitasData = aktivitas.status === 'fulfilled' ? aktivitas.value      : null
 
   const firstAlbum   = albums.find((a: any) => a.isActive) ?? null
   const galeriDetail = firstAlbum
@@ -78,8 +80,8 @@ export default async function HomePage() {
       <PublicNavbar menuItems={navItems} />
 
       <main>
-        <div id="beranda"><HeroSection sliders={sliderData} /></div>
-        <div id="profil"><ProfilSection profil={profilData} stats={statsData} /></div>
+        <div id="beranda"><HeroSection sliders={sliderData} aktivitas={aktivitasData} /></div>
+        <div id="profil"><ProfilSection profil={profilData} stats={aktivitasData?.profil ?? statsData} /></div>
         <div id="fitur"><FiturSection fitur={fiturData} /></div>
         <div id="berita"><BeritaSection berita={berita} /></div>
         <div id="galeri"><GaleriSection album={galeriDetail} albumList={albums} /></div>

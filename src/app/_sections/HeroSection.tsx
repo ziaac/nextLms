@@ -2,16 +2,27 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Clock, Users, GraduationCap, BookOpen, AlertCircle } from 'lucide-react'
+import {
+  ChevronLeft, ChevronRight, AlertCircle,
+  CalendarDays, UserCheck, BookOpenCheck, ClipboardList,
+} from 'lucide-react'
 import { getPublicFileUrl } from '@/lib/constants'
-import { API_URL } from '@/lib/constants'
 
-const HARI_ID = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
 const BANNER_URL = 'https://storagelms.man2kotamakassar.sch.id/static-assets/static_login_image.webp'
 
 interface Slider {
   id: string; judul: string; deskripsi?: string | null
   imageUrl: string; linkUrl?: string | null; urutan: number; isActive: boolean
+}
+
+interface AktivitasData {
+  semesterNama: string | null
+  tahunAjaran:  string | null
+  jadwal:    { totalJP: number; totalSesiDibuka: number }
+  kehadiran: { persentase: number; totalAbsensi: number }
+  materi:    { totalDibuat: number; totalSiswaSelesai: number; totalSiswa: number }
+  tugas:     { totalDibuat: number; totalSiswaKumpul: number; totalPengumpulan: number }
+  profil:    { totalSiswa: number; totalGuru: number; totalMapel: number }
 }
 
 // ── Skeleton loader ───────────────────────────────────────────────────────────
@@ -22,18 +33,14 @@ function InfoCardSkeleton() {
       <div className="relative z-10 space-y-4">
         <div className="h-3 w-20 bg-white/10 rounded animate-pulse" />
         <div className="h-6 w-40 bg-white/10 rounded animate-pulse" />
-        <div className="grid grid-cols-3 gap-2 mt-2">
-          {[1,2,3].map(i => (
-            <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse" />
-              <div className="h-4 w-10 bg-white/10 rounded animate-pulse" />
-              <div className="h-2 w-8 bg-white/10 rounded animate-pulse" />
-            </div>
+        <div className="space-y-2 mt-2">
+          {[1,2,3,4].map(i => (
+            <div key={i} className="h-14 rounded-xl bg-white/5 border border-white/10 animate-pulse" />
           ))}
         </div>
         <div className="space-y-2 mt-2">
-          {[1,2,3,4].map(i => (
-            <div key={i} className="h-12 rounded-xl bg-white/5 border border-white/10 animate-pulse" />
+          {[1,2,3].map(i => (
+            <div key={i} className="h-10 rounded-xl bg-white/5 border border-white/10 animate-pulse" />
           ))}
         </div>
       </div>
@@ -41,39 +48,47 @@ function InfoCardSkeleton() {
   )
 }
 
-// ── Info card ─────────────────────────────────────────────────────────────────
-function InfoCard() {
-  const [stats,   setStats]   = useState<any>(null)
-  const [jadwal,  setJadwal]  = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState(false)
-  const [hariIni, setHariIni] = useState('')
+// ── Stat row: nilai kiri / nilai kanan ────────────────────────────────────────
+function StatRow({
+  icon, label, left, right, leftLabel, rightLabel, accent = false,
+}: {
+  icon: React.ReactNode
+  label: string
+  left: string | number
+  right: string | number
+  leftLabel: string
+  rightLabel: string
+  accent?: boolean
+}) {
+  return (
+    <div className={`flex items-center gap-3 rounded-xl px-3 py-2.5 border ${
+      accent
+        ? 'bg-emerald-500/10 border-emerald-400/20'
+        : 'bg-white/5 border-white/10'
+    }`}>
+      <div className="w-7 h-7 rounded-full border border-white/15 bg-white/8 flex items-center justify-center text-white/70 shrink-0">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] text-white/75 uppercase tracking-wide truncate font-medium">{label}</p>
+        <div className="flex items-baseline gap-1.5 mt-0.5">
+          <span className="text-sm text-white font-medium">{left}</span>
+          <span className="text-[10px] text-white/40">{leftLabel}</span>
+          <span className="text-white/20 mx-0.5">/</span>
+          <span className="text-sm text-emerald-300 font-medium">{right}</span>
+          <span className="text-[10px] text-white/40">{rightLabel}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
 
-  useEffect(() => {
-    setHariIni(HARI_ID[new Date().getDay()])
-    const load = async () => {
-      try {
-        const [sRes, jRes] = await Promise.all([
-          fetch(`${API_URL}/report/public/stats`),
-          fetch(`${API_URL}/jadwal-pelajaran/publik/hari-ini`),
-        ])
-        setStats(await sRes.json())
-        const jData = await jRes.json()
-        setJadwal(jData.data ?? [])
-      } catch { setError(true) }
-      finally { setLoading(false) }
-    }
-    load()
-  }, [])
-
-  if (loading) return <InfoCardSkeleton />
-
-  const allSesi = jadwal
-    .flatMap((k: any) => k.jadwal.map((j: any) => ({ ...j, namaKelas: k.namaKelas })))
-    .slice(0, 8)
+// ── Info card — menerima data aktivitas dari SSR ──────────────────────────────
+function InfoCard({ aktivitas }: { aktivitas: AktivitasData | null }) {
+  const a = aktivitas
 
   return (
-    <div className="relative flex flex-col rounded-3xl overflow-hidden border border-white/20 shadow-2xl h-full">
+    <div className="relative flex flex-col rounded-3xl overflow-hidden border border-white/20 shadow-2xl">
       <div
         className="absolute inset-0 z-0 bg-white/[0.04]"
         style={{
@@ -83,66 +98,59 @@ function InfoCard() {
           WebkitMaskImage: 'radial-gradient(ellipse at center, transparent 0%, black 85%)',
         }}
       />
-      <div className="relative z-10 px-6 py-5 flex flex-col h-full">
-        <div className="mb-4">
-          <p className="text-[10px] text-white/50 uppercase tracking-wider mb-0.5">Live Report</p>
-          <h3 className="text-xl text-white leading-none font-light">Informasi Akademik</h3>
+      <div className="relative z-10 px-5 py-4 flex flex-col gap-3">
+
+        {/* Header */}
+        <div>
+          <p className="text-[10px] text-white/50 uppercase tracking-wider mb-0.5">
+            {a?.semesterNama && a?.tahunAjaran ? `${a.semesterNama} · ${a.tahunAjaran}` : 'Aktivitas Akademik'}
+          </p>
+          <h3 className="text-lg text-white leading-none font-light">Semester Ini</h3>
         </div>
 
-        {error ? (
-          <div className="flex items-center gap-2 text-white/60 text-xs">
+        {!a && (
+          <div className="flex items-center gap-2 text-white/60 text-xs mb-1">
             <AlertCircle size={14} />
-            <span>Gagal memuat data</span>
-          </div>
-        ) : (
-          <div className="flex flex-col flex-1 overflow-hidden gap-4">
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { label: 'Siswa',  value: stats?.totalSiswa ?? 0, icon: <GraduationCap size={16} strokeWidth={1.5} /> },
-                { label: 'Guru',   value: stats?.totalGuru  ?? 0, icon: <Users size={16} strokeWidth={1.5} /> },
-                { label: 'Kelas',  value: stats?.totalKelas ?? 0, icon: <BookOpen size={16} strokeWidth={1.5} /> },
-              ].map((s) => (
-                <div key={s.label} className="bg-white/5 border border-white/10 rounded-2xl p-2.5 flex flex-col items-center text-center">
-                  <div className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-white/70 mb-1.5">
-                    {s.icon}
-                  </div>
-                  <p className="text-lg text-white leading-none">{s.value.toLocaleString('id')}</p>
-                  <p className="text-[10px] text-white/40 uppercase mt-0.5">{s.label}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-col flex-1 overflow-hidden">
-              <div className="flex justify-between items-end mb-2 border-b border-white/10 pb-1.5">
-                <p className="text-[10px] text-white/50 uppercase">Jadwal Hari Ini</p>
-                <p className="text-[10px] text-white/70 uppercase">{hariIni || '...'}</p>
-              </div>
-              <div className="space-y-2 flex-1 overflow-y-auto pr-1" style={{ scrollbarWidth: 'none' }}>
-                {allSesi.length > 0 ? allSesi.map((s: any, i: number) => (
-                  <div key={i} className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-2.5">
-                    <div className="flex flex-col items-center shrink-0 min-w-[44px]">
-                      <Clock size={12} strokeWidth={1.5} className="text-white/50 mb-1" />
-                      <span className="text-[11px] text-white">{s.jamMulai}</span>
-                    </div>
-                    <div className="min-w-0 border-l border-white/10 pl-3">
-                      <p className="text-[12px] text-white truncate uppercase">{s.namaMapel}</p>
-                      <p className="text-[10px] text-white/40 mt-0.5">{s.namaKelas}</p>
-                    </div>
-                  </div>
-                )) : (
-                  <p className="text-[11px] text-white/30 uppercase text-center py-4">
-                    Tidak ada jadwal hari ini
-                  </p>
-                )}
-              </div>
-              <div className="mt-3 pt-2 border-t border-white/5">
-                <Link href="/jadwal-publik" className="text-[11px] text-white/50 hover:text-white transition-colors uppercase">
-                  Jadwal Selengkapnya →
-                </Link>
-              </div>
-            </div>
+            <span>Data tidak tersedia</span>
           </div>
         )}
+
+        {/* 4 stat rows — selalu tampil, nilai '—' jika data null */}
+        <div className="space-y-1.5">
+          <StatRow
+            icon={<CalendarDays size={13} strokeWidth={1.5} />}
+            label="Jadwal / Sesi Absen Dibuka"
+            left={a?.jadwal.totalJP ?? '—'}
+            leftLabel="JP"
+            right={a?.jadwal.totalSesiDibuka ?? '—'}
+            rightLabel="sesi"
+          />
+          <StatRow
+            icon={<UserCheck size={13} strokeWidth={1.5} />}
+            label="Kehadiran Siswa"
+            left={`${a?.kehadiran.persentase ?? 0}%`}
+            leftLabel="hadir"
+            right={a?.kehadiran.totalAbsensi ?? '—'}
+            rightLabel="total absen"
+            accent={!!a && a.kehadiran.persentase >= 80}
+          />
+          <StatRow
+            icon={<BookOpenCheck size={13} strokeWidth={1.5} />}
+            label="Materi Dibuat / Siswa Selesai Baca"
+            left={a?.materi.totalDibuat ?? '—'}
+            leftLabel="materi"
+            right={a?.materi.totalSiswaSelesai ?? '—'}
+            rightLabel="siswa"
+          />
+          <StatRow
+            icon={<ClipboardList size={13} strokeWidth={1.5} />}
+            label="Tugas Dibuat / Pengumpulan"
+            left={a?.tugas.totalDibuat ?? '—'}
+            leftLabel="tugas"
+            right={a?.tugas.totalSiswaKumpul ?? '—'}
+            rightLabel="kumpul"
+          />
+        </div>
       </div>
     </div>
   )
@@ -154,7 +162,6 @@ function SlideImage({ src, alt, onError }: { src: string; alt: string; onError: 
 
   return (
     <>
-      {/* Skeleton saat loading */}
       {!loaded && (
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-gray-900 to-teal-950 animate-pulse" />
       )}
@@ -170,9 +177,9 @@ function SlideImage({ src, alt, onError }: { src: string; alt: string; onError: 
 }
 
 // ── Main Hero ─────────────────────────────────────────────────────────────────
-export function HeroSection({ sliders }: { sliders: Slider[] }) {
-  const [current,      setCurrent]      = useState(0)
-  const [imgError,     setImgError]     = useState(false)
+export function HeroSection({ sliders, aktivitas }: { sliders: Slider[]; aktivitas: AktivitasData | null }) {
+  const [current,  setCurrent]  = useState(0)
+  const [imgError, setImgError] = useState(false)
 
   const activeSliders = sliders.filter((s) => s.isActive)
   const hasSliders    = activeSliders.length > 0
@@ -211,7 +218,6 @@ export function HeroSection({ sliders }: { sliders: Slider[] }) {
         ) : (
           <img src={BANNER_URL} alt="Banner" className="w-full h-full object-cover" />
         )}
-        {/* Overlay — vignette di pinggir, tengah lebih terang */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_30%,_rgba(0,0,0,0.55)_100%)]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/25" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
@@ -278,13 +284,13 @@ export function HeroSection({ sliders }: { sliders: Slider[] }) {
           </div>
 
           {/* Right — Info card */}
-          <div className="w-full lg:w-80 xl:w-96 lg:h-[480px]">
-            <InfoCard />
+          <div className="w-full lg:w-80 xl:w-96">
+            <InfoCard aktivitas={aktivitas} />
           </div>
         </div>
       </div>
 
-      {/* Bottom — diagonal cut tegas, full width */}
+      {/* Bottom diagonal */}
       <div className="absolute bottom-0 left-0 right-0 z-10 overflow-hidden leading-none">
         <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{ display: 'block', width: '100%' }}>
           <polygon points="0,80 0,80 1440,20 1440,80" fill="rgb(236 253 245)" className="dark:hidden" />

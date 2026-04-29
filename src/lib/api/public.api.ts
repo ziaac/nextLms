@@ -16,6 +16,16 @@ export const publicApi = {
     totalMapel: number; totalEkskul: number
   }>('/report/public/stats'),
 
+  aktivitasSemester: () => fetchPublic<{
+    semesterNama: string | null
+    tahunAjaran:  string | null
+    jadwal:    { totalJP: number; totalSesiDibuka: number }
+    kehadiran: { persentase: number; totalAbsensi: number }
+    materi:    { totalDibuat: number; totalSiswaSelesai: number; totalSiswa: number }
+    tugas:     { totalDibuat: number; totalSiswaKumpul: number; totalPengumpulan: number }
+    profil:    { totalSiswa: number; totalGuru: number; totalMapel: number }
+  }>('/report/public/aktivitas-semester'),
+
   profil:       () => fetchPublic<any>('/homepage/profil'),
   slider:       () => fetchPublic<any[]>('/homepage/slider'),
   menu:         () => fetchPublic<any[]>('/homepage/menu'),

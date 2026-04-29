@@ -2,15 +2,21 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { ChevronRight, GraduationCap, Users, BookOpen, ClipboardCheck, FileText, ClipboardList } from 'lucide-react'
-import { getPublicFileUrl } from '@/lib/constants'
+import { ChevronRight, GraduationCap, Users, BookOpen, Clock } from 'lucide-react'
+import { getPublicFileUrl, API_URL } from '@/lib/constants'
 import { PlaceholderImage } from '@/components/public/PlaceholderImage'
 
 const BANNER_URL = 'https://storagelms.man2kotamakassar.sch.id/static-assets/static_login_image.webp'
 
 interface ProfilSectionProps {
   profil: any
-  stats:  any
+  stats:  {
+    totalSiswa: number
+    totalGuru:  number
+    totalMapel: number
+    totalKelas?: number
+    totalEkskul?: number
+  } | null
 }
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -53,25 +59,6 @@ function StatCard({ icon, value, label }: { icon: React.ReactNode; value: string
   )
 }
 
-function StatRow({ icon, value, label, sub }: {
-  icon: React.ReactNode; value: string | number; label: string; sub?: string
-}) {
-  return (
-    <div className="flex items-center gap-3 bg-white/8 border border-white/15 rounded-xl px-3.5 py-2.5 hover:bg-white/15 transition-colors">
-      <div className="w-8 h-8 rounded-full border border-white/20 bg-white/10 flex items-center justify-center text-white shrink-0">
-        {icon}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] text-white/80 uppercase truncate font-medium">{label}</p>
-        {sub && <p className="text-[10px] text-emerald-300/80 truncate">{sub}</p>}
-      </div>
-      <p className="text-base text-white font-light shrink-0">
-        {typeof value === 'number' ? value.toLocaleString('id') : value}
-      </p>
-    </div>
-  )
-}
-
 // ── BgImage ───────────────────────────────────────────────────────────────────
 function BgImage({ src, alt }: { src: string; alt: string }) {
   const [loaded, setLoaded] = useState(false)
@@ -100,6 +87,8 @@ function BgImage({ src, alt }: { src: string; alt: string }) {
 export function ProfilSection({ profil, stats }: ProfilSectionProps) {
   const [kepalaLoaded, setKepalaLoaded] = useState(false)
   const kepalaRef = useRef<HTMLImageElement>(null)
+  const [jadwal, setJadwal] = useState<any[]>([])
+  const [hariIni, setHariIni] = useState('')
 
   const foto1Url      = profil?.foto1Url   ? getPublicFileUrl(profil.foto1Url)   : null
   const fotoKepalaUrl = profil?.fotoKepala ? getPublicFileUrl(profil.fotoKepala) : null
@@ -107,6 +96,20 @@ export function ProfilSection({ profil, stats }: ProfilSectionProps) {
   useEffect(() => {
     if (kepalaRef.current?.complete) setKepalaLoaded(true)
   }, [fotoKepalaUrl])
+
+  useEffect(() => {
+    const HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+    setHariIni(HARI[new Date().getDay()])
+    fetch(`${API_URL}/jadwal-pelajaran/publik/hari-ini`)
+      .then((r) => r.json())
+      .then((d) => {
+        const all = (d.data ?? [])
+          .flatMap((k: any) => k.jadwal.map((j: any) => ({ ...j, namaKelas: k.namaKelas })))
+          .slice(0, 8)
+        setJadwal(all)
+      })
+      .catch(() => {})
+  }, [])
 
   if (!profil || !profil.nama) return null
 
@@ -213,7 +216,7 @@ export function ProfilSection({ profil, stats }: ProfilSectionProps) {
           </div>
 
           {/* Kolom Kanan — Card statistik */}
-          <div className="relative rounded-3xl overflow-hidden min-h-[420px]">
+          <div className="relative rounded-3xl overflow-hidden min-h-[520px]">
             {/* Background image */}
             <div className="absolute inset-0">
               {foto1Url ? (
@@ -252,11 +255,45 @@ export function ProfilSection({ profil, stats }: ProfilSectionProps) {
                     <StatCard icon={<BookOpen size={16} strokeWidth={1.5} />}      value={stats?.totalMapel ?? '—'} label="Mata Pelajaran" />
                   </div>
 
-                  {/* Stat rows */}
-                  <div className="space-y-2 flex-1">
-                    <StatRow icon={<ClipboardCheck size={14} strokeWidth={1.5} />} value={stats?.totalKelas  ?? '—'} label="Kelas Aktif"      sub="Semester berjalan" />
-                    <StatRow icon={<FileText size={14} strokeWidth={1.5} />}       value={stats?.totalEkskul ?? '—'} label="Ekstrakurikuler" sub="Kegiatan tersedia" />
-                    <StatRow icon={<ClipboardList size={14} strokeWidth={1.5} />}  value={stats?.totalMapel  ?? '—'} label="Total Mapel"      sub="Semua tingkat" />
+                  {/* Jadwal hari ini */}
+                  <div className="flex flex-col flex-1 overflow-hidden">
+                    <div className="flex justify-between items-center mb-2 border-b border-white/10 pb-1.5">
+                      <p className="text-[10px] text-white/50 uppercase tracking-wide">Jadwal Hari Ini</p>
+                      <div className="flex items-center gap-2">
+                        <span className="flex items-center gap-1 text-[9px] text-white/40">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                          absensi terbuka
+                        </span>
+                        <p className="text-[10px] text-white/70 uppercase">{hariIni}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5 flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
+                      {jadwal.length > 0 ? jadwal.map((s: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl p-2.5">
+                          <div className="flex flex-col items-center shrink-0 min-w-[38px]">
+                            <Clock size={11} strokeWidth={1.5} className="text-white/40 mb-0.5" />
+                            <span className="text-[11px] text-white leading-none">{s.jamMulai}</span>
+                          </div>
+                          <div className="min-w-0 border-l border-white/10 pl-2.5 flex-1">
+                            <p className="text-[11px] text-white truncate uppercase leading-tight">{s.namaMapel}</p>
+                            <p className="text-[10px] text-white/40 mt-0.5 truncate">{s.namaKelas}</p>
+                          </div>
+                          <div
+                            className={`shrink-0 w-2 h-2 rounded-full ${s.absensiTerbuka ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]' : 'bg-white/20'}`}
+                            title={s.absensiTerbuka ? 'Absensi terbuka' : 'Belum dibuka'}
+                          />
+                        </div>
+                      )) : (
+                        <p className="text-[11px] text-white/30 uppercase text-center py-4">
+                          Tidak ada jadwal hari ini
+                        </p>
+                      )}
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-white/5">
+                      <Link href="/jadwal-publik" className="text-[11px] text-white/50 hover:text-white transition-colors uppercase">
+                        Jadwal Selengkapnya →
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
