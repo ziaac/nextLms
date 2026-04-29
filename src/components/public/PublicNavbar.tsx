@@ -21,11 +21,17 @@ const DEFAULT_NAV: NavItem[] = [
 
 // Map href → anchor id di halaman home
 const HOME_ANCHORS: Record<string, string> = {
-  '/':          'beranda',
-  '/profil':    'profil',
-  '/informasi': 'fitur',
-  '/berita':    'berita',
-  '/galeri':    'galeri',
+  '/':           'beranda',
+  '/profil':     'profil',
+  '/informasi':  'fitur',
+  '/fitur':      'fitur',
+  '/berita':     'berita',
+  '/galeri':     'galeri',
+}
+
+// Normalisasi href — redirect /fitur ke /informasi
+const HREF_NORMALIZE: Record<string, string> = {
+  '/fitur': '/informasi',
 }
 
 // Map label (lowercase) → anchor id — fallback jika href tidak cocok
@@ -74,8 +80,9 @@ export function PublicNavbar({ menuItems }: { menuItems?: NavItem[] }) {
 
   // Smooth scroll ke anchor saat di halaman home
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, label: string) => {
+    const normalizedHref = HREF_NORMALIZE[href] ?? href
     if (!isHeroPage) return
-    const anchorId = HOME_ANCHORS[href] ?? HOME_ANCHORS_BY_LABEL[label.toLowerCase()]
+    const anchorId = HOME_ANCHORS[normalizedHref] ?? HOME_ANCHORS_BY_LABEL[label.toLowerCase()]
     if (!anchorId) return
     e.preventDefault()
     const el = document.getElementById(anchorId)
@@ -89,11 +96,12 @@ export function PublicNavbar({ menuItems }: { menuItems?: NavItem[] }) {
 
   // Resolve href untuk render link
   const resolveHref = (href: string, label: string): string => {
+    const normalizedHref = HREF_NORMALIZE[href] ?? href
     if (isHeroPage) {
-      const anchorId = HOME_ANCHORS[href] ?? HOME_ANCHORS_BY_LABEL[label.toLowerCase()]
+      const anchorId = HOME_ANCHORS[normalizedHref] ?? HOME_ANCHORS_BY_LABEL[label.toLowerCase()]
       if (anchorId) return `#${anchorId}`
     }
-    return href
+    return normalizedHref
   }
 
   return (

@@ -61,22 +61,22 @@ export default function SiswaBaruPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-10 bg-white/90 dark:bg-gray-950/90 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 shadow-sm">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="relative h-9 w-9">
+            <div className="relative h-9 w-9 shrink-0">
               <Image src={LOGO_URL} alt="Logo MAN 2" fill className="object-contain" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 leading-tight">MAN 2 Kota Makassar</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Pendaftaran Siswa Baru</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider leading-none">MAN 2 Kota Makassar</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">Pendaftaran Siswa Baru</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {stage !== 'auth' && (
               <button
                 onClick={handleReset}
-                className="text-xs flex items-center gap-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-2 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="text-xs flex items-center gap-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 <RefreshCw size={12} /> Keluar
               </button>
