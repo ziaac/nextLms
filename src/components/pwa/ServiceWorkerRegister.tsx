@@ -31,9 +31,22 @@ if (typeof window !== 'undefined') {
 
 export function ServiceWorkerRegister() {
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {})
-    }
+    if (!('serviceWorker' in navigator)) return
+
+    navigator.serviceWorker.register('/sw.js')
+      .then((reg) => {
+        // Paksa update jika ada SW baru menunggu
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' })
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing
+          newWorker?.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              newWorker.postMessage({ type: 'SKIP_WAITING' })
+            }
+          })
+        })
+      })
+      .catch(() => {})
   }, [])
 
   return null

@@ -50,23 +50,22 @@ export function GaleriListContent({ albums }: Props) {
               return (
                 <Link key={album.id} href={`/galeri/${album.id}`} className="group block">
                   <article className="rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 hover:border-emerald-200 dark:hover:border-emerald-700 transition-all shadow-sm hover:shadow-md">
-                    <div className="aspect-video relative bg-gray-100 dark:bg-gray-800">
+                    <div className="aspect-[4/3] relative bg-gray-100 dark:bg-gray-800">
                       {cover
                         ? <LazyImg src={cover} alt={album.nama} className="absolute inset-0 w-full h-full" />
                         : <PlaceholderImage variant="gallery" className="absolute inset-0 w-full h-full" label={album.nama} />
                       }
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                      {/* Jumlah foto badge */}
+                      <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white text-[11px]">
+                        <GalleryHorizontal size={11} />
+                        {album._count?.foto ?? 0}
+                      </div>
                     </div>
                     <div className="p-4 bg-white dark:bg-gray-900">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
-                          {album.nama}
-                        </h3>
-                        <span className="flex items-center gap-1 text-xs text-gray-400 shrink-0 ml-2">
-                          <GalleryHorizontal size={12} />
-                          {album._count?.foto ?? 0}
-                        </span>
-                      </div>
+                      <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                        {album.nama}
+                      </h3>
                       {album.deskripsi && (
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{album.deskripsi}</p>
                       )}

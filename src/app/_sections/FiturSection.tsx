@@ -142,19 +142,17 @@ export function FiturSection({ fitur }: { fitur: FiturItem[] }) {
           </div>
         </div>
 
-        {/* Diagonal divider — garis tipis emerald soft */}
+        {/* Diagonal divider — lebih miring */}
         <div className="absolute inset-0 hidden lg:block pointer-events-none z-20">
           <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
-            <polygon
-              points="49,0 51,0 50,100 48,100"
-              fill="rgb(236 253 245)"
-            />
+            <polygon points="45,-5 47,-5 55,105 53,105" fill="rgb(236 253 245)" className="dark:hidden" />
+            <polygon points="45,-5 47,-5 55,105 53,105" fill="rgb(3 7 18)" className="hidden dark:block" />
           </svg>
         </div>
       </div>
 
-      {/* CTA — tanpa background terpisah, menyatu dengan section */}
-      <div className="py-8 text-center">
+      {/* CTA */}
+      <div className="py-6 text-center bg-white dark:bg-gray-950">
         <Link
           href="/informasi"
           className="inline-flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors group"
