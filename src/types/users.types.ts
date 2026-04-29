@@ -108,6 +108,7 @@ export interface UserProfileFull extends UserProfile {
   sertifikatKey: string | null
   ktpOrtuKey: string | null
   tahunMasuk: number | null
+  tandaTanganKey: string | null
   createdAt: string
   updatedAt: string
 }

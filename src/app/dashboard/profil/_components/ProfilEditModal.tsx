@@ -10,6 +10,7 @@ import { useProfil } from '@/hooks/users/useProfil'
 import { uploadApi } from '@/lib/api/upload.api'
 import { usersApi } from '@/lib/api/users.api'
 import { getErrorMessage } from '@/lib/utils'
+import { TandaTanganUpload } from '@/components/shared/TandaTanganUpload'
 
 export type ProfilEditMode = 'admin' | 'guru' | 'siswa'
 
@@ -174,6 +175,7 @@ export function ProfilEditModal({ open, onClose, mode }: Props) {
   const penerimaKIP = form.watch('penerimaKIP')
   const isSiswa = mode === 'siswa'
   const isGuru  = mode === 'guru'
+  const isAdmin = mode === 'admin'
 
   useEffect(() => {
     if (open && !prevOpen.current) {
@@ -288,8 +290,8 @@ export function ProfilEditModal({ open, onClose, mode }: Props) {
             </div>
           )}
 
-          {/* Foto */}
-          <div className="flex justify-center">
+          {/* Foto & Tanda Tangan */}
+          <div className="flex justify-center gap-6 flex-wrap">
             <FotoProfilUpload
               currentKey={form.watch('fotoUrl')}
               namaLengkap={form.watch('namaLengkap')}
@@ -298,6 +300,9 @@ export function ProfilEditModal({ open, onClose, mode }: Props) {
               onSaveToProfile={userId ? (key) => usersApi.updateFoto(userId, key) : undefined}
               disabled={isPending}
             />
+            {(isGuru || isAdmin) && (
+              <TandaTanganUpload currentKey={userDetail?.profile?.tandaTanganKey} />
+            )}
           </div>
 
           {/* IDENTITAS */}

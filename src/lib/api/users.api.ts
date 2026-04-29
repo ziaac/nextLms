@@ -55,4 +55,6 @@ export const usersApi = {
   resetPassword: async (id: string, newPassword: string): Promise<void> => {
     await api.patch(`/users/${id}/reset-password`, { newPassword })
   },
+  updateTandaTanganById: (id: string, tandaTanganKey: string) =>
+    api.patch(`/users/${id}/tanda-tangan`, { tandaTanganKey }).then((r) => r.data),
 }

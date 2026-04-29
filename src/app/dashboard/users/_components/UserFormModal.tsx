@@ -14,8 +14,11 @@ import { uploadApi } from '@/lib/api/upload.api'
 import { usersApi } from '@/lib/api/users.api'
 import { getErrorMessage } from '@/lib/utils'
 import type { UserItem } from '@/types/users.types'
+import { TandaTanganUpload } from '@/components/shared/TandaTanganUpload'
 
 const FORM_ID = 'user-form'
+
+const TTD_ROLES = ['GURU', 'WALI_KELAS', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA']
 
 const ROLE_OPTIONS = [
   { value: 'SUPER_ADMIN',    label: 'Super Admin' },
@@ -389,14 +392,35 @@ export function UserFormModal({ open, onClose, user }: UserFormModalProps) {
           {/* AKUN */}
           <Section title="Akun">
             <div className="flex justify-center mb-4">
-              <FotoProfilUpload
-                currentKey={form.watch('fotoUrl')}
-                namaLengkap={form.watch('namaLengkap')}
-                onUpload={uploadApi.fotoProfil}
-                onSuccess={(key) => form.setValue('fotoUrl', key)}
-                onSaveToProfile={isEdit && user?.id ? (key) => usersApi.updateFoto(user.id, key) : undefined}
-                disabled={isPending}
-              />
+              <div className="flex justify-center gap-6 flex-wrap">
+                <FotoProfilUpload
+                  currentKey={form.watch('fotoUrl')}
+                  namaLengkap={form.watch('namaLengkap')}
+                  onUpload={uploadApi.fotoProfil}
+                  onSuccess={(key) => form.setValue('fotoUrl', key)}
+                  onSaveToProfile={isEdit && user?.id ? (key) => usersApi.updateFoto(user.id, key) : undefined}
+                  disabled={isPending}
+                />
+                {TTD_ROLES.includes(selectedRole ?? '') && (
+                  isEdit && user?.id ? (
+                    <TandaTanganUpload
+                      currentKey={userDetail?.profile?.tandaTanganKey}
+                      onUploadComplete={(key) => usersApi.updateTandaTanganById(user.id, key)}
+                    />
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Tanda Tangan
+                      </p>
+                      <div className="w-48 h-24 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+                        <p className="text-[11px] text-gray-400 text-center px-3">
+                          Upload tanda tangan dapat dilakukan setelah akun dibuat melalui halaman Edit.
+                        </p>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {!isEdit && <>

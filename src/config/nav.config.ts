@@ -3,10 +3,9 @@ import {
   QrCode, FileText, Award, Users, DollarSign, CreditCard,
   Settings, BarChart3, Home, Bell, UserCircle, School,
   BookMarked, ShieldCheck, Calendar, Layers,
-  Building2, FolderOpen, ListTodo, Star,
+  Building2, FolderOpen, ListTodo, Star, ClipboardCheck,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
-import { ST } from 'next/dist/shared/lib/utils'
 
 export interface NavItem {
   label: string
@@ -29,6 +28,30 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: 'Dashboard',     href: '/dashboard',               icon: LayoutDashboard },
       { label: 'To Do',          href: '/dashboard/todo',           icon: ListTodo },
       { label: 'Profil Saya',   href: '/dashboard/profil',        icon: UserCircle },
+      {
+        label: 'Log LCKH',
+        href: '/dashboard/log-lckh',
+        icon: ClipboardCheck,
+        roles: ['GURU', 'WALI_KELAS'],
+      },
+    ],
+  },
+  {
+    label: 'AKSI DIPERLUKAN',
+    roles: ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU'],
+    items: [
+      {
+        label: 'To Do',
+        href: '/dashboard/todo',
+        icon: ListTodo,
+        roles: ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU'],
+      },
+      {
+        label: 'LCKH Guru',
+        href: '/dashboard/log-lckh/manajemen',
+        icon: ClipboardCheck,
+        roles: ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA'],
+      },
     ],
   },
   {

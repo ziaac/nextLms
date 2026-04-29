@@ -71,6 +71,8 @@ const ROLE_ROUTES: Record<string, UserRole[]> = {
   '/dashboard/kategori-pembayaran':    ['SUPER_ADMIN', 'ADMIN', 'STAFF_KEUANGAN'],
   '/dashboard/report':                 ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA'],
   '/dashboard/penilaian':              ['GURU', 'WALI_KELAS', 'ADMIN', 'SUPER_ADMIN'],
+  '/dashboard/log-lckh/manajemen':     ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA'],
+  '/dashboard/log-lckh':               ['GURU', 'WALI_KELAS', 'SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU'],
 
   // ── Keuangan ───────────────────────────────────────────────────────────────
   '/dashboard/tagihan':                ['STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN', 'SISWA', 'ORANG_TUA'],
@@ -87,8 +89,7 @@ function isPublicRoute(pathname: string): boolean {
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl
 
-  if (isPublicRoute(pathname)) return NextResponse.next()
-
+  // Parse cookie auth sekali di awal — dipakai untuk dua pengecekan
   const authCookie = request.cookies.get('lms-auth')
   let isAuthenticated = false
   let userRole: UserRole | null = null
@@ -103,6 +104,13 @@ export function middleware(request: NextRequest) {
       isAuthenticated = false
     }
   }
+
+  // Jika sudah login dan mencoba akses /login → redirect ke /dashboard
+  if (pathname === '/login' && isAuthenticated) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
+  if (isPublicRoute(pathname)) return NextResponse.next()
 
   if (!isAuthenticated) {
     const loginUrl = new URL('/login', request.url)

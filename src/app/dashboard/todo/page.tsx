@@ -2,14 +2,19 @@
 
 import { useQuery }                      from '@tanstack/react-query'
 import { useRouter }                     from 'next/navigation'
+import { useState }                      from 'react'
 import { useAuthStore }                  from '@/stores/auth.store'
 import { useTahunAjaranActive }          from '@/hooks/tahun-ajaran/useTahunAjaran'
 import { useActiveSemesterLabel }        from '@/hooks/semester/useSemester'
+import { usePendingVerifikasi }          from '@/hooks/guru-log/useGuruLog'
 import { reportApi }                     from '@/lib/api/report.api'
+import { getListDokumenPengajaran }      from '@/lib/api/dokumen-pengajaran.api'
+import { getListPerizinan }              from '@/lib/api/perizinan.api'
 import {
   ArrowLeft, ListTodo, ClipboardList,
   AlertCircle, Clock, CheckCircle2,
   BookOpen, CalendarDays, ChevronRight,
+  RefreshCw, FolderOpen, ShieldCheck, ClipboardCheck,
 } from 'lucide-react'
 import { cn }                            from '@/lib/utils'
 import { Spinner }                       from '@/components/ui/Spinner'
@@ -22,8 +27,9 @@ import type {
   TugasMenungguPenilaianItem,
 } from '@/types/akademik.types'
 
-const GURU_ROLES  = ['GURU', 'WALI_KELAS']
-const SISWA_ROLES = ['SISWA']
+const GURU_ROLES      = ['GURU', 'WALI_KELAS']
+const SISWA_ROLES     = ['SISWA']
+const MANAJEMEN_ROLES = ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU']
 
 // ── Deadline badge ────────────────────────────────────────────
 function DeadlineBadge({ deadline }: { deadline: string }) {
@@ -205,6 +211,193 @@ function TodoSiswaView({
   )
 }
 
+// ── MANAJEMEN view ────────────────────────────────────────────
+function TodoManajemenView({
+  router,
+  onRefetch,
+  isFetching,
+}: {
+  router:     ReturnType<typeof useRouter>
+  onRefetch:  () => void
+  isFetching: boolean
+}) {
+  const now   = new Date()
+  const bulan = now.getMonth() + 1
+  const tahun = now.getFullYear()
+
+  // Dokumen pending review (SUBMITTED = menunggu review)
+  const { data: dokumenData, isLoading: dokumenLoading, refetch: refetchDokumen } = useQuery({
+    queryKey: ['todo-manajemen-dokumen'],
+    queryFn:  () => getListDokumenPengajaran({ status: 'SUBMITTED', page: 1, limit: 1 }),
+    staleTime: 0,
+  })
+
+  // Perizinan pending approval
+  const { data: perizinanData, isLoading: perizinanLoading, refetch: refetchPerizinan } = useQuery({
+    queryKey: ['todo-manajemen-perizinan'],
+    queryFn:  () => getListPerizinan({ status: 'PENDING', page: 1, limit: 1 }),
+    staleTime: 0,
+  })
+
+  // LCKH pending verifikasi
+  const { data: lckhData, isLoading: lckhLoading, refetch: refetchLckh } = usePendingVerifikasi({ bulan, tahun })
+
+  const handleRefetch = () => {
+    refetchDokumen()
+    refetchPerizinan()
+    refetchLckh()
+    onRefetch()
+  }
+
+  const isLoading = dokumenLoading || perizinanLoading || lckhLoading
+
+  const dokumenCount  = (dokumenData as { meta?: { total?: number } } | undefined)?.meta?.total ?? 0
+  const perizinanCount = (perizinanData as { meta?: { total?: number } } | undefined)?.meta?.total ?? 0
+  const lckhCount     = lckhData?.totalGuruPending ?? 0
+
+  const totalPending = dokumenCount + perizinanCount + lckhCount
+
+  if (isLoading) {
+    return <div className="flex justify-center py-16"><Spinner /></div>
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Refresh button */}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={handleRefetch}
+          disabled={isFetching}
+          className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors disabled:opacity-50"
+        >
+          <RefreshCw className={cn('w-3.5 h-3.5', isFetching && 'animate-spin')} />
+          Refresh
+        </button>
+      </div>
+
+      {totalPending === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center">
+            <CheckCircle2 className="w-7 h-7 text-emerald-500" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Semua beres</p>
+            <p className="text-xs text-gray-400 mt-1">Tidak ada item yang membutuhkan tindakan.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {/* Dokumen Pengajaran */}
+          <button
+            type="button"
+            onClick={() => router.push('/dashboard/dokumen-pengajaran')}
+            className="w-full flex items-center gap-3 rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-3.5 py-3.5 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all text-left"
+          >
+            <div className={cn(
+              'w-10 h-10 rounded-xl flex items-center justify-center shrink-0',
+              dokumenCount > 0
+                ? 'bg-blue-50 dark:bg-blue-900/20'
+                : 'bg-gray-100 dark:bg-gray-800',
+            )}>
+              <FolderOpen className={cn(
+                'w-5 h-5',
+                dokumenCount > 0 ? 'text-blue-500' : 'text-gray-400',
+              )} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                Dokumen Pengajaran
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {dokumenCount > 0
+                  ? `${dokumenCount} dokumen menunggu review`
+                  : 'Semua dokumen sudah direview'}
+              </p>
+            </div>
+            {dokumenCount > 0 && (
+              <span className="text-xs font-bold bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full shrink-0">
+                {dokumenCount}
+              </span>
+            )}
+            <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+          </button>
+
+          {/* Perizinan */}
+          <button
+            type="button"
+            onClick={() => router.push('/dashboard/perizinan')}
+            className="w-full flex items-center gap-3 rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-3.5 py-3.5 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all text-left"
+          >
+            <div className={cn(
+              'w-10 h-10 rounded-xl flex items-center justify-center shrink-0',
+              perizinanCount > 0
+                ? 'bg-amber-50 dark:bg-amber-900/20'
+                : 'bg-gray-100 dark:bg-gray-800',
+            )}>
+              <ShieldCheck className={cn(
+                'w-5 h-5',
+                perizinanCount > 0 ? 'text-amber-500' : 'text-gray-400',
+              )} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                Perizinan Siswa
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {perizinanCount > 0
+                  ? `${perizinanCount} pengajuan izin menunggu approval`
+                  : 'Semua perizinan sudah diproses'}
+              </p>
+            </div>
+            {perizinanCount > 0 && (
+              <span className="text-xs font-bold bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full shrink-0">
+                {perizinanCount}
+              </span>
+            )}
+            <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+          </button>
+
+          {/* LCKH Guru */}
+          <button
+            type="button"
+            onClick={() => router.push('/dashboard/log-lckh/manajemen')}
+            className="w-full flex items-center gap-3 rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-3.5 py-3.5 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all text-left"
+          >
+            <div className={cn(
+              'w-10 h-10 rounded-xl flex items-center justify-center shrink-0',
+              lckhCount > 0
+                ? 'bg-emerald-50 dark:bg-emerald-900/20'
+                : 'bg-gray-100 dark:bg-gray-800',
+            )}>
+              <ClipboardCheck className={cn(
+                'w-5 h-5',
+                lckhCount > 0 ? 'text-emerald-500' : 'text-gray-400',
+              )} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                Verifikasi LCKH Guru
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {lckhCount > 0
+                  ? `${lckhCount} guru punya LCKH belum diverifikasi bulan ini`
+                  : 'Semua LCKH bulan ini sudah diverifikasi'}
+              </p>
+            </div>
+            {lckhCount > 0 && (
+              <span className="text-xs font-bold bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 px-2 py-0.5 rounded-full shrink-0">
+                {lckhCount}
+              </span>
+            )}
+            <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── GURU view ─────────────────────────────────────────────────
 function TodoGuruView({
   router,
@@ -303,8 +496,17 @@ export default function TodoPage() {
   const taList  = taListRaw as { id: string; nama: string }[]
   const taAktif = taList[0] ?? null
 
-  const isGuru  = GURU_ROLES.includes(user?.role ?? '')
-  const isSiswa = SISWA_ROLES.includes(user?.role ?? '')
+  const isGuru      = GURU_ROLES.includes(user?.role ?? '')
+  const isSiswa     = SISWA_ROLES.includes(user?.role ?? '')
+  const isManajemen = MANAJEMEN_ROLES.includes(user?.role ?? '')
+
+  // isFetching state untuk tombol refresh manajemen
+  const [isFetching, setIsFetching] = useState(false)
+
+  const handleRefetch = () => {
+    setIsFetching(true)
+    setTimeout(() => setIsFetching(false), 1000)
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -332,12 +534,19 @@ export default function TodoPage() {
       {isGuru && (
         <TodoGuruView router={router} />
       )}
-      {!isSiswa && !isGuru && (
+      {isManajemen && (
+        <TodoManajemenView
+          router={router}
+          onRefetch={handleRefetch}
+          isFetching={isFetching}
+        />
+      )}
+      {!isSiswa && !isGuru && !isManajemen && (
         <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
           <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
             <ListTodo className="w-7 h-7 text-gray-400" />
           </div>
-          <p className="text-sm text-gray-400">Halaman ini untuk siswa dan guru.</p>
+          <p className="text-sm text-gray-400">Tidak ada item yang perlu ditindaklanjuti.</p>
         </div>
       )}
 

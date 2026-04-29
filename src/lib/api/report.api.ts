@@ -8,6 +8,80 @@ import type {
   MapelOverviewItem,
 } from '@/types/akademik.types'
 
+export type EisGroupBy = 'week' | 'month' | 'semester' | 'year'
+
+export interface ReportEisOverviewParams {
+  tahunAjaranId: string
+  semesterId?: string
+  tingkatKelasId?: string
+  groupBy?: EisGroupBy
+  from?: string
+  to?: string
+}
+
+export interface ReportEisOverviewResponse {
+  scope: {
+    tahunAjaranId: string
+    semesterId: string
+    tingkatKelasId: string | null
+    groupBy: EisGroupBy
+    from: string
+    to: string
+  }
+  cards: {
+    totalKelas: number
+    totalSiswa: number
+    totalGuru: number
+    totalMapel: number
+    sesiDibuka: number
+    persentaseHadir: number
+    totalMateri: number
+    totalTugas: number
+  }
+  series: {
+    absensi: Array<{
+      bucketStart: string
+      bucketLabel: string
+      totalAbsensi: number
+      totalHadir: number
+      totalTerlambat: number
+      totalIzin: number
+      totalSakit: number
+      totalAlpa: number
+      persentaseHadir: number
+    }>
+    materi: Array<{
+      bucketStart: string
+      bucketLabel: string
+      totalMateriPublished: number
+    }>
+    tugas: Array<{
+      bucketStart: string
+      bucketLabel: string
+      totalTugasPublished: number
+      totalPengumpulan: number
+      totalSlot: number
+      persentaseSubmit: number
+    }>
+  }
+  latest: {
+    tugas: Array<{
+      id: string
+      judul: string
+      kelas: string
+      mapel: string
+      tanggalSelesai: string
+    }>
+    materi: Array<{
+      id: string
+      judul: string
+      kelas: string
+      mapel: string
+      tanggalPublikasi: string | null
+    }>
+  }
+}
+
 // ── Params ────────────────────────────────────────────────────
 
 export interface ReportGuruParams {
@@ -88,6 +162,15 @@ export const reportApi = {
   }): Promise<MapelOverviewItem[]> => {
     const res = await api.get<MapelOverviewItem[]>('/report/mapel/overview', { params })
     return res.data ?? []
+  },
+
+  /**
+   * GET /report/eis/overview
+   * Dashboard manajemen: cards + series (absensi/materi/tugas) + latest list.
+   */
+  getEisOverview: async (params: ReportEisOverviewParams): Promise<ReportEisOverviewResponse> => {
+    const res = await api.get<ReportEisOverviewResponse>('/report/eis/overview', { params })
+    return res.data
   },
 
   /**
