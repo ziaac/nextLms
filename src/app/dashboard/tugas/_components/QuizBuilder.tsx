@@ -1,13 +1,45 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, Trash2, GripVertical, Image as ImageIcon, Settings2, CheckCircle2, ChevronDown, ChevronRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, Trash2, GripVertical, Image as ImageIcon, Settings2, CheckCircle2, ChevronDown, ChevronRight, X } from 'lucide-react'
 import { Button, FileUpload } from '@/components/ui'
+import { PrivateImage } from '@/components/ui/PrivateImage'
 import { RichTextEditor } from '@/components/ui/RichTextEditor'
 import { uploadApi } from '@/lib/api/upload.api'
+import { getPresignedUrl } from '@/lib/api/upload.api'
 import type { SoalKuisPayload, QuizSettings, OpsiKuisPayload } from '@/types/tugas.types'
 import { TipeSoalKuis } from '@/types/tugas.types'
 import { cn } from '@/lib/utils'
+
+// ── Preview gambar soal/opsi (private bucket → presigned URL) ─────────
+function QuizImagePreview({ fileKey }: { fileKey: string }) {
+  const [url, setUrl]       = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError]   = useState(false)
+
+  // Fetch presigned URL saat fileKey berubah
+  useEffect(() => {
+    if (!fileKey) return
+    setLoading(true)
+    setError(false)
+    getPresignedUrl(fileKey)
+      .then((u) => { setUrl(u); setLoading(false) })
+      .catch(() => { setError(true); setLoading(false) })
+  }, [fileKey])
+
+  if (loading) return (
+    <div className="h-20 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse" />
+  )
+  if (error || !url) return null
+
+  return (
+    <img
+      src={url}
+      alt="Preview gambar soal"
+      className="max-h-32 rounded-lg object-contain border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+    />
+  )
+}
 
 interface QuizBuilderProps {
   soalKuis: SoalKuisPayload[]
@@ -143,6 +175,50 @@ export function QuizBuilder({ soalKuis, onChangeSoal, settings, onChangeSettings
               <span className="text-xs text-gray-500">Wajib fullscreen. Hukuman reset jika beralih tab</span>
             </div>
           </label>
+
+          {/* ── Visibilitas Hasil ── */}
+          <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+            <input
+              type="checkbox"
+              className="mt-1 w-4 h-4 text-emerald-600 accent-emerald-600"
+              checked={settings.showNilaiSetelahSubmit ?? true}
+              onChange={(e) => onChangeSettings({ ...settings, showNilaiSetelahSubmit: e.target.checked })}
+            />
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">Tampilkan Nilai ke Siswa</span>
+              <span className="text-xs text-gray-500">Siswa langsung melihat nilainya setelah submit</span>
+            </div>
+          </label>
+
+          <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 space-y-2 md:col-span-2">
+            <p className="text-sm font-medium">Tampilkan Jawaban Benar</p>
+            <p className="text-xs text-gray-500 mb-2">Kapan siswa boleh melihat kunci jawaban</p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              {([
+                { value: 'LANGSUNG',        label: 'Langsung',          desc: 'Setelah submit' },
+                { value: 'SETELAH_DINILAI', label: 'Setelah Dinilai',   desc: 'Setelah guru simpan nilai' },
+                { value: 'TIDAK_PERNAH',    label: 'Tidak Pernah',      desc: 'Disembunyikan selamanya' },
+              ] as const).map((opt) => {
+                const active = (settings.showJawabanBenar ?? 'LANGSUNG') === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => onChangeSettings({ ...settings, showJawabanBenar: opt.value })}
+                    className={cn(
+                      'flex-1 text-left px-3 py-2 rounded-lg border text-xs transition-colors',
+                      active
+                        ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-600 text-emerald-700 dark:text-emerald-300'
+                        : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800',
+                    )}
+                  >
+                    <p className="font-semibold">{opt.label}</p>
+                    <p className="text-[10px] opacity-70 mt-0.5">{opt.desc}</p>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         </div>
       )}
 
@@ -211,36 +287,53 @@ export function QuizBuilder({ soalKuis, onChangeSoal, settings, onChangeSettings
                     />
                   </div>
                   
-                  {/* Action Bar Bawah Soal */}
-                  <div className="flex justify-start">
+                  {/* Gambar soal — tombol toggle + preview inline */}
+                  {soal.gambarUrl ? (
+                    /* Sudah ada gambar — tampilkan preview + tombol hapus */
+                    <div className="space-y-2">
+                      <PrivateImage
+                        fileKey={soal.gambarUrl}
+                        alt="Gambar soal"
+                        skeletonHeight={120}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => updateSoal(sIndex, { gambarUrl: undefined })}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-red-200 dark:border-red-800 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      >
+                        <X size={12} /> Hapus Gambar
+                      </button>
+                    </div>
+                  ) : (showImgSoal[sIndex] ? (
+                    /* Panel upload terbuka */
+                    <div className="space-y-2">
+                      <FileUpload
+                        label=""
+                        compact
+                        accept=".jpg,.jpeg,.png,.webp"
+                        hint="JPG, PNG, WebP · maks 5MB"
+                        currentKey={soal.gambarUrl}
+                        onUpload={uploadApi.tugas}
+                        onSuccess={(key) => { updateSoal(sIndex, { gambarUrl: key }); toggleImgSoal(sIndex) }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => toggleImgSoal(sIndex)}
+                        className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  ) : (
+                    /* Tombol tambah gambar */
                     <button
                       type="button"
                       onClick={() => toggleImgSoal(sIndex)}
-                      className={cn(
-                        "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors",
-                        showImgSoal[sIndex] || soal.gambarUrl
-                          ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800"
-                          : "border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
-                      )}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-blue-300 hover:text-blue-600 dark:hover:border-blue-700 dark:hover:text-blue-400 transition-colors"
                     >
-                      <ImageIcon size={14} />
-                      {soal.gambarUrl ? "Gambar Disematkan" : "Tambahkan Gambar"}
+                      <ImageIcon size={13} /> Tambah Gambar Soal
                     </button>
-                  </div>
-
-                  {(showImgSoal[sIndex] || soal.gambarUrl) && (
-                    <div className="w-64 mt-2">
-                      <FileUpload 
-                        label="Gambar Soal (Opsional)"
-                        compact
-                        accept=".jpg,.jpeg,.png,.webp"
-                        hint="Gambar pendukung soal"
-                        currentKey={soal.gambarUrl}
-                        onUpload={uploadApi.tugas}
-                        onSuccess={(key) => updateSoal(sIndex, { gambarUrl: key })}
-                      />
-                    </div>
-                  )}
+                  ))}
                 </div>
 
                 <div className="space-y-2 mt-4 pt-4 border-t border-dashed border-gray-200 dark:border-gray-800">
@@ -287,15 +380,32 @@ export function QuizBuilder({ soalKuis, onChangeSoal, settings, onChangeSettings
                         </div>
 
                         {showImg && (
-                          <div className="ml-10 w-64 border-t border-dashed border-gray-100 dark:border-gray-800 pt-3 mt-1">
-                            <FileUpload 
-                              label={`Gambar Opsi ${String.fromCharCode(65 + oIndex)}`}
-                              compact
-                              accept=".jpg,.jpeg,.png,.webp"
-                              currentKey={opsi.gambarUrl}
-                              onUpload={uploadApi.tugas}
-                              onSuccess={(key) => updateOpsi(sIndex, oIndex, { gambarUrl: key })}
-                            />
+                          <div className="ml-10 border-t border-dashed border-gray-100 dark:border-gray-800 pt-3 mt-1 space-y-2">
+                            {opsi.gambarUrl ? (
+                              <>
+                                <PrivateImage
+                                  fileKey={opsi.gambarUrl}
+                                  alt={`Gambar opsi ${String.fromCharCode(65 + oIndex)}`}
+                                  skeletonHeight={80}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => updateOpsi(sIndex, oIndex, { gambarUrl: undefined })}
+                                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border border-red-200 dark:border-red-800 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                >
+                                  <X size={11} /> Hapus
+                                </button>
+                              </>
+                            ) : (
+                              <FileUpload
+                                label=""
+                                compact
+                                accept=".jpg,.jpeg,.png,.webp"
+                                currentKey={opsi.gambarUrl}
+                                onUpload={uploadApi.tugas}
+                                onSuccess={(key) => updateOpsi(sIndex, oIndex, { gambarUrl: key })}
+                              />
+                            )}
                           </div>
                         )}
                       </div>

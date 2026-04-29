@@ -32,7 +32,7 @@ export function KelasTable({ data, isLoading, isError, activeId, onRowClick, onE
       {/* Desktop */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider border-b border-gray-100 dark:border-gray-800">
+          <thead className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider border-b border-gray-200 dark:border-gray-800">
             <tr>
               <th className="pb-3 text-left font-medium">Kelas</th>
               <th className="pb-3 text-left font-medium">Tahun Ajaran</th>
@@ -43,7 +43,7 @@ export function KelasTable({ data, isLoading, isError, activeId, onRowClick, onE
               <th className="pb-3 text-center font-medium">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50 dark:divide-gray-800/60">
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
             {data.map((kelas) => (
               <tr
                 key={kelas.id}
@@ -121,8 +121,8 @@ export function KelasTable({ data, isLoading, isError, activeId, onRowClick, onE
             className={[
               'rounded-lg border p-4 cursor-pointer transition-colors bg-white dark:bg-gray-900',
               activeId === kelas.id
-                ? 'border-emerald-500'
-                : 'border-gray-200 dark:border-gray-700',
+                ? 'border-emerald-500 dark:border-emerald-600'
+                : 'border-gray-200 dark:border-gray-800',
             ].join(' ')}
           >
             <div className="flex items-start justify-between gap-2">
@@ -172,7 +172,7 @@ function KelasTableSkeleton() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="flex gap-4 items-center py-2 border-b border-gray-50 dark:border-gray-800/60">
+        <div key={i} className="flex gap-4 items-center py-2 border-b border-gray-200 dark:border-gray-800">
           <Skeleton className="h-4 w-28" />
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-5 w-12 rounded-full" />

@@ -8,6 +8,7 @@ import { Select }                   from '@/components/ui'
 import { useTahunAjaranList }       from '@/hooks/tahun-ajaran/useTahunAjaran'
 import { useSemesterByTahunAjaran } from '@/hooks/semester/useSemester'
 import { useMyRiwayatAbsensi }      from '@/hooks/absensi/useRekapSiswa'
+import { TIMEZONE } from '@/lib/constants'
 import type { AbsensiHistoryItem }  from '@/types'
 
 interface Props {
@@ -70,7 +71,7 @@ export function AbsensiArsipSiswaSlideover({ open, onClose }: Props) {
   const fmtTgl = (iso: string) =>
     new Date(iso).toLocaleDateString('id-ID', {
       day: 'numeric', month: 'short', year: 'numeric',
-      timeZone: 'Asia/Makassar',
+      timeZone: TIMEZONE,
     })
 
   const handleClose = () => {

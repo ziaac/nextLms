@@ -4,6 +4,7 @@ import { useState }                  from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Spinner }                   from '@/components/ui/Spinner'
 import { useMyRiwayatAbsensi }       from '@/hooks/absensi/useRekapSiswa'
+import { TIMEZONE } from '@/lib/constants'
 import type { AbsensiHistoryItem }   from '@/types'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -53,7 +54,7 @@ export function RekapAbsensiSection() {
   const fmtTgl = (iso: string) =>
     new Date(iso).toLocaleDateString('id-ID', {
       day: 'numeric', month: 'short', year: 'numeric',
-      timeZone: 'Asia/Makassar',
+      timeZone: TIMEZONE,
     })
 
   return (

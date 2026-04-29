@@ -140,7 +140,7 @@ export default function KelasPage() {
 
       <KelasFilters filters={filters} onChange={setFilters} />
 
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-200 p-4 md:p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4 md:p-6">
         <KelasTable
           data={kelasList}
           // Tambahkan pengecekan agar indikator loading terlihat natural saat menunggu isInitialized

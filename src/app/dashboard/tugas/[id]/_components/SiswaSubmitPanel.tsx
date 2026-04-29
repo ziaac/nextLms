@@ -57,7 +57,7 @@ function FileUploadArea({
     }
     setUploading(true)
     try {
-      const key = await uploadApi.tugas(file)
+      const key = await uploadApi.tugasSubmit(file)
       onAdd(key, file.name)
     } catch {
       toast.error('Upload gagal. Coba lagi.')

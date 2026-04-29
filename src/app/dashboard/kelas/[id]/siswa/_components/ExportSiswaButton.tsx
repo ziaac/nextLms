@@ -5,6 +5,7 @@ import { Download } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { toast } from 'sonner'
 import api from '@/lib/axios'
+import { TIMEZONE } from '@/lib/constants'
 import type { ExportBiodataSiswaResponse } from '@/lib/api/kelas-siswa.api'
 
 interface Props {
@@ -50,7 +51,7 @@ export function ExportSiswaButton({ kelasId, namaKelas }: Props) {
 
       // Nama file: DaftarSiswa_NamaKelas_Tanggal.xlsx
       const today = new Date().toLocaleDateString('id-ID', {
-        timeZone: 'Asia/Makassar',
+        timeZone: TIMEZONE,
         day: '2-digit', month: '2-digit', year: 'numeric',
       }).replace(/\//g, '-')
       const fileName = `DaftarSiswa_${namaKelas.replace(/\s+/g, '_')}_${today}.xlsx`

@@ -72,14 +72,14 @@ function useStatSemester(
   })
 
   const items = overview.data ?? []
-  const avgKehadiran = items.length > 0
-    ? Math.round(items.reduce((a, i) => a + i.performaGlobal.rataRataKehadiranSiswa, 0) / items.length)
+  const avgKehadiran = items.length > 0 && items[0]?.performaGlobal
+    ? Math.round(items.reduce((a, i) => a + (i.performaGlobal?.rataRataKehadiranSiswa ?? 0), 0) / items.length)
     : (kehadiran.data?.rekapPerKelas.find((k) => k.kelasId === kelasId)?.persentaseHadir ?? 0)
-  const avgNilai = items.length > 0
-    ? parseFloat((items.reduce((a, i) => a + i.performaGlobal.rataRataNilaiRaport, 0) / items.length).toFixed(1))
+  const avgNilai = items.length > 0 && items[0]?.performaGlobal
+    ? parseFloat((items.reduce((a, i) => a + (i.performaGlobal?.rataRataNilaiRaport ?? 0), 0) / items.length).toFixed(1))
     : 0
-  const avgKetuntasan = items.length > 0
-    ? Math.round(items.reduce((a, i) => a + i.performaGlobal.persentaseTugasSelesai, 0) / items.length)
+  const avgKetuntasan = items.length > 0 && items[0]?.performaGlobal
+    ? Math.round(items.reduce((a, i) => a + (i.performaGlobal?.persentaseTugasSelesai ?? 0), 0) / items.length)
     : 0
 
   return {
@@ -97,14 +97,14 @@ function MiniRow({ label, value, color = 'gray' }: {
   color?: 'gray' | 'emerald' | 'amber' | 'blue'
 }) {
   const cls = {
-    gray:    'text-gray-700',
-    emerald: 'text-emerald-600',
-    amber:   'text-amber-600',
-    blue:    'text-blue-600',
+    gray:    'text-gray-700 dark:text-gray-300',
+    emerald: 'text-emerald-600 dark:text-emerald-400',
+    amber:   'text-amber-600 dark:text-amber-400',
+    blue:    'text-blue-600 dark:text-blue-400',
   }[color]
   return (
     <div className="flex items-center justify-between py-1">
-      <span className="text-xs text-gray-500">{label}</span>
+      <span className="text-xs text-gray-500 dark:text-gray-400">{label}</span>
       <span className={`text-xs font-semibold ${cls}`}>{value}</span>
     </div>
   )
@@ -121,8 +121,8 @@ function SemesterBlock({
   const stat = useStatSemester(kelasId, tahunAjaranId, semesterId, !!semesterId)
   if (!semesterId) return null
   return (
-    <div className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 space-y-1">
-      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/40 px-3 py-2 space-y-1">
+      <p className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
         Semester {label}
       </p>
       {stat.isLoading ? (
@@ -215,9 +215,9 @@ export function KelasStatAkademik({ kelasId, tahunAjaranId }: Props) {
             },
           ].map((s) => {
             const colorMap: Record<string, string> = {
-              blue:    'bg-blue-50 border-blue-200 text-blue-600',
-              emerald: 'bg-emerald-50 border-emerald-200 text-emerald-600',
-              amber:   'bg-amber-50 border-amber-200 text-amber-600',
+              blue:    'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400',
+              emerald: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400',
+              amber:   'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400',
             }
             return (
               <div key={s.label} className={`rounded-lg border ${colorMap[s.color]} px-3 py-2.5`}>

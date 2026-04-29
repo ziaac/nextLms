@@ -16,13 +16,17 @@ import { format } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 
 interface Props {
-  tugasId:       string
-  siswaId:       string
-  namaSiswa?:    string
-  onClose?:      () => void
+  tugasId:          string
+  siswaId:          string
+  namaSiswa?:       string
+  onClose?:         () => void
+  /** Jika true, sembunyikan panel grading — dipakai saat parent yang mengontrol form nilai */
+  hideGradingForm?: boolean
+  /** Callback untuk expose data autograding ke parent */
+  onAutoGradeData?: (data: { autoCorrect: number; autoTotal: number; hasManual: boolean; pengumpulanId?: string }) => void
 }
 
-export function WorksheetGradingView({ tugasId, siswaId, namaSiswa, onClose }: Props) {
+export function WorksheetGradingView({ tugasId, siswaId, namaSiswa, onClose, hideGradingForm, onAutoGradeData }: Props) {
   const [halamanIdx,  setHalamanIdx]  = useState(0)
   const [imgLoaded,   setImgLoaded]   = useState(false)
   const [manualNilai, setManualNilai] = useState('')
@@ -61,6 +65,19 @@ export function WorksheetGradingView({ tugasId, siswaId, namaSiswa, onClose }: P
   const hasManual    = manualWidgets.length > 0
   const alreadyGraded = detail?.status === 'DINILAI'
 
+  // Expose autograding data ke parent jika diminta
+  React.useEffect(() => {
+    if (onAutoGradeData && !defLoading && !detailLoading) {
+      onAutoGradeData({
+        autoCorrect,
+        autoTotal,
+        hasManual,
+        pengumpulanId: detail?.pengumpulanId,
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoCorrect, autoTotal, hasManual, detail?.pengumpulanId, defLoading, detailLoading])
+
   const handleGrade = async () => {
     const n = Number(manualNilai)
     if (isNaN(n) || n < 0 || n > 100) {
@@ -91,7 +108,7 @@ export function WorksheetGradingView({ tugasId, siswaId, namaSiswa, onClose }: P
   }
 
   return (
-    <div className="flex flex-col gap-4 min-h-[60vh]">
+    <div className="flex flex-col gap-4">
 
       {/* ── Header info ── */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -248,7 +265,7 @@ export function WorksheetGradingView({ tugasId, siswaId, namaSiswa, onClose }: P
       )}
 
       {/* ── Manual grading panel ── */}
-      {hasManual && (
+      {hasManual && !hideGradingForm && (
         <div className={cn(
           'rounded-2xl border p-4',
           alreadyGraded
@@ -323,7 +340,7 @@ export function WorksheetGradingView({ tugasId, siswaId, namaSiswa, onClose }: P
       )}
 
       {/* Auto-only grading */}
-      {!hasManual && !alreadyGraded && autoTotal > 0 && (
+      {!hasManual && !alreadyGraded && autoTotal > 0 && !hideGradingForm && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-xs text-blue-600 dark:text-blue-400">
           <CheckCircle2 size={13} />
           Worksheet ini sudah di-grade otomatis ({autoCorrect}/{autoTotal} benar)

@@ -39,33 +39,44 @@ function StatCard({
   loading: boolean
 }) {
   const colorMap = {
-    gray:    'bg-gray-50 text-gray-500 border-gray-200',
-    emerald: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-    blue:    'bg-blue-50 text-blue-600 border-blue-200',
-    amber:   'bg-amber-50 text-amber-600 border-amber-200',
-    purple:  'bg-purple-50 text-purple-600 border-purple-200',
+    gray:    'bg-gray-50 dark:bg-gray-800/40 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700',
+    emerald: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+    blue:    'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+    amber:   'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+    purple:  'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800',
+  }
+  const iconBgMap = {
+    gray:    'bg-gray-100 dark:bg-gray-700/40',
+    emerald: 'bg-emerald-100 dark:bg-emerald-800/40',
+    blue:    'bg-blue-100 dark:bg-blue-800/40',
+    amber:   'bg-amber-100 dark:bg-amber-800/40',
+    purple:  'bg-purple-100 dark:bg-purple-800/40',
   }
   const iconColor = {
-    gray:    'text-gray-400',
-    emerald: 'text-emerald-500',
-    blue:    'text-blue-500',
-    amber:   'text-amber-500',
-    purple:  'text-purple-500',
+    gray:    'text-gray-400 dark:text-gray-500',
+    emerald: 'text-emerald-500 dark:text-emerald-400',
+    blue:    'text-blue-500 dark:text-blue-400',
+    amber:   'text-amber-500 dark:text-amber-400',
+    purple:  'text-purple-500 dark:text-purple-400',
   }
 
   return (
-    <div className={`rounded-2xl border ${colorMap[color]} p-4 flex items-center gap-4`}>
-      <div className={`rounded-lg p-2.5 ${colorMap[color]}`}>
-        <Icon className={`w-5 h-5 ${iconColor[color]}`} />
+    <div className={`rounded-2xl border ${colorMap[color]} p-4 flex flex-col gap-3`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className={`rounded-lg p-2.5 ${iconBgMap[color]} flex-shrink-0`}>
+          <Icon className={`w-5 h-5 ${iconColor[color]}`} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide truncate">{label}</p>
+        </div>
       </div>
       <div className="min-w-0">
-        <p className="text-xs text-gray-500 truncate">{label}</p>
         {loading ? (
-          <Skeleton className="h-6 w-16 rounded mt-0.5" />
+          <Skeleton className="h-7 w-20 rounded" />
         ) : (
-          <p className="text-xl font-bold text-gray-800">{value}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
         )}
-        {sub && <p className="text-[10px] text-gray-400 mt-0.5">{sub}</p>}
+        {sub && <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">{sub}</p>}
       </div>
     </div>
   )

@@ -161,11 +161,11 @@ export default function JadwalPublikPage() {
 
           {/* Back button */}
           <Link
-            href="/login"
+            href="/"
             className="group flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
-            <span className="hidden sm:inline">Kembali</span>
+            <span className="hidden sm:inline">Beranda</span>
           </Link>
 
           <div className="h-5 w-px bg-gray-200 dark:bg-gray-700" />

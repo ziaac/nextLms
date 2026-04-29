@@ -8,6 +8,7 @@ import {
   XCircle, Loader2, Clock,
 } from 'lucide-react'
 import { getSesiDetail, scanQR } from '@/lib/api/absensi.api'
+import { TIMEZONE } from '@/lib/constants'
 import { Button }  from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 
@@ -167,7 +168,7 @@ function ScanContent() {
   const isSubmitting = pageState === 'submitting'
   const tanggalDisplay = sesi.tanggal.split('-').reverse().join('/')
   const expiredDisplay = new Date(sesi.expiresAt).toLocaleTimeString('id-ID', {
-    hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Makassar',
+    hour: '2-digit', minute: '2-digit', timeZone: TIMEZONE,
   })
 
   return (

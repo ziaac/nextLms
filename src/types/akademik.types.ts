@@ -382,15 +382,14 @@ export interface TodoSiswaResponse {
 // Shape dari GET /report/guru/todo
 
 export interface TugasMenungguPenilaianItem {
-  pengumpulanTugasId: string
-  tugasId:            string
-  judulTugas:         string
-  namaMapel:          string
-  kelas:              string
-  namaSiswa:          string
-  fotoSiswa:          string | null
-  tanggalSubmit:      string
-  statusLabel:        string
+  id:             string  // This is the tugas ID
+  judulTugas:     string
+  namaMapel:      string
+  kelas:          string
+  namaSiswa:      string
+  fotoSiswa:      string | null
+  tanggalSubmit:  string
+  statusLabel:    string
 }
 
 export type StatusSesiGuru =

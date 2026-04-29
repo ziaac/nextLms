@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Upload, X, Loader2, CheckCircle, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { FilePreview } from './FilePreview'
+import { compressImageToFile } from '@/lib/helpers/image-compress'
 
 interface FileUploadProps {
   label: string
@@ -16,12 +17,14 @@ interface FileUploadProps {
   previewLabel?: string
   /** Sembunyikan box "File tersedia" dan tombol preview — cocok saat ada inline preview di bawah */
   compact?: boolean
+  /** Kompres gambar sebelum upload (default: true untuk gambar, false untuk PDF) */
+  compressImage?: boolean
 }
 
 export function FileUpload({
   label, hint, accept = '.pdf,.jpg,.jpeg,.png',
   onUpload, onSuccess, currentKey, disabled,
-  previewLabel, compact,
+  previewLabel, compact, compressImage = true,
 }: FileUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [error, setError]         = useState<string | null>(null)
@@ -38,11 +41,29 @@ export function FileUpload({
     setUploading(true)
     setError(null)
     try {
-      const key = await onUpload(file)
+      let fileToUpload = file
+      
+      // Kompres gambar jika diaktifkan dan file adalah gambar (bukan PDF)
+      if (compressImage && file.type.startsWith('image/')) {
+        try {
+          fileToUpload = await compressImageToFile(file, file.name, {
+            maxPx: 1600,       // Dokumen scan perlu resolusi lebih tinggi
+            quality: 0.85,     // Kualitas tinggi untuk dokumen
+            maxBytes: 800_000, // Target 800KB untuk dokumen scan
+          })
+        } catch (compressErr) {
+          // Jika kompresi gagal, gunakan file asli
+          console.warn('Kompresi gagal, menggunakan file asli:', compressErr)
+          fileToUpload = file
+        }
+      }
+      
+      const key = await onUpload(fileToUpload)
       onSuccess(key)
       setUploaded(true)
-    } catch {
-      setError('Upload gagal. Coba lagi.')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Upload gagal. Coba lagi.'
+      setError(msg)
     } finally {
       setUploading(false)
     }

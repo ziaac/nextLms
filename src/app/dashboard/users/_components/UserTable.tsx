@@ -52,7 +52,7 @@ export function UserTable({
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-200">
+            <tr className="border-b border-gray-200 dark:border-gray-800">
               {['Pengguna', 'Role', 'Angkatan', 'Status', 'Dibuat', 'Aksi'].map((h) => (
                 <th key={h} className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
                   {h}
@@ -127,7 +127,7 @@ export function UserTable({
           return (
             <div key={user.id}
               onClick={() => onRowClick(user)}
-              className="rounded-2xl bg-gray-50/80 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-200 p-4 space-y-3 cursor-pointer active:bg-gray-100 dark:active:bg-gray-800/60"
+              className="rounded-2xl bg-gray-50/80 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-800 p-4 space-y-3 cursor-pointer active:bg-gray-100 dark:active:bg-gray-800/60"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full overflow-hidden bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center flex-shrink-0">

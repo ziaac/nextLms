@@ -1,4 +1,13 @@
-import type { UserRole, JenisKelamin, Agama } from './enums'
+import type { 
+  UserRole, 
+  JenisKelamin, 
+  Agama,
+  JalurPendaftaran,
+  StatusAnak,
+  StatusOrangTua,
+  StatusOrtuKandung,
+  StatusSekolahAsal,
+} from './enums'
 
 export type BloodType = 'A_POS' | 'A_NEG' | 'B_POS' | 'B_NEG' | 'AB_POS' | 'AB_NEG' | 'O_POS' | 'O_NEG'
 export type JenisTinggal = 'ORANG_TUA' | 'WALI' | 'ASRAMA' | 'PONDOK' | 'PANTI' | 'LAINNYA'
@@ -41,26 +50,46 @@ export interface UserProfileFull extends UserProfile {
   // Sekolah asal
   namaSekolahAsal: string | null
   alamatSekolahAsal: string | null
+  npsnSekolahAsal: string | null
+  statusSekolahAsal: StatusSekolahAsal | null
   // Data keluarga
   anakKe: number | null
   jumlahSaudaraKandung: number | null
+  statusAnak: StatusAnak | null
   jenisTinggal: JenisTinggal | null
   alatTransportasi: AlatTransportasi | null
   jarakKeSekolah: number | null
   penerimaKIP: boolean
   nomorKIP: string | null
+  // Data pribadi siswa
+  citaCita: string | null
+  hobi: string | null
+  riwayatPenyakit: string | null
+  kebutuhanKhusus: string | null
+  ukuranBaju: string | null
+  // Pendaftaran siswa
+  nis: string | null
+  nomorPendaftaran: string | null
+  jalurPendaftaran: JalurPendaftaran | null
+  tanggalDaftar: string | null
+  // Orang tua — status umum
+  statusOrtuKandung: StatusOrtuKandung | null
   // Orang tua ayah
   namaAyah: string | null
   nikAyah: string | null
+  statusAyah: StatusOrangTua | null
   pekerjaanAyah: string | null
   pendidikanAyah: JenjangPendidikan | null
   penghasilanAyah: string | null
+  noTelpAyah: string | null
   // Orang tua ibu
   namaIbu: string | null
   nikIbu: string | null
+  statusIbu: StatusOrangTua | null
   pekerjaanIbu: string | null
   pendidikanIbu: JenjangPendidikan | null
   penghasilanIbu: string | null
+  noTelpIbu: string | null
   // Wali
   namaWali: string | null
   nikWali: string | null
@@ -73,6 +102,11 @@ export interface UserProfileFull extends UserProfile {
   aktaKey: string | null
   kkKey: string | null
   kipKey: string | null
+  ijazahLaluKey: string | null
+  raporKey: string | null
+  skhunKey: string | null
+  sertifikatKey: string | null
+  ktpOrtuKey: string | null
   tahunMasuk: number | null
   createdAt: string
   updatedAt: string
@@ -166,6 +200,31 @@ export interface CreateUserDto {
   kkKey?: string
   kipKey?: string
   isActive?: boolean
+  // Siswa extended fields
+  nis?: string
+  nomorPendaftaran?: string
+  jalurPendaftaran?: JalurPendaftaran
+  npsnSekolahAsal?: string
+  statusSekolahAsal?: StatusSekolahAsal
+  statusAnak?: StatusAnak
+  statusOrtuKandung?: StatusOrtuKandung
+  statusAyah?: StatusOrangTua
+  statusIbu?: StatusOrangTua
+  noTelpAyah?: string
+  noTelpIbu?: string
+  citaCita?: string
+  hobi?: string
+  riwayatPenyakit?: string
+  kebutuhanKhusus?: string
+  ukuranBaju?: string
+  ijazahLaluKey?: string
+  raporKey?: string
+  skhunKey?: string
+  sertifikatKey?: string
+  ktpOrtuKey?: string
+  tahunMasuk?: number
 }
 
-export interface UpdateUserDto extends Partial<Omit<CreateUserDto, 'password' | 'email'>> {}
+export interface UpdateUserDto extends Partial<Omit<CreateUserDto, 'password' | 'email'>> {
+  // All extended fields are now inherited from CreateUserDto
+}

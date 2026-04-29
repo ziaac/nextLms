@@ -1,7 +1,8 @@
 import { TIMEZONE } from '../constants'
 
 /**
- * Format tanggal ke locale Indonesia dengan timezone WITA (Asia/Makassar)
+ * Format tanggal ke locale Indonesia dengan timezone dari setting aplikasi.
+ * Default: Asia/Makassar (WITA). Dapat dikonfigurasi via NEXT_PUBLIC_TIMEZONE.
  */
 export const formatTanggal = (
   date: string | Date,

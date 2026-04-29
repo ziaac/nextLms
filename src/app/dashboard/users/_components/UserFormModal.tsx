@@ -59,6 +59,37 @@ const PENDIDIKAN_OPTIONS = [
   { value: 'D4', label: 'D4' }, { value: 'S1', label: 'S1' },
   { value: 'S2', label: 'S2' }, { value: 'S3', label: 'S3' },
 ]
+const JALUR_OPTIONS = [
+  { value: 'ZONASI',      label: 'Zonasi' },
+  { value: 'PRESTASI',    label: 'Prestasi' },
+  { value: 'AFIRMASI',    label: 'Afirmasi' },
+  { value: 'PERPINDAHAN', label: 'Perpindahan Tugas Orang Tua' },
+  { value: 'REGULER',     label: 'Reguler' },
+]
+const STATUS_ANAK_OPTIONS = [
+  { value: 'KANDUNG', label: 'Anak Kandung' },
+  { value: 'TIRI',    label: 'Anak Tiri' },
+  { value: 'ANGKAT',  label: 'Anak Angkat' },
+]
+const STATUS_ORTU_OPTIONS = [
+  { value: 'LENGKAP',     label: 'Lengkap (Ayah & Ibu)' },
+  { value: 'CERAI_HIDUP', label: 'Cerai Hidup' },
+  { value: 'CERAI_MATI',  label: 'Cerai Mati / Salah Satu Meninggal' },
+]
+const STATUS_ORTU_KANDUNG_OPTIONS = [
+  { value: 'HIDUP',     label: 'Masih Hidup' },
+  { value: 'MENINGGAL', label: 'Sudah Meninggal' },
+]
+const STATUS_SEKOLAH_OPTIONS = [
+  { value: 'NEGERI',     label: 'Negeri' },
+  { value: 'SWASTA',     label: 'Swasta' },
+  { value: 'LUAR_NEGERI', label: 'Luar Negeri' },
+]
+const UKURAN_BAJU_OPTIONS = [
+  { value: 'S', label: 'S' }, { value: 'M', label: 'M' },
+  { value: 'L', label: 'L' }, { value: 'XL', label: 'XL' },
+  { value: 'XXL', label: 'XXL' },
+]
 
 const formSchema = z.object({
   email:         z.string().email('Format email tidak valid').optional(),
@@ -119,7 +150,28 @@ const formSchema = z.object({
   aktaKey:    z.string().optional(),
   kkKey:      z.string().optional(),
   kipKey:     z.string().optional(),
-  tahunMasuk: z.string().optional(),
+  ijazahLaluKey:  z.string().optional(),
+  raporKey:       z.string().optional(),
+  skhunKey:       z.string().optional(),
+  sertifikatKey:  z.string().optional(),
+  ktpOrtuKey:     z.string().optional(),
+  tahunMasuk:      z.string().optional(),
+  nis:             z.string().optional(),
+  nomorPendaftaran: z.string().optional(),
+  jalurPendaftaran: z.string().optional(),
+  npsnSekolahAsal:  z.string().optional(),
+  statusSekolahAsal: z.string().optional(),
+  statusAnak:       z.string().optional(),
+  statusOrtuKandung: z.string().optional(),
+  statusAyah:       z.string().optional(),
+  statusIbu:        z.string().optional(),
+  noTelpAyah:       z.string().optional(),
+  noTelpIbu:        z.string().optional(),
+  citaCita:         z.string().optional(),
+  hobi:             z.string().optional(),
+  riwayatPenyakit:  z.string().optional(),
+  kebutuhanKhusus:  z.string().optional(),
+  ukuranBaju:       z.string().optional(),
 }).superRefine((data, ctx) => {
   if (data.role === 'SISWA' && !data.tahunMasuk) {
     ctx.addIssue({
@@ -172,6 +224,10 @@ export function UserFormModal({ open, onClose, user }: UserFormModalProps) {
   const form = useForm<FormData>({ resolver: zodResolver(formSchema) })
   const penerimaKIP = form.watch('penerimaKIP')
   const selectedRole = form.watch('role')
+
+  const isSiswa   = selectedRole === 'SISWA'
+  const hasNip    = ['KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'GURU', 'WALI_KELAS', 'STAFF_TU', 'STAFF_KEUANGAN'].includes(selectedRole ?? '')
+  const hasNuptk  = ['GURU', 'WALI_KELAS'].includes(selectedRole ?? '')
 
   const [submitError, setSubmitError] = useState<string | null>(null)
   const prevOpen = useRef(false)
@@ -253,7 +309,28 @@ export function UserFormModal({ open, onClose, user }: UserFormModalProps) {
       aktaKey:    p.aktaKey    ?? '',
       kkKey:      p.kkKey      ?? '',
       kipKey:     p.kipKey     ?? '',
-      tahunMasuk: p.tahunMasuk?.toString() ?? '',
+      ijazahLaluKey:  p.ijazahLaluKey  ?? '',
+      raporKey:       p.raporKey       ?? '',
+      skhunKey:       p.skhunKey       ?? '',
+      sertifikatKey:  p.sertifikatKey  ?? '',
+      ktpOrtuKey:     p.ktpOrtuKey     ?? '',
+      tahunMasuk:      p.tahunMasuk?.toString() ?? '',
+      nis:             p.nis             ?? '',
+      nomorPendaftaran: p.nomorPendaftaran ?? '',
+      jalurPendaftaran: p.jalurPendaftaran ?? '',
+      npsnSekolahAsal:  p.npsnSekolahAsal  ?? '',
+      statusSekolahAsal: p.statusSekolahAsal ?? '',
+      statusAnak:       p.statusAnak       ?? '',
+      statusOrtuKandung: p.statusOrtuKandung ?? '',
+      statusAyah:       p.statusAyah       ?? '',
+      statusIbu:        p.statusIbu        ?? '',
+      noTelpAyah:       p.noTelpAyah       ?? '',
+      noTelpIbu:        p.noTelpIbu        ?? '',
+      citaCita:         p.citaCita         ?? '',
+      hobi:             p.hobi             ?? '',
+      riwayatPenyakit:  p.riwayatPenyakit  ?? '',
+      kebutuhanKhusus:  p.kebutuhanKhusus  ?? '',
+      ukuranBaju:       p.ukuranBaju       ?? '',
     } as never)
   }, [open, userDetail?.id])
 
@@ -356,46 +433,63 @@ export function UserFormModal({ open, onClose, user }: UserFormModalProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input label="NIK" placeholder="16 digit" {...r('nik')} />
               <Input label="No. Kartu Keluarga (KK)" placeholder="16 digit" {...r('noKK')} />
-              <Input label="NISN" placeholder="10 digit" {...r('nisn')} />
-              <Input label="NIP" placeholder="18 digit" {...r('nip')} />
-              <Input label="NUPTK" placeholder="16 digit" {...r('nuptk')} />
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Tahun Pendaftaran{selectedRole === 'SISWA' && <span className="text-red-500 ml-0.5">*</span>}
-                </label>
-                <Input type="number" placeholder="2024"
-                  error={e.tahunMasuk?.message} {...r('tahunMasuk')} />
-                {selectedRole === 'SISWA' && (
+              {isSiswa && <Input label="NISN" placeholder="10 digit" {...r('nisn')} />}
+              {isSiswa && <Input label="NIS (Nomor Induk Siswa)" placeholder="diisi setelah diterima" {...r('nis')} />}
+              {hasNip && <Input label="NIP" placeholder="18 digit" {...r('nip')} />}
+              {hasNuptk && <Input label="NUPTK" placeholder="16 digit" {...r('nuptk')} />}
+              {isSiswa && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Tahun Masuk<span className="text-red-500 ml-0.5">*</span>
+                  </label>
+                  <Input type="number" placeholder="2024"
+                    error={e.tahunMasuk?.message} {...r('tahunMasuk')} />
                   <p className="text-xs text-amber-600 dark:text-amber-400">
                     Wajib diisi — digunakan sebagai filter saat penempatan siswa ke kelas.
                   </p>
-                )}
-              </div>
+                </div>
+              )}
+              {isSiswa && <Input label="Nomor Pendaftaran" placeholder="opsional" {...r('nomorPendaftaran')} />}
+              {isSiswa && (
+                <Select label="Jalur Pendaftaran" options={JALUR_OPTIONS} placeholder="Pilih jalur..."
+                  value={form.watch('jalurPendaftaran')} {...r('jalurPendaftaran')} />
+              )}
             </div>
           </Section>
 
-          {/* SEKOLAH ASAL */}
-          <Section title="Sekolah Asal">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input label="Nama Sekolah Asal (MTs/SMP)" {...r('namaSekolahAsal')} />
-              <div className="sm:col-span-2">
-                <Input label="Alamat Sekolah Asal" {...r('alamatSekolahAsal')} />
+          {/* SEKOLAH ASAL — hanya siswa */}
+          {isSiswa && (
+            <Section title="Sekolah Asal">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input label="Nama Sekolah Asal (MTs/SMP)" {...r('namaSekolahAsal')} />
+                <Input label="NPSN Sekolah Asal" placeholder="8 digit" {...r('npsnSekolahAsal')} />
+                <Select label="Status Sekolah Asal" options={STATUS_SEKOLAH_OPTIONS} placeholder="Pilih..."
+                  value={form.watch('statusSekolahAsal')} {...r('statusSekolahAsal')} />
+                <div className="sm:col-span-2">
+                  <Input label="Alamat Sekolah Asal" {...r('alamatSekolahAsal')} />
+                </div>
               </div>
-            </div>
-          </Section>
+            </Section>
+          )}
 
-          {/* DATA KELUARGA */}
-          <Section title="Data Keluarga">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input label="Anak Ke-" type="number" placeholder="1" {...r('anakKe')} />
-              <Input label="Jumlah Saudara Kandung" type="number" placeholder="0" {...r('jumlahSaudaraKandung')} />
-              <Select label="Jenis Tinggal" options={TINGGAL_OPTIONS} placeholder="Pilih..."
-                value={form.watch('jenisTinggal')} {...r('jenisTinggal')} />
-              <Select label="Alat Transportasi" options={TRANSPORTASI_OPTIONS} placeholder="Pilih..."
-                value={form.watch('alatTransportasi')} {...r('alatTransportasi')} />
-              <Input label="Jarak ke Sekolah (Km)" type="number" placeholder="0" {...r('jarakKeSekolah')} />
-            </div>
-          </Section>
+          {/* DATA KELUARGA — hanya siswa */}
+          {isSiswa && (
+            <Section title="Data Keluarga">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input label="Anak Ke-" type="number" placeholder="1" {...r('anakKe')} />
+                <Input label="Jumlah Saudara Kandung" type="number" placeholder="0" {...r('jumlahSaudaraKandung')} />
+                <Select label="Status Anak" options={STATUS_ANAK_OPTIONS} placeholder="Pilih..."
+                  value={form.watch('statusAnak')} {...r('statusAnak')} />
+                <Select label="Status Orang Tua Kandung" options={STATUS_ORTU_OPTIONS} placeholder="Pilih..."
+                  value={form.watch('statusOrtuKandung')} {...r('statusOrtuKandung')} />
+                <Select label="Jenis Tinggal" options={TINGGAL_OPTIONS} placeholder="Pilih..."
+                  value={form.watch('jenisTinggal')} {...r('jenisTinggal')} />
+                <Select label="Alat Transportasi" options={TRANSPORTASI_OPTIONS} placeholder="Pilih..."
+                  value={form.watch('alatTransportasi')} {...r('alatTransportasi')} />
+                <Input label="Jarak ke Sekolah (Km)" type="number" placeholder="0" {...r('jarakKeSekolah')} />
+              </div>
+            </Section>
+          )}
 
           {/* KONTAK */}
           <Section title="Kontak">
@@ -423,20 +517,36 @@ export function UserFormModal({ open, onClose, user }: UserFormModalProps) {
             </div>
           </Section>
 
-          {/* BANTUAN SOSIAL */}
-          <Section title="Bantuan Sosial (KIP/PKH)">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 sm:col-span-2">
-                <input type="checkbox" id="penerimaKIP" {...r('penerimaKIP')}
-                  className="w-4 h-4 rounded accent-emerald-600" />
-                <label htmlFor="penerimaKIP"
-                  className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-                  Penerima KIP / PKH
-                </label>
+          {/* BANTUAN SOSIAL — hanya siswa */}
+          {isSiswa && (
+            <Section title="Bantuan Sosial (KIP/PKH)">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-center gap-3 sm:col-span-2">
+                  <input type="checkbox" id="penerimaKIP" {...r('penerimaKIP')}
+                    className="w-4 h-4 rounded accent-emerald-600" />
+                  <label htmlFor="penerimaKIP"
+                    className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                    Penerima KIP / PKH
+                  </label>
+                </div>
+                {penerimaKIP && <Input label="Nomor KIP/PKH" {...r('nomorKIP')} />}
               </div>
-              {penerimaKIP && <Input label="Nomor KIP/PKH" {...r('nomorKIP')} />}
-            </div>
-          </Section>
+            </Section>
+          )}
+
+          {/* DATA PRIBADI SISWA */}
+          {isSiswa && (
+            <Section title="Data Pribadi Siswa">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input label="Cita-cita" placeholder="opsional" {...r('citaCita')} />
+                <Input label="Hobi" placeholder="opsional" {...r('hobi')} />
+                <Input label="Riwayat Penyakit" placeholder="opsional" {...r('riwayatPenyakit')} />
+                <Input label="Kebutuhan Khusus" placeholder="opsional" {...r('kebutuhanKhusus')} />
+                <Select label="Ukuran Baju" options={UKURAN_BAJU_OPTIONS} placeholder="Pilih..."
+                  value={form.watch('ukuranBaju')} {...r('ukuranBaju')} />
+              </div>
+            </Section>
+          )}
 
           {/* DATA FISIK */}
           <Section title="Data Fisik">
@@ -448,72 +558,121 @@ export function UserFormModal({ open, onClose, user }: UserFormModalProps) {
             </div>
           </Section>
 
-          {/* DATA AYAH */}
-          <Section title="Data Orang Tua — Ayah">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input label="Nama Ayah" {...r('namaAyah')} />
-              <Input label="NIK Ayah" placeholder="16 digit" {...r('nikAyah')} />
-              <Input label="Pekerjaan Ayah" {...r('pekerjaanAyah')} />
-              <Select label="Pendidikan Ayah" options={PENDIDIKAN_OPTIONS} placeholder="Pilih..."
-                value={form.watch('pendidikanAyah')} {...r('pendidikanAyah')} />
-              <Input label="Penghasilan Ayah / bulan" placeholder="Rp" {...r('penghasilanAyah')} />
-            </div>
-          </Section>
+          {/* DATA AYAH — hanya siswa */}
+          {isSiswa && (
+            <Section title="Data Orang Tua — Ayah">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input label="Nama Ayah" {...r('namaAyah')} />
+                <Input label="NIK Ayah" placeholder="16 digit" {...r('nikAyah')} />
+                <Select label="Status Ayah" options={STATUS_ORTU_KANDUNG_OPTIONS} placeholder="Pilih..."
+                  value={form.watch('statusAyah')} {...r('statusAyah')} />
+                <Input label="No. Telp / WA Ayah" placeholder="08xxxxxxxxxx" {...r('noTelpAyah')} />
+                <Input label="Pekerjaan Ayah" {...r('pekerjaanAyah')} />
+                <Select label="Pendidikan Ayah" options={PENDIDIKAN_OPTIONS} placeholder="Pilih..."
+                  value={form.watch('pendidikanAyah')} {...r('pendidikanAyah')} />
+                <Input label="Penghasilan Ayah / bulan" placeholder="Rp" {...r('penghasilanAyah')} />
+              </div>
+            </Section>
+          )}
 
-          {/* DATA IBU */}
-          <Section title="Data Orang Tua — Ibu">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input label="Nama Ibu" {...r('namaIbu')} />
-              <Input label="NIK Ibu" placeholder="16 digit" {...r('nikIbu')} />
-              <Input label="Pekerjaan Ibu" {...r('pekerjaanIbu')} />
-              <Select label="Pendidikan Ibu" options={PENDIDIKAN_OPTIONS} placeholder="Pilih..."
-                value={form.watch('pendidikanIbu')} {...r('pendidikanIbu')} />
-              <Input label="Penghasilan Ibu / bulan" placeholder="Rp" {...r('penghasilanIbu')} />
-            </div>
-          </Section>
+          {/* DATA IBU — hanya siswa */}
+          {isSiswa && (
+            <Section title="Data Orang Tua — Ibu">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input label="Nama Ibu" {...r('namaIbu')} />
+                <Input label="NIK Ibu" placeholder="16 digit" {...r('nikIbu')} />
+                <Select label="Status Ibu" options={STATUS_ORTU_KANDUNG_OPTIONS} placeholder="Pilih..."
+                  value={form.watch('statusIbu')} {...r('statusIbu')} />
+                <Input label="No. Telp / WA Ibu" placeholder="08xxxxxxxxxx" {...r('noTelpIbu')} />
+                <Input label="Pekerjaan Ibu" {...r('pekerjaanIbu')} />
+                <Select label="Pendidikan Ibu" options={PENDIDIKAN_OPTIONS} placeholder="Pilih..."
+                  value={form.watch('pendidikanIbu')} {...r('pendidikanIbu')} />
+                <Input label="Penghasilan Ibu / bulan" placeholder="Rp" {...r('penghasilanIbu')} />
+              </div>
+            </Section>
+          )}
 
-          {/* DATA WALI */}
-          <Section title="Data Wali (opsional)">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input label="Nama Wali" {...r('namaWali')} />
-              <Input label="NIK Wali" placeholder="16 digit" {...r('nikWali')} />
-              <Input label="Hubungan dengan Siswa" placeholder="Kakek, Paman, dll" {...r('hubunganWali')} />
-              <Input label="No. Telp / WA Wali" {...r('noTelpWali')} />
-              <Input label="Pekerjaan Wali" {...r('pekerjaanWali')} />
-              <Select label="Pendidikan Wali" options={PENDIDIKAN_OPTIONS} placeholder="Pilih..."
-                value={form.watch('pendidikanWali')} {...r('pendidikanWali')} />
-              <Input label="Penghasilan Wali / bulan" placeholder="Rp" {...r('penghasilanWali')} />
-            </div>
-          </Section>
+          {/* DATA WALI — hanya siswa */}
+          {isSiswa && (
+            <Section title="Data Wali (opsional)">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input label="Nama Wali" {...r('namaWali')} />
+                <Input label="NIK Wali" placeholder="16 digit" {...r('nikWali')} />
+                <Input label="Hubungan dengan Siswa" placeholder="Kakek, Paman, dll" {...r('hubunganWali')} />
+                <Input label="No. Telp / WA Wali" {...r('noTelpWali')} />
+                <Input label="Pekerjaan Wali" {...r('pekerjaanWali')} />
+                <Select label="Pendidikan Wali" options={PENDIDIKAN_OPTIONS} placeholder="Pilih..."
+                  value={form.watch('pendidikanWali')} {...r('pendidikanWali')} />
+                <Input label="Penghasilan Wali / bulan" placeholder="Rp" {...r('penghasilanWali')} />
+              </div>
+            </Section>
+          )}
 
-          {/* DOKUMEN */}
-          <Section title="Dokumen">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <FileUpload
-                label="Akta Kelahiran"
-                hint="PDF / JPG / PNG, maks 5MB"
-                currentKey={form.watch('aktaKey')}
-                onUpload={uploadApi.biodataAkta}
-                onSuccess={(key) => form.setValue('aktaKey', key)}
-              />
-              <FileUpload
-                label="Kartu Keluarga (KK)"
-                hint="PDF / JPG / PNG, maks 5MB"
-                currentKey={form.watch('kkKey')}
-                onUpload={uploadApi.biodataKK}
-                onSuccess={(key) => form.setValue('kkKey', key)}
-              />
-              {penerimaKIP && (
+          {/* DOKUMEN — hanya siswa */}
+          {isSiswa && (
+            <Section title="Dokumen">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <FileUpload
-                  label="Kartu KIP / PKH"
+                  label="Akta Kelahiran"
                   hint="PDF / JPG / PNG, maks 5MB"
-                  currentKey={form.watch('kipKey')}
-                  onUpload={uploadApi.biodataKIP}
-                  onSuccess={(key) => form.setValue('kipKey', key)}
+                  currentKey={form.watch('aktaKey')}
+                  onUpload={uploadApi.biodataAkta}
+                  onSuccess={(key) => form.setValue('aktaKey', key)}
                 />
-              )}
-            </div>
-          </Section>
+                <FileUpload
+                  label="Kartu Keluarga (KK)"
+                  hint="PDF / JPG / PNG, maks 5MB"
+                  currentKey={form.watch('kkKey')}
+                  onUpload={uploadApi.biodataKK}
+                  onSuccess={(key) => form.setValue('kkKey', key)}
+                />
+                <FileUpload
+                  label="Ijazah / STTB Terakhir"
+                  hint="PDF / JPG / PNG, maks 5MB"
+                  currentKey={form.watch('ijazahLaluKey')}
+                  onUpload={uploadApi.biodataIjazah}
+                  onSuccess={(key) => form.setValue('ijazahLaluKey', key)}
+                />
+                <FileUpload
+                  label="Rapor Terakhir"
+                  hint="PDF / JPG / PNG, maks 5MB"
+                  currentKey={form.watch('raporKey')}
+                  onUpload={uploadApi.biodataRapor}
+                  onSuccess={(key) => form.setValue('raporKey', key)}
+                />
+                <FileUpload
+                  label="SKHUN"
+                  hint="PDF / JPG / PNG, maks 5MB"
+                  currentKey={form.watch('skhunKey')}
+                  onUpload={uploadApi.biodataSkhun}
+                  onSuccess={(key) => form.setValue('skhunKey', key)}
+                />
+                <FileUpload
+                  label="Sertifikat Prestasi"
+                  hint="PDF / JPG / PNG, maks 5MB"
+                  currentKey={form.watch('sertifikatKey')}
+                  onUpload={uploadApi.biodataSertifikat}
+                  onSuccess={(key) => form.setValue('sertifikatKey', key)}
+                />
+                <FileUpload
+                  label="KTP Orang Tua / Wali"
+                  hint="PDF / JPG / PNG, maks 5MB"
+                  currentKey={form.watch('ktpOrtuKey')}
+                  onUpload={uploadApi.biodataKtpOrtu}
+                  onSuccess={(key) => form.setValue('ktpOrtuKey', key)}
+                />
+                {penerimaKIP && (
+                  <FileUpload
+                    label="Kartu KIP / PKH"
+                    hint="PDF / JPG / PNG, maks 5MB"
+                    currentKey={form.watch('kipKey')}
+                    onUpload={uploadApi.biodataKIP}
+                    onSuccess={(key) => form.setValue('kipKey', key)}
+                  />
+                )}
+              </div>
+            </Section>
+          )}
 
         </div>
       </form>

@@ -45,12 +45,54 @@ const BLOOD_DISPLAY: Record<string, string> = {
   AB_POS: 'AB+', AB_NEG: 'AB-', O_POS: 'O+', O_NEG: 'O-',
 }
 
+const STATUS_ANAK_LABEL: Record<string, string> = {
+  KANDUNG: 'Anak Kandung', TIRI: 'Anak Tiri', ANGKAT: 'Anak Angkat',
+}
+
+const STATUS_ORTU_LABEL: Record<string, string> = {
+  LENGKAP: 'Lengkap (Ayah & Ibu)',
+  CERAI_HIDUP: 'Cerai Hidup',
+  CERAI_MATI: 'Cerai Mati / Salah Satu Meninggal',
+}
+
+const STATUS_ORTU_KANDUNG_LABEL: Record<string, string> = {
+  HIDUP: 'Masih Hidup', MENINGGAL: 'Sudah Meninggal',
+}
+
+const STATUS_SEKOLAH_LABEL: Record<string, string> = {
+  NEGERI: 'Negeri', SWASTA: 'Swasta', LUAR_NEGERI: 'Luar Negeri',
+}
+
+const JALUR_LABEL: Record<string, string> = {
+  ZONASI: 'Zonasi', PRESTASI: 'Prestasi', AFIRMASI: 'Afirmasi',
+  PERPINDAHAN: 'Perpindahan Tugas Orang Tua', REGULER: 'Reguler',
+}
+
 export function UserDetailPanel({ user, onClose, onEdit }: UserDetailPanelProps) {
   const { data, isLoading } = useUser(user?.id ?? '')
   const [preview, setPreview] = useState<{ key: string; label: string } | null>(null)
 
   const nama = data?.profile?.namaLengkap ?? user?.profile?.namaLengkap ?? '-'
   const foto = data?.profile?.fotoUrl ? getFileUrl(data.profile.fotoUrl) : null
+
+  const role        = data?.role ?? user?.role ?? ''
+  const isSiswa     = role === 'SISWA'
+  const hasNip      = ['KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'GURU', 'WALI_KELAS', 'STAFF_TU', 'STAFF_KEUANGAN'].includes(role)
+  const hasNuptk    = ['GURU', 'WALI_KELAS'].includes(role)
+
+  const p = data?.profile
+
+  // Dokumen yang ada
+  const docs = p ? [
+    { key: p.aktaKey,       label: 'Akta Kelahiran' },
+    { key: p.kkKey,         label: 'Kartu Keluarga' },
+    { key: p.ijazahLaluKey, label: 'Ijazah / STTB Terakhir' },
+    { key: p.raporKey,      label: 'Rapor Terakhir' },
+    { key: p.skhunKey,      label: 'SKHUN' },
+    { key: p.sertifikatKey, label: 'Sertifikat Prestasi' },
+    { key: p.ktpOrtuKey,    label: 'KTP Orang Tua / Wali' },
+    { key: p.kipKey,        label: 'KIP / PKH' },
+  ].filter((d) => !!d.key) : []
 
   return (
     <>
@@ -67,10 +109,10 @@ export function UserDetailPanel({ user, onClose, onEdit }: UserDetailPanelProps)
               <div key={i} className="h-10 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse" />
             ))}
           </div>
-        ) : data ? (
+        ) : data && p ? (
           <div className="p-0 space-y-6 pb-10">
 
-            {/* Avatar + info utama */}
+            {/* ── Avatar + info utama ── */}
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-2xl overflow-hidden bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center flex-shrink-0">
                 {foto
@@ -80,16 +122,16 @@ export function UserDetailPanel({ user, onClose, onEdit }: UserDetailPanelProps)
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">{nama}</h3>
-                {data.profile.namaPanggilan && (
-                  <p className="text-sm text-gray-400">Panggilan: {data.profile.namaPanggilan}</p>
+                {p.namaPanggilan && (
+                  <p className="text-sm text-gray-400">Panggilan: {p.namaPanggilan}</p>
                 )}
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <RoleBadge role={data.role} />
                   <Badge variant={data.isActive ? 'success' : 'default'}>
                     {data.isActive ? 'Aktif' : 'Nonaktif'}
                   </Badge>
-                  {data.profile.tahunMasuk && (
-                    <Badge variant="info">Angkatan {data.profile.tahunMasuk}</Badge>
+                  {p.tahunMasuk && (
+                    <Badge variant="info">Angkatan {p.tahunMasuk}</Badge>
                   )}
                 </div>
               </div>
@@ -101,156 +143,203 @@ export function UserDetailPanel({ user, onClose, onEdit }: UserDetailPanelProps)
               </button>
             </div>
 
-            {/* Akun */}
+            {/* ── Akun ── */}
             <Section title="Akun">
               <Grid>
-                <Field label="Email"         value={data.email} />
-                <Field label="Username"      value={data.username} />
-                <Field label="Login Terakhir"
-                  value={data.lastLoginAt ? formatTanggalSaja(data.lastLoginAt) : '-'} />
-                <Field label="Login Count"   value={data.loginCount?.toString()} />
+                <Field label="Email"          value={data.email} />
+                <Field label="Username"       value={data.username} />
+                <Field label="Login Terakhir" value={data.lastLoginAt ? formatTanggalSaja(data.lastLoginAt) : '-'} />
+                <Field label="Login Count"    value={data.loginCount?.toString()} />
               </Grid>
             </Section>
 
-            {/* Identitas */}
+            {/* ── Identitas Pribadi ── */}
             <Section title="Identitas Pribadi">
               <Grid>
-                <Field label="Nama Lengkap"  value={data.profile.namaLengkap} />
+                <Field label="Nama Lengkap"  value={p.namaLengkap} />
+                <Field label="Nama Panggilan" value={p.namaPanggilan} />
                 <Field label="Jenis Kelamin"
-                  value={data.profile.jenisKelamin === 'L' ? 'Laki-laki' : 'Perempuan'} />
-                <Field label="Tempat Lahir"  value={data.profile.tempatLahir} />
+                  value={p.jenisKelamin === 'L' ? 'Laki-laki' : p.jenisKelamin === 'P' ? 'Perempuan' : undefined} />
+                <Field label="Agama"         value={p.agama} />
+                <Field label="Tempat Lahir"  value={p.tempatLahir} />
                 <Field label="Tanggal Lahir"
-                  value={data.profile.tanggalLahir ? formatTanggalSaja(data.profile.tanggalLahir) : undefined} />
-                <Field label="Agama"         value={data.profile.agama} />
+                  value={p.tanggalLahir ? formatTanggalSaja(p.tanggalLahir) : undefined} />
                 <Field label="Gol. Darah"
-                  value={data.profile.bloodType ? BLOOD_DISPLAY[data.profile.bloodType] : undefined} />
-                <Field label="Tinggi"        value={data.profile.tinggi ? `${data.profile.tinggi} cm` : undefined} />
-                <Field label="Berat"         value={data.profile.berat ? `${data.profile.berat} kg` : undefined} />
+                  value={p.bloodType ? BLOOD_DISPLAY[p.bloodType] : undefined} />
+                <Field label="Tinggi" value={p.tinggi ? `${p.tinggi} cm` : undefined} />
+                <Field label="Berat"  value={p.berat  ? `${p.berat} kg`  : undefined} />
               </Grid>
             </Section>
 
-            {/* Nomor Identitas */}
+            {/* ── Nomor Identitas ── */}
             <Section title="Nomor Identitas">
               <Grid>
-                <Field label="NIK"    value={data.profile.nik} />
-                <Field label="No. KK" value={data.profile.noKK} />
-                <Field label="NISN"   value={data.profile.nisn} />
-                <Field label="NIP"    value={data.profile.nip} />
-                <Field label="NUPTK"  value={data.profile.nuptk} />
+                <Field label="NIK"    value={p.nik} />
+                <Field label="No. KK" value={p.noKK} />
+                {isSiswa && <Field label="NISN" value={p.nisn} />}
+                {isSiswa && <Field label="NIS"  value={p.nis} />}
+                {hasNip   && <Field label="NIP"   value={p.nip} />}
+                {hasNuptk && <Field label="NUPTK" value={p.nuptk} />}
+                {isSiswa && <Field label="Tahun Masuk"       value={p.tahunMasuk?.toString()} />}
+                {isSiswa && <Field label="Nomor Pendaftaran" value={p.nomorPendaftaran} />}
+                {isSiswa && <Field label="Jalur Pendaftaran"
+                  value={p.jalurPendaftaran ? JALUR_LABEL[p.jalurPendaftaran] : undefined} />}
               </Grid>
             </Section>
 
-            {/* Kontak */}
-            <Section title="Kontak">
-              <Grid>
-                <Field label="No. HP"     value={data.profile.noTelepon} />
-                <Field label="WhatsApp"   value={data.profile.noWa} />
-                <Field label="Telp Rumah" value={data.profile.noTelpRumah} />
-              </Grid>
-            </Section>
-
-            {/* Alamat */}
-            <Section title="Alamat">
-              <div className="space-y-2">
-                {data.profile.alamat && (
-                  <p className="text-sm text-gray-700 dark:text-gray-300">{data.profile.alamat}</p>
-                )}
+            {/* ── Sekolah Asal — hanya siswa ── */}
+            {isSiswa && (
+              <Section title="Sekolah Asal">
                 <Grid>
-                  <Field label="Kelurahan" value={data.profile.kelurahan} />
-                  <Field label="Kecamatan" value={data.profile.kecamatan} />
-                  <Field label="Kabupaten" value={data.profile.kabupaten} />
-                  <Field label="Provinsi"  value={data.profile.provinsi} />
-                  <Field label="Kode Pos"  value={data.profile.kodePos} />
-                </Grid>
-              </div>
-            </Section>
-
-            {/* Data Tambahan */}
-            <Section title="Data Tambahan">
-              <Grid>
-                <Field label="Tahun Masuk"    value={data.profile.tahunMasuk?.toString()} />
-                <Field label="Sekolah Asal"   value={data.profile.namaSekolahAsal} />
-                <Field label="Anak Ke-"       value={data.profile.anakKe?.toString()} />
-                <Field label="Jml Saudara"    value={data.profile.jumlahSaudaraKandung?.toString()} />
-                <Field label="Jenis Tinggal"
-                  value={data.profile.jenisTinggal ? TINGGAL_LABEL[data.profile.jenisTinggal] : undefined} />
-                <Field label="Transportasi"
-                  value={data.profile.alatTransportasi ? TRANSPORTASI_LABEL[data.profile.alatTransportasi] : undefined} />
-                <Field label="Jarak ke Sekolah"
-                  value={data.profile.jarakKeSekolah ? `${data.profile.jarakKeSekolah} km` : undefined} />
-                <Field label="Penerima KIP"
-                  value={data.profile.penerimaKIP ? 'Ya' : 'Tidak'} />
-                {data.profile.penerimaKIP && (
-                  <Field label="Nomor KIP" value={data.profile.nomorKIP} />
-                )}
-              </Grid>
-            </Section>
-
-            {/* Data Ayah */}
-            <Section title="Data Orang Tua — Ayah">
-              <Grid>
-                <Field label="Nama"       value={data.profile.namaAyah} />
-                <Field label="NIK"        value={data.profile.nikAyah} />
-                <Field label="Pekerjaan"  value={data.profile.pekerjaanAyah} />
-                <Field label="Pendidikan"
-                  value={data.profile.pendidikanAyah ? PENDIDIKAN_LABEL[data.profile.pendidikanAyah] : undefined} />
-                <Field label="Penghasilan" value={data.profile.penghasilanAyah} />
-              </Grid>
-            </Section>
-
-            {/* Data Ibu */}
-            <Section title="Data Orang Tua — Ibu">
-              <Grid>
-                <Field label="Nama"       value={data.profile.namaIbu} />
-                <Field label="NIK"        value={data.profile.nikIbu} />
-                <Field label="Pekerjaan"  value={data.profile.pekerjaanIbu} />
-                <Field label="Pendidikan"
-                  value={data.profile.pendidikanIbu ? PENDIDIKAN_LABEL[data.profile.pendidikanIbu] : undefined} />
-                <Field label="Penghasilan" value={data.profile.penghasilanIbu} />
-              </Grid>
-            </Section>
-
-            {/* Data Wali */}
-            {data.profile.namaWali && (
-              <Section title="Data Wali">
-                <Grid>
-                  <Field label="Nama"        value={data.profile.namaWali} />
-                  <Field label="Hubungan"    value={data.profile.hubunganWali} />
-                  <Field label="NIK"         value={data.profile.nikWali} />
-                  <Field label="No. Telp"    value={data.profile.noTelpWali} />
-                  <Field label="Pekerjaan"   value={data.profile.pekerjaanWali} />
-                  <Field label="Pendidikan"
-                    value={data.profile.pendidikanWali ? PENDIDIKAN_LABEL[data.profile.pendidikanWali] : undefined} />
-                  <Field label="Penghasilan" value={data.profile.penghasilanWali} />
+                  <Field label="Nama Sekolah Asal" value={p.namaSekolahAsal} />
+                  <Field label="NPSN"              value={p.npsnSekolahAsal} />
+                  <Field label="Status Sekolah"
+                    value={p.statusSekolahAsal ? STATUS_SEKOLAH_LABEL[p.statusSekolahAsal] : undefined} />
+                  <Field label="Alamat Sekolah Asal" value={p.alamatSekolahAsal} />
                 </Grid>
               </Section>
             )}
 
-            {/* Dokumen */}
-            {(data.profile.aktaKey || data.profile.kkKey || data.profile.kipKey) && (
+            {/* ── Data Keluarga — hanya siswa ── */}
+            {isSiswa && (
+              <Section title="Data Keluarga">
+                <Grid>
+                  <Field label="Anak Ke-"        value={p.anakKe?.toString()} />
+                  <Field label="Jml Saudara"      value={p.jumlahSaudaraKandung?.toString()} />
+                  <Field label="Status Anak"
+                    value={p.statusAnak ? STATUS_ANAK_LABEL[p.statusAnak] : undefined} />
+                  <Field label="Status Orang Tua"
+                    value={p.statusOrtuKandung ? STATUS_ORTU_LABEL[p.statusOrtuKandung] : undefined} />
+                  <Field label="Jenis Tinggal"
+                    value={p.jenisTinggal ? TINGGAL_LABEL[p.jenisTinggal] : undefined} />
+                  <Field label="Transportasi"
+                    value={p.alatTransportasi ? TRANSPORTASI_LABEL[p.alatTransportasi] : undefined} />
+                  <Field label="Jarak ke Sekolah"
+                    value={p.jarakKeSekolah ? `${p.jarakKeSekolah} km` : undefined} />
+                </Grid>
+              </Section>
+            )}
+
+            {/* ── Kontak ── */}
+            <Section title="Kontak">
+              <Grid>
+                <Field label="No. HP"     value={p.noTelepon} />
+                <Field label="WhatsApp"   value={p.noWa} />
+                <Field label="Telp Rumah" value={p.noTelpRumah} />
+              </Grid>
+            </Section>
+
+            {/* ── Alamat ── */}
+            <Section title="Alamat">
+              <div className="space-y-2">
+                {p.alamat && (
+                  <p className="text-sm text-gray-700 dark:text-gray-300">{p.alamat}</p>
+                )}
+                <Grid>
+                  <Field label="Kelurahan" value={p.kelurahan} />
+                  <Field label="Kecamatan" value={p.kecamatan} />
+                  <Field label="Kabupaten" value={p.kabupaten} />
+                  <Field label="Provinsi"  value={p.provinsi} />
+                  <Field label="Kode Pos"  value={p.kodePos} />
+                </Grid>
+              </div>
+            </Section>
+
+            {/* ── Bantuan Sosial — hanya siswa ── */}
+            {isSiswa && (
+              <Section title="Bantuan Sosial (KIP/PKH)">
+                <Grid>
+                  <Field label="Penerima KIP" value={p.penerimaKIP ? 'Ya' : 'Tidak'} />
+                  {p.penerimaKIP && <Field label="Nomor KIP" value={p.nomorKIP} />}
+                </Grid>
+              </Section>
+            )}
+
+            {/* ── Data Pribadi Siswa — hanya siswa ── */}
+            {isSiswa && (
+              <Section title="Data Pribadi Siswa">
+                <Grid>
+                  <Field label="Cita-cita"        value={p.citaCita} />
+                  <Field label="Hobi"             value={p.hobi} />
+                  <Field label="Riwayat Penyakit" value={p.riwayatPenyakit} />
+                  <Field label="Kebutuhan Khusus" value={p.kebutuhanKhusus} />
+                  <Field label="Ukuran Baju"      value={p.ukuranBaju} />
+                </Grid>
+              </Section>
+            )}
+
+            {/* ── Data Fisik ── */}
+            <Section title="Data Fisik">
+              <Grid>
+                <Field label="Gol. Darah"
+                  value={p.bloodType ? BLOOD_DISPLAY[p.bloodType] : undefined} />
+                <Field label="Tinggi" value={p.tinggi ? `${p.tinggi} cm` : undefined} />
+                <Field label="Berat"  value={p.berat  ? `${p.berat} kg`  : undefined} />
+              </Grid>
+            </Section>
+
+            {/* ── Data Ayah — hanya siswa ── */}
+            {isSiswa && (
+              <Section title="Data Orang Tua — Ayah">
+                <Grid>
+                  <Field label="Nama"      value={p.namaAyah} />
+                  <Field label="NIK"       value={p.nikAyah} />
+                  <Field label="Status"
+                    value={p.statusAyah ? STATUS_ORTU_KANDUNG_LABEL[p.statusAyah] : undefined} />
+                  <Field label="No. Telp"  value={p.noTelpAyah} />
+                  <Field label="Pekerjaan" value={p.pekerjaanAyah} />
+                  <Field label="Pendidikan"
+                    value={p.pendidikanAyah ? PENDIDIKAN_LABEL[p.pendidikanAyah] : undefined} />
+                  <Field label="Penghasilan" value={p.penghasilanAyah} />
+                </Grid>
+              </Section>
+            )}
+
+            {/* ── Data Ibu — hanya siswa ── */}
+            {isSiswa && (
+              <Section title="Data Orang Tua — Ibu">
+                <Grid>
+                  <Field label="Nama"      value={p.namaIbu} />
+                  <Field label="NIK"       value={p.nikIbu} />
+                  <Field label="Status"
+                    value={p.statusIbu ? STATUS_ORTU_KANDUNG_LABEL[p.statusIbu] : undefined} />
+                  <Field label="No. Telp"  value={p.noTelpIbu} />
+                  <Field label="Pekerjaan" value={p.pekerjaanIbu} />
+                  <Field label="Pendidikan"
+                    value={p.pendidikanIbu ? PENDIDIKAN_LABEL[p.pendidikanIbu] : undefined} />
+                  <Field label="Penghasilan" value={p.penghasilanIbu} />
+                </Grid>
+              </Section>
+            )}
+
+            {/* ── Data Wali — hanya siswa, jika ada ── */}
+            {isSiswa && p.namaWali && (
+              <Section title="Data Wali">
+                <Grid>
+                  <Field label="Nama"        value={p.namaWali} />
+                  <Field label="Hubungan"    value={p.hubunganWali} />
+                  <Field label="NIK"         value={p.nikWali} />
+                  <Field label="No. Telp"    value={p.noTelpWali} />
+                  <Field label="Pekerjaan"   value={p.pekerjaanWali} />
+                  <Field label="Pendidikan"
+                    value={p.pendidikanWali ? PENDIDIKAN_LABEL[p.pendidikanWali] : undefined} />
+                  <Field label="Penghasilan" value={p.penghasilanWali} />
+                </Grid>
+              </Section>
+            )}
+
+            {/* ── Dokumen — hanya siswa ── */}
+            {isSiswa && docs.length > 0 && (
               <Section title="Dokumen">
                 <div className="space-y-2">
-                  {data.profile.aktaKey && (
+                  {docs.map((doc) => (
                     <DocItem
-                      label="Akta Kelahiran"
-                      docKey={data.profile.aktaKey}
-                      onPreview={() => setPreview({ key: data.profile.aktaKey!, label: 'Akta Kelahiran' })}
+                      key={doc.key!}
+                      label={doc.label}
+                      docKey={doc.key!}
+                      onPreview={() => setPreview({ key: doc.key!, label: doc.label })}
                     />
-                  )}
-                  {data.profile.kkKey && (
-                    <DocItem
-                      label="Kartu Keluarga"
-                      docKey={data.profile.kkKey}
-                      onPreview={() => setPreview({ key: data.profile.kkKey!, label: 'Kartu Keluarga' })}
-                    />
-                  )}
-                  {data.profile.kipKey && (
-                    <DocItem
-                      label="KIP / PKH"
-                      docKey={data.profile.kipKey}
-                      onPreview={() => setPreview({ key: data.profile.kipKey!, label: 'KIP / PKH' })}
-                    />
-                  )}
+                  ))}
                 </div>
               </Section>
             )}
@@ -275,7 +364,7 @@ export function UserDetailPanel({ user, onClose, onEdit }: UserDetailPanelProps)
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-3">
-      <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 border-t border-gray-200 dark:border-gray-400/40 pt-3">
+      <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 border-t border-gray-200 dark:border-gray-800 pt-3">
         {title}
       </p>
       {children}
@@ -305,7 +394,7 @@ function DocItem({ label, docKey, onPreview }: {
   onPreview: () => void
 }) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800 px-4 py-2.5">
+    <div className="flex items-center justify-between rounded-lg bg-gray-50 dark:bg-gray-800/60 px-4 py-2.5">
       <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
       <button
         type="button"

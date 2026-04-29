@@ -6,12 +6,13 @@ import {
 import {
   X, ChevronLeft, ChevronRight, CheckCircle2, Circle,
   AlertTriangle, Clock, Award, Eye, Send, BookOpen,
-  SkipForward, RotateCcw, Maximize2, Minimize2, LayoutGrid,
+  SkipForward, RotateCcw, Maximize2, Minimize2, LayoutGrid, XCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui'
 import { Spinner } from '@/components/ui/Spinner'
 import { useSubmitTugas, useMySubmission } from '@/hooks/tugas/useTugas'
+import { PrivateImage } from '@/components/ui/PrivateImage'
 import { toast } from 'sonner'
 import type { TugasItem, SoalKuis, OpsiKuis } from '@/types/tugas.types'
 import { TipeSoalKuis, BentukTugas } from '@/types/tugas.types'
@@ -399,7 +400,10 @@ export function QuizModal({ tugas, tugasId, onClose }: Props) {
   // PHASE: DONE
   // ═══════════════════════════════════════════════════════════════════
   if (phase === 'DONE') {
-    const isAllMC = tugas.bentuk === BentukTugas.QUIZ_MULTIPLE_CHOICE
+    const isAllMC         = tugas.bentuk === BentukTugas.QUIZ_MULTIPLE_CHOICE
+    const bolehLihatNilai = settings.showNilaiSetelahSubmit !== false  // default true
+    const bolehLihatJawaban = (settings.showJawabanBenar ?? 'LANGSUNG') === 'LANGSUNG'
+
     return (
       <QuizOverlay ref={containerRef}>
         <div className="flex flex-col items-center justify-center h-full px-4">
@@ -409,15 +413,56 @@ export function QuizModal({ tugas, tugasId, onClose }: Props) {
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Kuis Dikumpulkan!</h2>
-              {isAllMC && settings.isAutograde !== false && (
+
+              {/* Nilai — tampil hanya jika diizinkan */}
+              {bolehLihatNilai && isAllMC && settings.isAutograde !== false && (
                 <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400 mt-3">
                   {liveScore.nilai}
                   <span className="text-sm font-normal text-gray-400 ml-1">/ {tugas.bobot}</span>
                 </p>
               )}
+              {!bolehLihatNilai && (
+                <p className="text-sm text-gray-500 mt-2">
+                  Nilai akan diumumkan oleh guru.
+                </p>
+              )}
+
               {hasEssay && (
                 <p className="text-sm text-gray-500 mt-2">
                   Soal essay akan dinilai oleh guru.
+                </p>
+              )}
+
+              {/* Jawaban benar — tampil hanya jika LANGSUNG */}
+              {bolehLihatJawaban && isAllMC && settings.isAutograde !== false && (
+                <div className="mt-4 text-left space-y-2 max-h-64 overflow-y-auto">
+                  {shuffledSoal.filter(s => s.tipe === TipeSoalKuis.MULTIPLE_CHOICE).map((soal, idx) => {
+                    const selId  = answers[soal.id]
+                    const opsiList = shuffledOpsiMap[soal.id] ?? soal.opsi ?? []
+                    const selOpsi  = opsiList.find(o => o.id === selId)
+                    const benar    = selOpsi?.isCorrect === true
+                    return (
+                      <div key={soal.id} className={cn(
+                        'flex items-start gap-2 px-3 py-2 rounded-lg text-xs',
+                        benar
+                          ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'
+                          : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400',
+                      )}>
+                        {benar
+                          ? <CheckCircle2 size={12} className="shrink-0 mt-0.5" />
+                          : <XCircle      size={12} className="shrink-0 mt-0.5" />}
+                        <span className="font-semibold shrink-0">{idx + 1}.</span>
+                        <span className="truncate">{selOpsi?.teks ?? 'Tidak dijawab'}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+              {!bolehLihatJawaban && (
+                <p className="text-xs text-gray-400 mt-2">
+                  {(settings.showJawabanBenar ?? 'LANGSUNG') === 'SETELAH_DINILAI'
+                    ? 'Kunci jawaban akan tersedia setelah guru menilai.'
+                    : 'Kunci jawaban tidak ditampilkan.'}
                 </p>
               )}
             </div>
@@ -671,10 +716,10 @@ export function QuizModal({ tugas, tugasId, onClose }: Props) {
                   </div>
                 </div>
                 {currentSoal.gambarUrl && (
-                  <img
-                    src={currentSoal.gambarUrl}
+                  <PrivateImage
+                    fileKey={currentSoal.gambarUrl}
                     alt="Gambar soal"
-                    className="max-h-48 rounded-xl object-contain border border-gray-200 dark:border-gray-700 mx-auto"
+                    skeletonHeight={160}
                   />
                 )}
               </div>
@@ -713,10 +758,10 @@ export function QuizModal({ tugas, tugasId, onClose }: Props) {
                             {opsi.teks}
                           </p>
                           {opsi.gambarUrl && (
-                            <img
-                              src={opsi.gambarUrl}
+                            <PrivateImage
+                              fileKey={opsi.gambarUrl}
                               alt={`Opsi ${label}`}
-                              className="mt-2 max-h-24 rounded-lg object-contain border border-gray-200 dark:border-gray-700"
+                              skeletonHeight={80}
                             />
                           )}
                         </div>

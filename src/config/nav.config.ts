@@ -154,7 +154,7 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     label: 'Laporan & CMS',
-    roles: ['ADMIN', 'SUPER_ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA'],
+    roles: ['ADMIN', 'SUPER_ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU'],
     items: [
       {
         label: 'Report & EIS',
@@ -166,7 +166,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Homepage CMS',
         href: '/dashboard/homepage',
         icon: Home,
-        roles: ['ADMIN', 'SUPER_ADMIN'],
+        roles: ['ADMIN', 'SUPER_ADMIN', 'STAFF_TU', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA'],
       },
       {
         label: 'Pengumuman',

@@ -6,6 +6,7 @@ import {
   ChevronDown, ChevronUp, Loader2, MessageSquare,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
+import { getPublicFileUrl } from '@/lib/constants'
 import {
   DiskusiItem, BalasanItem,
 } from '@/lib/api/diskusi.api'
@@ -56,8 +57,9 @@ function fmtDate(iso: string) {
 // ─── sub-components ──────────────────────────────────────────────────────────
 
 function Avatar({ name, foto }: { name: string; foto?: string | null }) {
-  if (foto) {
-    return <img src={foto} alt={name} className="w-8 h-8 rounded-full object-cover shrink-0" />
+  const fotoUrl = foto ? getPublicFileUrl(foto) : null
+  if (fotoUrl) {
+    return <img src={fotoUrl} alt={name} className="w-8 h-8 rounded-full object-cover shrink-0" />
   }
   const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   return (

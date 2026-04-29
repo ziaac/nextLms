@@ -43,8 +43,8 @@ interface Props {
 
 function ErrorBox({ message }: { message: string }) {
   return (
-    <div className="rounded-lg bg-red-50 border border-red-200/70 px-4 py-3">
-      <p className="text-sm text-red-600">{message}</p>
+    <div className="rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200/70 dark:border-red-800/50 px-4 py-3">
+      <p className="text-sm text-red-600 dark:text-red-400">{message}</p>
     </div>
   )
 }
@@ -320,7 +320,7 @@ export function MapelFormModal({
                 placeholder="16"
                 error={errors.targetPertemuan?.message}
               />
-              <p className="text-[10px] text-gray-400">Default: 16 pertemuan</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500">Default: 16 pertemuan</p>
             </div>
           </div>
 

@@ -1,5 +1,7 @@
 import { type ClassValue, clsx } from 'clsx'
 
+const DISPLAY_TZ = process.env.NEXT_PUBLIC_TIMEZONE ?? 'Asia/Makassar'
+
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs)
 }
@@ -49,7 +51,7 @@ export function formatDate(isoString: string | null | undefined): string {
     day:      'numeric',
     month:    'short',
     year:     'numeric',
-    timeZone: 'Asia/Makassar',
+    timeZone: DISPLAY_TZ,
   })
 }
 

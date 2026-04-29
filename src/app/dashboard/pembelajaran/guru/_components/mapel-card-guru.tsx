@@ -46,7 +46,7 @@ function StatMini({
         <Icon className="w-3.5 h-3.5" />
       </div>
       <div className="min-w-0">
-        <p className="text-[10px] text-gray-400">{label}</p>
+        <p className="text-[10px] text-gray-400 dark:text-gray-500">{label}</p>
         <p className="text-sm font-bold text-gray-800 dark:text-gray-100 tabular-nums">{value}</p>
       </div>
     </div>
@@ -68,7 +68,7 @@ export function MapelCardGuru({ mapel, tahunAjaranId, semesterId, onKlik }: Prop
   })
 
   const { data: todo } = useQuery({
-    queryKey: ['guru-todo-card', mapel.id],
+    queryKey: ['guru-todo', mapel.id],
     queryFn:  () => reportApi.getGuruTodo({ mataPelajaranId: mapel.id }),
     staleTime: 1000 * 60 * 2,
   })
@@ -116,11 +116,11 @@ export function MapelCardGuru({ mapel, tahunAjaranId, semesterId, onKlik }: Prop
               title={adaTodo ? `${totalTodo} item perlu perhatian` : 'Semua beres'}
               className={[
                 'w-2 h-2 rounded-full shrink-0 mt-0.5',
-                adaTodo ? 'bg-red-500' : 'bg-emerald-400',
+                adaTodo ? 'bg-red-500' : 'bg-emerald-400 dark:bg-emerald-500',
               ].join(' ')}
             />
           </div>
-          <p className="text-xs text-gray-400 mt-0.5">{kodeMapel} · {namaKelas}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{kodeMapel} · {namaKelas}</p>
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
           <Badge variant={mapel.isActive ? 'success' : 'default'}>
@@ -132,11 +132,11 @@ export function MapelCardGuru({ mapel, tahunAjaranId, semesterId, onKlik }: Prop
 
       {/* Jadwal */}
       <div className="flex items-center gap-1.5 text-xs min-w-0">
-        <Clock className="w-3.5 h-3.5 shrink-0 text-gray-400" />
+        <Clock className="w-3.5 h-3.5 shrink-0 text-gray-400 dark:text-gray-500" />
         {jadwalText ? (
           <span className="text-gray-600 dark:text-gray-300 truncate">{jadwalText}</span>
         ) : (
-          <span className="text-amber-500 italic">Jadwal belum ditentukan</span>
+          <span className="text-amber-500 dark:text-amber-400 italic">Jadwal belum ditentukan</span>
         )}
       </div>
 

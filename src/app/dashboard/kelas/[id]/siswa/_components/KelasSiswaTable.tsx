@@ -77,7 +77,7 @@ export function KelasSiswaTable({
       {/* Desktop */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider border-b border-gray-100 dark:border-gray-800">
+          <thead className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wider border-b border-gray-200 dark:border-gray-800">
             <tr>
               <th className="pb-3 text-center w-20 font-medium">No. Absen</th>
               <th className="pb-3 text-left font-medium">Nama Lengkap</th>
@@ -88,7 +88,7 @@ export function KelasSiswaTable({
               <th className="pb-3 text-center font-medium">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50 dark:divide-gray-800/60">
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
             {sorted.map((ks) => {
               const cfg       = statusConfig[ks.status]
               const isEditing = editAbsenId === ks.id
@@ -168,8 +168,8 @@ export function KelasSiswaTable({
                         className={[
                           'text-xs px-2 py-1 rounded-lg border transition-colors',
                           ks.statusAkhirTahun
-                            ? 'border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'
-                            : 'border-gray-200 dark:border-gray-700 text-gray-400 hover:border-emerald-200 hover:text-emerald-600',
+                            ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'
+                            : 'border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 hover:border-emerald-200 dark:hover:border-emerald-700 hover:text-emerald-600 dark:hover:text-emerald-400',
                         ].join(' ')}
                       >
                         {ks.statusAkhirTahun
@@ -218,7 +218,7 @@ export function KelasSiswaTable({
               onClick={() => onRowClick(ks)}
               className={[
                 'rounded-lg border p-4 cursor-pointer transition-colors bg-white dark:bg-gray-900',
-                activeId === ks.id ? 'border-emerald-500' : 'border-gray-200 dark:border-gray-700',
+                activeId === ks.id ? 'border-emerald-500 dark:border-emerald-600' : 'border-gray-200 dark:border-gray-800',
               ].join(' ')}
             >
               <div className="flex items-start justify-between gap-2">
@@ -292,7 +292,7 @@ function KelasSiswaTableSkeleton() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="flex gap-4 items-center py-2 border-b border-gray-50 dark:border-gray-800/60">
+        <div key={i} className="flex gap-4 items-center py-2 border-b border-gray-200 dark:border-gray-800">
           <Skeleton className="h-4 w-8" />
           <Skeleton className="h-4 w-40" />
           <Skeleton className="h-4 w-24" />

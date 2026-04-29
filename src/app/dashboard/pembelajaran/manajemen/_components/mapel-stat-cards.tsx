@@ -38,18 +38,32 @@ function StatCard({
   loading: boolean
 }) {
   const colorMap = {
-    gray:    'bg-gray-50 border-gray-200',
-    emerald: 'bg-emerald-50 border-emerald-200',
-    blue:    'bg-blue-50 border-blue-200',
-    amber:   'bg-amber-50 border-amber-200',
-    purple:  'bg-purple-50 border-purple-200',
+    gray:    'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800',
+    emerald: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800',
+    blue:    'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
+    amber:   'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800',
+    purple:  'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800',
   }
   const iconColorMap = {
-    gray:    'text-gray-400',
-    emerald: 'text-emerald-500',
-    blue:    'text-blue-500',
-    amber:   'text-amber-500',
-    purple:  'text-purple-500',
+    gray:    'text-gray-400 dark:text-gray-500',
+    emerald: 'text-emerald-500 dark:text-emerald-400',
+    blue:    'text-blue-500 dark:text-blue-400',
+    amber:   'text-amber-500 dark:text-amber-400',
+    purple:  'text-purple-500 dark:text-purple-400',
+  }
+  const textColorMap = {
+    gray:    'text-gray-800 dark:text-gray-200',
+    emerald: 'text-emerald-800 dark:text-emerald-300',
+    blue:    'text-blue-800 dark:text-blue-300',
+    amber:   'text-amber-800 dark:text-amber-300',
+    purple:  'text-purple-800 dark:text-purple-300',
+  }
+  const labelColorMap = {
+    gray:    'text-gray-500 dark:text-gray-400',
+    emerald: 'text-emerald-600 dark:text-emerald-400',
+    blue:    'text-blue-600 dark:text-blue-400',
+    amber:   'text-amber-600 dark:text-amber-400',
+    purple:  'text-purple-600 dark:text-purple-400',
   }
 
   return (
@@ -58,13 +72,13 @@ function StatCard({
         <Icon className={`w-5 h-5 ${iconColorMap[color]}`} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-xs text-gray-500 truncate">{label}</p>
+        <p className={`text-xs ${labelColorMap[color]} truncate`}>{label}</p>
         {loading ? (
           <Skeleton className="h-6 w-16 rounded mt-0.5" />
         ) : (
-          <p className="text-xl font-bold text-gray-800">{value}</p>
+          <p className={`text-xl font-bold ${textColorMap[color]}`}>{value}</p>
         )}
-        {sub && <p className="text-[10px] text-gray-400 mt-0.5 truncate">{sub}</p>}
+        {sub && <p className={`text-[10px] ${labelColorMap[color]} mt-0.5 truncate opacity-70`}>{sub}</p>}
       </div>
     </div>
   )

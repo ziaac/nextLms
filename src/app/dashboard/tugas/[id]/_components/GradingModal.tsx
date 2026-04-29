@@ -1,26 +1,44 @@
 'use client'
 
-import { useState, useEffect }     from 'react'
+import { useState, useEffect } from 'react'
 import {
   Download, FileText, MessageSquare,
-  CheckCircle2, RefreshCw, Award, AlertTriangle, User,
-  ChevronLeft, ChevronRight, Edit2, ClipboardList, Eye, Star, RotateCcw, Loader2,
+  CheckCircle2, Award, AlertTriangle,
+  ChevronLeft, ChevronRight,
+  RotateCcw, Loader2, Star,
 } from 'lucide-react'
-import { cn }                       from '@/lib/utils'
-import { Modal }                   from '@/components/ui/Modal'
-import { Button }                  from '@/components/ui'
-import { Spinner }                 from '@/components/ui/Spinner'
-import { Badge }                   from '@/components/ui/Badge'
-import { useSubmissionDetail, useUpdateSubmissionStatus, useNilaiManual, useKembalikanPengumpulan } from '@/hooks/tugas/useTugas'
-import { getPresignedUrl }         from '@/lib/api/upload.api'
-import { toast }                   from 'sonner'
-import { format }                  from 'date-fns'
-import { id as localeId }          from 'date-fns/locale'
-import { StatusPengumpulan, BentukTugas, TipeSoalKuis, TujuanTugas } from '@/types/tugas.types'
-import type { TugasItem }          from '@/types/tugas.types'
-import { WorksheetGradingView }    from '@/components/worksheet/WorksheetGradingView'
+import { Modal }    from '@/components/ui/Modal'
+import { Button }   from '@/components/ui'
+import { Spinner }  from '@/components/ui/Spinner'
+import { Badge }    from '@/components/ui/Badge'
+import {
+  useSubmissionDetail,
+  useUpdateSubmissionStatus,
+  useNilaiManual,
+  useKembalikanPengumpulan,
+} from '@/hooks/tugas/useTugas'
+import { getPresignedUrl }      from '@/lib/api/upload.api'
+import { toast }                from 'sonner'
+import { format }               from 'date-fns'
+import { id as localeId }       from 'date-fns/locale'
+import {
+  StatusPengumpulan,
+  BentukTugas,
+  TujuanTugas,
+} from '@/types/tugas.types'
+import type { TugasItem }       from '@/types/tugas.types'
+import { WorksheetGradingView } from '@/components/worksheet/WorksheetGradingView'
+import { QuizGradingView, getQuizAutoData } from '@/components/quiz/QuizGradingView'
+import { cn }                   from '@/lib/utils'
 
-// ── File Viewer ───────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────
+export interface StudentNavItem {
+  pengumpulanId?: string
+  siswaId:        string
+  namaLengkap:    string
+}
+
+// ── File list ─────────────────────────────────────────────────────────
 function FileList({ fileKeys }: { fileKeys: string[] }) {
   const [loadingKey, setLoadingKey] = useState<string | null>(null)
 
@@ -50,7 +68,9 @@ function FileList({ fileKeys }: { fileKeys: string[] }) {
             disabled={loadingKey === key}
             className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200 dark:hover:border-blue-800 transition-colors group text-left"
           >
-            {loadingKey === key ? <Spinner /> : <Download size={14} className="text-gray-400 group-hover:text-blue-500 shrink-0" />}
+            {loadingKey === key
+              ? <Loader2 size={14} className="animate-spin text-gray-400 shrink-0" />
+              : <Download size={14} className="text-gray-400 group-hover:text-blue-500 shrink-0" />}
             <FileText size={13} className="text-gray-400 shrink-0" />
             <span className="text-xs text-gray-700 dark:text-gray-300 truncate flex-1">{name}</span>
           </button>
@@ -60,7 +80,7 @@ function FileList({ fileKeys }: { fileKeys: string[] }) {
   )
 }
 
-// ── Status Badge ─────────────────────────────────────────────────────
+// ── Status badge ──────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: StatusPengumpulan }) {
   const map: Record<StatusPengumpulan, { label: string; variant: 'success' | 'warning' | 'info' | 'default' }> = {
     DRAFT:     { label: 'Draft',              variant: 'default' },
@@ -72,100 +92,132 @@ function StatusBadge({ status }: { status: StatusPengumpulan }) {
   return <Badge variant={variant}>{label}</Badge>
 }
 
-// ── Grading Form ──────────────────────────────────────────────────────
-interface GradingFormProps {
-  pengumpulanId:  string
+// ── Panel Penilaian ───────────────────────────────────────────────────
+interface PenilaianPanelProps {
+  /** null = belum submit (manual only) */
+  pengumpulanId:  string | null
+  siswaId:        string
+  tugasId:        string
   bobot:          number
-  initialNilai?:  number | null
-  initialCatatan?: string
-  /** Kuis tidak mendukung REVISI — sembunyikan tab Minta Revisi */
-  isQuiz?:        boolean
-  onDone: () => void
+  isQuiz:         boolean
+  isBelumSubmit:  boolean
+  /** Nilai autograding dari WorksheetGradingView (undefined = bukan worksheet/autograding) */
+  autoNilai?:     number | null
+  autoTotal?:     number
+  /** Nilai & catatan yang sudah tersimpan */
+  savedNilai?:    number | null
+  savedCatatan?:  string
+  tujuan:         TujuanTugas
+  status?:        StatusPengumpulan
+  onDone:         () => void
 }
 
-function GradingForm({ pengumpulanId, bobot, initialNilai, initialCatatan, isQuiz, onDone }: GradingFormProps) {
-  const [nilai,   setNilai]   = useState(initialNilai != null ? String(initialNilai) : '')
-  const [catatan, setCatatan] = useState(initialCatatan ?? '')
-  const [action,  setAction]  = useState<StatusPengumpulan>(StatusPengumpulan.DINILAI)
+function PenilaianPanel({
+  pengumpulanId, siswaId, tugasId, bobot, isQuiz,
+  isBelumSubmit, autoNilai, autoTotal,
+  savedNilai, savedCatatan, tujuan, status, onDone,
+}: PenilaianPanelProps) {
+  const [nilai,          setNilai]          = useState(savedNilai != null ? String(savedNilai) : '')
+  const [catatan,        setCatatan]        = useState(savedCatatan ?? '')
+  const [showKembalikan, setShowKembalikan] = useState(false)
+  const [kembalikanNote, setKembalikanNote] = useState('')
 
-  // Reset saat pengumpulanId berubah (navigasi antar siswa)
   useEffect(() => {
-    setNilai(initialNilai != null ? String(initialNilai) : '')
-    setCatatan(initialCatatan ?? '')
-    setAction(StatusPengumpulan.DINILAI)
-  }, [pengumpulanId, initialNilai, initialCatatan])
+    setNilai(savedNilai != null ? String(savedNilai) : '')
+    setCatatan(savedCatatan ?? '')
+    setShowKembalikan(false)
+    setKembalikanNote('')
+  }, [pengumpulanId, siswaId, savedNilai, savedCatatan])
 
-  const updateMutation = useUpdateSubmissionStatus()
+  const updateMut     = useUpdateSubmissionStatus()
+  const nilaiManualMut = useNilaiManual()
+  const kembalikanMut = useKembalikanPengumpulan()
 
-  const handleSubmit = async () => {
-    // Validasi nilai
-    if (action === StatusPengumpulan.DINILAI) {
-      if (!nilai.trim()) { toast.error('Masukkan nilai terlebih dahulu.'); return }
-      const num = Number(nilai)
-      if (isNaN(num) || num < 0 || num > bobot) {
-        toast.error(`Nilai harus antara 0 dan ${bobot}.`)
-        return
-      }
-    }
-    // Validasi catatan wajib untuk REVISI
-    if (action === StatusPengumpulan.REVISI && !catatan.trim()) {
-      toast.error('Catatan wajib diisi agar siswa tahu apa yang harus direvisi.')
+  const isPending = updateMut.isPending || nilaiManualMut.isPending
+  const hasAutoGrading = autoTotal != null && autoTotal > 0
+
+  const canKembalikan = !!pengumpulanId &&
+    status === StatusPengumpulan.SUBMITTED &&
+    tujuan !== TujuanTugas.UTS &&
+    tujuan !== TujuanTugas.UAS &&
+    !isQuiz
+
+  const handleSimpan = async () => {
+    const num = Number(nilai)
+    if (!nilai.trim() || isNaN(num) || num < 0 || num > bobot) {
+      toast.error(`Nilai harus antara 0 dan ${bobot}.`)
       return
     }
-
     try {
-      await updateMutation.mutateAsync({
-        id:      pengumpulanId,
-        payload: {
-          status:  action,
-          catatan: catatan.trim() || undefined,
-          ...(action === StatusPengumpulan.DINILAI ? { nilai: Number(nilai) } : {}),
-        },
-      })
-      toast.success(action === StatusPengumpulan.DINILAI ? 'Nilai berhasil disimpan!' : 'Revisi berhasil dikirim ke siswa.')
+      if (isBelumSubmit) {
+        await nilaiManualMut.mutateAsync({
+          tugasId,
+          payload: { siswaId, nilai: num, catatan: catatan.trim() || undefined },
+        })
+      } else {
+        await updateMut.mutateAsync({
+          id:      pengumpulanId!,
+          payload: { status: StatusPengumpulan.DINILAI, nilai: num, catatan: catatan.trim() || undefined },
+        })
+      }
+      toast.success('Nilai berhasil disimpan!')
       onDone()
     } catch {
-      toast.error('Gagal menyimpan penilaian.')
+      toast.error('Gagal menyimpan nilai.')
+    }
+  }
+
+  const handleKembalikan = async () => {
+    if (!pengumpulanId) return
+    try {
+      await kembalikanMut.mutateAsync(pengumpulanId)
+      toast.success('Dikembalikan ke siswa untuk diperbaiki.')
+      setShowKembalikan(false)
+      onDone()
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? 'Gagal mengembalikan.')
     }
   }
 
   return (
     <div className="space-y-4">
-      {/* Pilih aksi — REVISI disembunyikan untuk kuis */}
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => setAction(StatusPengumpulan.DINILAI)}
-          className={[
-            'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border transition-colors',
-            action === StatusPengumpulan.DINILAI
-              ? 'bg-emerald-50 border-emerald-400 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-600 dark:text-emerald-300'
-              : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-emerald-300 hover:text-emerald-600',
-          ].join(' ')}
-        >
-          <CheckCircle2 size={15} /> Beri Nilai
-        </button>
-        {!isQuiz && (
-          <button
-            type="button"
-            onClick={() => setAction(StatusPengumpulan.REVISI)}
-            className={[
-              'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border transition-colors',
-              action === StatusPengumpulan.REVISI
-                ? 'bg-amber-50 border-amber-400 text-amber-700 dark:bg-amber-900/20 dark:border-amber-600 dark:text-amber-300'
-                : 'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-amber-300 hover:text-amber-600',
-            ].join(' ')}
-          >
-            <RefreshCw size={15} /> Minta Revisi
-          </button>
-        )}
-      </div>
 
-      {/* Input nilai */}
-      {action === StatusPengumpulan.DINILAI && (
+      {/* Banner belum submit */}
+      {isBelumSubmit && (
+        <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30">
+          <AlertTriangle size={14} className="text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Belum mengumpulkan</p>
+            <p className="text-[11px] text-amber-600/80 dark:text-amber-500 mt-0.5">Nilai disimpan sebagai input manual guru.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Grid nilai: 2 kolom jika ada autograding, 1 kolom jika tidak */}
+      <div className={cn(
+        'gap-3',
+        hasAutoGrading && !isBelumSubmit ? 'grid grid-cols-2' : 'flex flex-col',
+      )}>
+
+        {/* Kolom 1: Nilai Otomatis — hanya tampil jika ada autograding dan sudah submit */}
+        {hasAutoGrading && !isBelumSubmit && (
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+              <CheckCircle2 size={11} className="text-blue-500" />
+              Nilai Otomatis
+            </label>
+            <div className="w-full px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-2xl font-bold text-center select-none">
+              {autoNilai ?? '—'}
+            </div>
+            <p className="text-[10px] text-gray-400 text-center">readonly · dari sistem</p>
+          </div>
+        )}
+
+        {/* Kolom 2 (atau satu-satunya): Nilai Guru */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
-            <Award size={12} /> Nilai (maks. {bobot})
+          <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+            <Award size={11} className="text-emerald-500" />
+            {isBelumSubmit ? 'Nilai Manual' : hasAutoGrading ? 'Nilai Guru' : `Nilai (maks. ${bobot})`}
           </label>
           <input
             type="number"
@@ -174,255 +226,164 @@ function GradingForm({ pengumpulanId, bobot, initialNilai, initialCatatan, isQui
             value={nilai}
             onChange={(e) => setNilai(e.target.value)}
             placeholder={`0 – ${bobot}`}
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-2xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-2xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-emerald-400"
           />
+          {hasAutoGrading && !isBelumSubmit && (
+            <p className="text-[10px] text-gray-400 text-center">override autograding</p>
+          )}
         </div>
-      )}
+      </div>
 
-      {/* Catatan guru */}
+      {/* Catatan */}
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
-          <MessageSquare size={12} />
-          Catatan untuk Siswa
-          {action === StatusPengumpulan.REVISI && <span className="text-red-500 ml-0.5">*</span>}
+        <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+          <MessageSquare size={11} /> Catatan <span className="font-normal">(opsional)</span>
         </label>
         <textarea
           value={catatan}
           onChange={(e) => setCatatan(e.target.value)}
           rows={3}
-          placeholder={
-            action === StatusPengumpulan.REVISI
-              ? 'Jelaskan apa yang perlu direvisi... (wajib diisi)'
-              : 'Opsional: komentar untuk siswa'
-          }
+          placeholder="Komentar atau umpan balik untuk siswa..."
           className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
       </div>
 
-      <Button
-        className="w-full"
-        loading={updateMutation.isPending}
-        disabled={updateMutation.isPending}
-        onClick={() => { void handleSubmit() }}
-      >
-        {action === StatusPengumpulan.DINILAI ? 'Simpan Nilai' : 'Kirim ke Siswa'}
+      {/* Simpan */}
+      <Button className="w-full" loading={isPending} disabled={isPending} onClick={() => { void handleSimpan() }}>
+        Simpan Nilai
       </Button>
-    </div>
-  )
-}
 
-// ── Nilai sudah ada — tampilan read-only + tombol ubah ─────────────
-function NilaiReadOnly({
-  nilai, catatan, bobot, onEdit,
-}: { nilai: number; catatan?: string; bobot: number; onEdit: () => void }) {
-  return (
-    <div className="space-y-3">
-      <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800">
-        <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wide flex items-center gap-1.5 mb-1">
-          <Award size={12} /> Nilai Diberikan
-        </p>
-        <p className="text-4xl font-bold text-emerald-700 dark:text-emerald-300">{nilai}</p>
-        <p className="text-xs text-emerald-600/70 dark:text-emerald-500 mt-0.5">dari maks. {bobot} poin</p>
-      </div>
-      {catatan && (
-        <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-          <p className="text-xs font-semibold text-gray-500 mb-1.5">Catatan Guru</p>
-          <p className="text-sm text-gray-700 dark:text-gray-300 italic">{catatan}</p>
+      {/* Kembalikan untuk Direvisi */}
+      {canKembalikan && (
+        <div className="pt-1">
+          {!showKembalikan ? (
+            <button
+              type="button"
+              onClick={() => setShowKembalikan(true)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
+            >
+              <RotateCcw size={13} /> Kembalikan untuk Direvisi
+            </button>
+          ) : (
+            <div className="rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/10 p-3.5 space-y-3">
+              <p className="text-xs font-semibold text-orange-700 dark:text-orange-400 flex items-center gap-1.5">
+                <RotateCcw size={12} /> Kembalikan untuk Direvisi
+              </p>
+              <textarea
+                value={kembalikanNote}
+                onChange={(e) => setKembalikanNote(e.target.value)}
+                rows={2}
+                placeholder="Catatan untuk siswa (opsional)..."
+                className="w-full px-3 py-2 rounded-lg border border-orange-200 dark:border-orange-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-orange-400"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowKembalikan(false)}
+                  className="flex-1 py-2 rounded-lg text-xs font-medium text-gray-500 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  disabled={kembalikanMut.isPending}
+                  onClick={() => { void handleKembalikan() }}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold text-white bg-orange-500 hover:bg-orange-600 disabled:opacity-50 transition-colors"
+                >
+                  {kembalikanMut.isPending
+                    ? <><Loader2 size={11} className="animate-spin" /> Memproses…</>
+                    : <><RotateCcw size={11} /> Konfirmasi</>}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
-      <button
-        type="button"
-        onClick={onEdit}
-        className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium text-gray-500 border border-gray-200 dark:border-gray-700 hover:border-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-      >
-        <Edit2 size={12} /> Ubah Nilai
-      </button>
     </div>
   )
-}
-
-// ── Manual Grading Form (untuk siswa yang belum submit) ───────────────
-interface ManualGradingFormProps {
-  tugasId:    string
-  siswaId:    string
-  namaSiswa:  string
-  bobot:      number
-  onDone:     () => void
-}
-
-function ManualGradingForm({ tugasId, siswaId, namaSiswa, bobot, onDone }: ManualGradingFormProps) {
-  const [nilai,   setNilai]   = useState('')
-  const [catatan, setCatatan] = useState('')
-  const mutation = useNilaiManual()
-
-  const handleSubmit = async () => {
-    const num = Number(nilai)
-    if (!nilai.trim() || isNaN(num) || num < 0 || num > bobot) {
-      toast.error(`Masukkan nilai antara 0 dan ${bobot}.`)
-      return
-    }
-    try {
-      await mutation.mutateAsync({
-        tugasId,
-        payload: { siswaId, nilai: num, catatan: catatan.trim() || undefined },
-      })
-      toast.success('Nilai berhasil disimpan!')
-      onDone()
-    } catch {
-      toast.error('Gagal menyimpan nilai.')
-    }
-  }
-
-  return (
-    <div className="space-y-5 p-5">
-      {/* Info siswa */}
-      <div className="flex items-center gap-3 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30">
-        <AlertTriangle size={15} className="text-amber-600 shrink-0" />
-        <div>
-          <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">Siswa belum mengumpulkan</p>
-          <p className="text-xs text-amber-600 dark:text-amber-500 mt-0.5">
-            Nilai akan disimpan sebagai <em>dikumpulkan manual oleh guru</em>.
-          </p>
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
-          <Award size={12} /> Nilai untuk {namaSiswa} (maks. {bobot})
-        </label>
-        <input
-          type="number"
-          min={0}
-          max={bobot}
-          value={nilai}
-          onChange={(e) => setNilai(e.target.value)}
-          placeholder={`0 – ${bobot}`}
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-2xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-emerald-400"
-        />
-      </div>
-
-      <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
-          <MessageSquare size={12} /> Catatan (opsional)
-        </label>
-        <textarea
-          value={catatan}
-          onChange={(e) => setCatatan(e.target.value)}
-          rows={3}
-          placeholder="Keterangan tambahan untuk siswa..."
-          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-gray-900 dark:text-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-      </div>
-
-      <Button
-        className="w-full"
-        loading={mutation.isPending}
-        disabled={mutation.isPending}
-        onClick={() => { void handleSubmit() }}
-      >
-        Simpan Nilai Manual
-      </Button>
-    </div>
-  )
-}
-
-// ── Student nav item ──────────────────────────────────────────────────
-export interface StudentNavItem {
-  pengumpulanId?: string   // undefined = belum submit
-  siswaId:        string
-  namaLengkap:    string
 }
 
 // ── Main Modal ────────────────────────────────────────────────────────
 interface Props {
-  open:           boolean
-  pengumpulanId:  string | null
-  siswaId?:       string           // diisi jika siswa belum submit (untuk manual grading)
-  namaSiswa?:     string           // diisi bersamaan dengan siswaId
-  tugas:          TugasItem
-  students:       StudentNavItem[]
-  onNavigate:     (item: StudentNavItem) => void
-  onClose:        () => void
+  open:          boolean
+  pengumpulanId: string | null
+  siswaId?:      string
+  namaSiswa?:    string
+  tugas:         TugasItem
+  students:      StudentNavItem[]
+  onNavigate:    (item: StudentNavItem) => void
+  onClose:       () => void
 }
 
 export function GradingModal({
   open, pengumpulanId, siswaId, namaSiswa,
   tugas, students, onNavigate, onClose,
 }: Props) {
-  const [editMode,       setEditMode]       = useState(false)
-  const [kembalikanOpen, setKembalikanOpen] = useState(false)
-  // Tab khusus worksheet: 'kerja' = lihat hasil, 'nilai' = beri nilai
-  const [gradingTab,  setGradingTab]  = useState<'kerja' | 'nilai'>('kerja')
+  // Autograding data dari WorksheetGradingView
+  const [autoData, setAutoData] = useState<{
+    autoCorrect: number; autoTotal: number; hasManual: boolean; pengumpulanId?: string
+  } | null>(null)
 
-  // Reset saat buka modal atau navigasi
+  const { data: sub, isLoading } = useSubmissionDetail(
+    open && pengumpulanId ? pengumpulanId : null
+  )
+
+  // Reset autograding data saat navigasi
   useEffect(() => {
-    setEditMode(false)
-    setGradingTab('kerja')
-    setKembalikanOpen(false)
+    setAutoData(null)
   }, [pengumpulanId, siswaId, open])
 
-  // Guard: jangan fetch jika modal tertutup atau tidak ada id
-  const { data: sub, isLoading } = useSubmissionDetail(open && pengumpulanId ? pengumpulanId : null)
-  const kembalikanMutation = useKembalikanPengumpulan()
-
-  // Navigasi prev/next — berdasarkan siswaId
+  // Navigasi
   const currentSiswaId = siswaId ?? sub?.siswa?.id ?? null
-  const currentIdx = students.findIndex((s) => s.siswaId === currentSiswaId)
-  const hasPrev    = currentIdx > 0
-  const hasNext    = currentIdx < students.length - 1
-
+  const currentIdx     = students.findIndex((s) => s.siswaId === currentSiswaId)
+  const hasPrev        = currentIdx > 0
+  const hasNext        = currentIdx < students.length - 1
   const goPrev = () => { if (hasPrev) onNavigate(students[currentIdx - 1]) }
   const goNext = () => { if (hasNext) onNavigate(students[currentIdx + 1]) }
+  const goNextOrClose = () => { if (hasNext) onNavigate(students[currentIdx + 1]); else onClose() }
 
   // Derived
-  const siswa          = sub?.siswa
-  const namaSiswaFetch = siswa?.profile?.namaLengkap ?? namaSiswa ?? 'Siswa'
-  const nisnSiswa      = siswa?.profile?.nisn ?? ''
-  const fileKeys   = Array.isArray(sub?.fileUrls) ? (sub.fileUrls as string[]) : []
-  const hasFiles   = fileKeys.length > 0
-  const hasJawaban = !!sub?.jawaban
+  const belumSubmit  = !pengumpulanId && !!siswaId
+  const isWorksheet  = tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET
+  const isQuiz       = tugas.bentuk === BentukTugas.QUIZ_MULTIPLE_CHOICE ||
+                       tugas.bentuk === BentukTugas.QUIZ_MIX
+  const fileKeys     = Array.isArray(sub?.fileUrls) ? (sub.fileUrls as string[]) : []
+  const hasFiles     = fileKeys.length > 0
+  const hasJawaban   = !!sub?.jawaban
 
-  // Detect bentuk
-  const isWorksheet = tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET
-
-  // Detect quiz submission — jawaban is JSON map of soalId → opsiId
-  const isQuiz = tugas.bentuk === BentukTugas.QUIZ_MULTIPLE_CHOICE ||
-                 tugas.bentuk === BentukTugas.QUIZ_MIX
+  // Quiz answers — hanya untuk non-quiz bentuk (teks biasa)
   let quizAnswers: Record<string, string> = {}
   let isQuizJawaban = false
   if (isQuiz && sub?.jawaban) {
     try {
       const parsed = JSON.parse(sub.jawaban as string)
       if (typeof parsed === 'object' && !Array.isArray(parsed)) {
-        quizAnswers = parsed as Record<string, string>
+        quizAnswers   = parsed as Record<string, string>
         isQuizJawaban = true
       }
-    } catch { /* regular text answer */ }
+    } catch { /* teks biasa */ }
   }
 
-  const nilaiEntry = sub?.penilaian?.[0]
-  const nilaiSaved = nilaiEntry?.nilai ?? null
-  const showReadOnly = sub?.status === StatusPengumpulan.DINILAI && !editMode && nilaiSaved != null
+  // Hitung nilai autograding sebagai angka (skala bobot tugas)
+  const autoNilaiScaled = autoData && autoData.autoTotal > 0
+    ? Math.round((autoData.autoCorrect / autoData.autoTotal) * tugas.bobot)
+    : null
 
-  // Guru boleh kembalikan ke siswa jika: status SUBMITTED + bukan UTS/UAS + bukan kuis
-  // Kuis tidak punya mekanisme pengerjaan ulang, sehingga kembalikan tidak bermakna
-  const canKembalikan = sub?.status === StatusPengumpulan.SUBMITTED &&
-    tugas.tujuan !== TujuanTugas.UTS &&
-    tugas.tujuan !== TujuanTugas.UAS &&
-    !isQuiz
+  // Quiz autograding — dihitung langsung dari soalKuis + jawaban siswa
+  const quizAutoData = isQuiz && sub?.jawaban && tugas.soalKuis?.length
+    ? getQuizAutoData(tugas.soalKuis, sub.jawaban, tugas.bobot)
+    : null
 
-  const handleKembalikan = async () => {
-    if (!pengumpulanId) return
-    try {
-      await kembalikanMutation.mutateAsync(pengumpulanId)
-      toast.success('Pengumpulan dikembalikan ke siswa. Siswa dapat mengubah jawabannya.')
-      setKembalikanOpen(false)
-      if (hasNext) onNavigate(students[currentIdx + 1])
-      else onClose()
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? 'Gagal mengembalikan pengumpulan.')
-    }
-  }
+  // Nilai autograding final (worksheet atau quiz)
+  const finalAutoNilai  = isWorksheet ? autoNilaiScaled : (quizAutoData?.autoNilai ?? null)
+  const finalAutoTotal  = isWorksheet ? (autoData?.autoTotal ?? 0) : (quizAutoData?.autoTotal ?? 0)
+
+  const savedNilai   = sub?.penilaian?.[0]?.nilai ?? null
+  const savedCatatan = sub?.catatan ?? ''
+
+  // Nama siswa untuk navigasi
+  const namaSiswaDisplay = sub?.siswa?.profile?.namaLengkap ?? namaSiswa ?? 'Siswa'
+  const tanggalSubmit    = sub?.tanggalSubmit
 
   return (
     <Modal
@@ -430,12 +391,12 @@ export function GradingModal({
       onClose={onClose}
       title="Penilaian Tugas"
       description={tugas.judul}
-      size="2xl"
+      size="3xl"
       fullHeight
     >
-      {/* Navigasi antar siswa */}
+      {/* ── Navigasi siswa ── */}
       {students.length > 1 && (
-        <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-gray-100 dark:border-gray-800 shrink-0">
+        <div className="flex items-center justify-between px-5 py-2.5 border-b border-gray-100 dark:border-gray-800 shrink-0">
           <button
             type="button"
             disabled={!hasPrev}
@@ -445,9 +406,20 @@ export function GradingModal({
             <ChevronLeft size={14} />
             {hasPrev ? students[currentIdx - 1].namaLengkap : 'Awal'}
           </button>
-          <span className="text-xs text-gray-400">
-            {currentIdx + 1} / {students.length} siswa
-          </span>
+          <div className="text-center">
+            <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{namaSiswaDisplay}</p>
+            <div className="flex items-center justify-center gap-2 mt-0.5">
+              <span className="text-[10px] text-gray-400 tabular-nums">{currentIdx + 1} / {students.length}</span>
+              {sub && <StatusBadge status={sub.status} />}
+              {belumSubmit && <Badge variant="default">Belum Kumpul</Badge>}
+              {tanggalSubmit && (
+                <span className="text-[10px] text-gray-400">
+                  · {format(new Date(tanggalSubmit), 'd MMM HH:mm', { locale: localeId })}
+                  {sub?.isLate && <span className="text-amber-500 ml-1">terlambat</span>}
+                </span>
+              )}
+            </div>
+          </div>
           <button
             type="button"
             disabled={!hasNext}
@@ -460,291 +432,121 @@ export function GradingModal({
         </div>
       )}
 
-      {/* ── Tab bar — khusus worksheet yang sudah submit ─────────── */}
-      {isWorksheet && pengumpulanId && currentSiswaId && (
-        <div className="flex border-b border-gray-100 dark:border-gray-800 shrink-0 px-5">
-          <button
-            type="button"
-            onClick={() => setGradingTab('kerja')}
-            className={cn(
-              'flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
-              gradingTab === 'kerja'
-                ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300',
-            )}
-          >
-            <Eye size={14} /> Lihat Hasil Kerja
-          </button>
-          <button
-            type="button"
-            onClick={() => setGradingTab('nilai')}
-            className={cn(
-              'flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
-              gradingTab === 'nilai'
-                ? 'border-amber-500 text-amber-600 dark:text-amber-400'
-                : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300',
-            )}
-          >
-            <Star size={14} /> Beri Nilai
-          </button>
-        </div>
-      )}
+      {/* ── Konten ── */}
+      <div className="flex-1 overflow-y-auto">
 
-      {/* Konten */}
-      {/* ── Case: belum submit → manual grading ─────────────────── */}
-      {!pengumpulanId && siswaId ? (
-        <ManualGradingForm
-          tugasId={tugas.id}
-          siswaId={siswaId}
-          namaSiswa={namaSiswa ?? 'Siswa'}
-          bobot={tugas.bobot}
-          onDone={() => {
-            if (hasNext) onNavigate(students[currentIdx + 1])
-            else onClose()
-          }}
-        />
-      ) : !pengumpulanId ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400 px-6 text-center">
-          <AlertTriangle size={32} className="opacity-40" />
-          <p className="text-sm">Pilih siswa dari tabel untuk mulai menilai.</p>
-        </div>
-      ) : isLoading || !sub ? (
-        <div className="flex items-center justify-center py-20">
-          {isLoading ? <Spinner /> : (
-            <p className="text-sm text-gray-400">Data pengumpulan tidak ditemukan.</p>
-          )}
-        </div>
-      ) : isWorksheet && currentSiswaId ? (
-        /* ── Worksheet: tab Lihat Kerja atau Beri Nilai ─────── */
-        gradingTab === 'kerja' ? (
-          <div className="flex-1 overflow-y-auto p-5">
-            <WorksheetGradingView
-              tugasId={tugas.id}
-              siswaId={currentSiswaId}
-              namaSiswa={namaSiswaFetch}
-              onClose={() => {
-                if (hasNext) onNavigate(students[currentIdx + 1])
-                else onClose()
-              }}
-            />
+        {/* Loading */}
+        {!belumSubmit && isLoading && (
+          <div className="flex items-center justify-center py-20"><Spinner /></div>
+        )}
+
+        {/* Tidak ada data */}
+        {!belumSubmit && !isLoading && !sub && (
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400 text-center px-6">
+            <AlertTriangle size={28} className="opacity-40" />
+            <p className="text-sm">Data pengumpulan tidak ditemukan.</p>
           </div>
-        ) : (
-          /* ── Tab Nilai untuk worksheet ───────────────────── */
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
-            {/* Info siswa */}
-            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-              <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shrink-0">
-                <User size={16} className="text-gray-500" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{namaSiswaFetch}</p>
-                {nisnSiswa && <p className="text-xs text-gray-400">NISN: {nisnSiswa}</p>}
-              </div>
-              <div className="ml-auto shrink-0">
-                <StatusBadge status={sub.status} />
-              </div>
-            </div>
+        )}
 
-            {/* Tombol kembalikan ke siswa */}
-            {canKembalikan && (
-              <div className="rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/10 p-3.5 flex items-center gap-3">
-                <RotateCcw size={15} className="text-orange-500 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-orange-700 dark:text-orange-400">Kembalikan ke Siswa</p>
-                  <p className="text-[11px] text-orange-600/70 dark:text-orange-500 mt-0.5">Status kembali ke Draft, siswa bisa mengubah jawaban.</p>
-                </div>
-                <button
-                  type="button"
-                  disabled={kembalikanMutation.isPending}
-                  onClick={() => { void handleKembalikan() }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-orange-400 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30 disabled:opacity-50 transition-colors whitespace-nowrap"
-                >
-                  {kembalikanMutation.isPending
-                    ? <><Loader2 size={11} className="animate-spin" /> Memproses…</>
-                    : <><RotateCcw size={11} /> Kembalikan</>
-                  }
-                </button>
-              </div>
-            )}
+        {/* Konten tersedia */}
+        {(belumSubmit || (!isLoading && sub)) && (
+          /**
+           * Layout:
+           * - Mobile: 1 kolom (pekerjaan atas, penilaian bawah)
+           * - Desktop: 2 kolom (pekerjaan kiri, penilaian kanan sticky)
+           */
+          <div className="flex flex-col lg:flex-row lg:items-start gap-0 min-h-full">
 
-            {showReadOnly ? (
-              <NilaiReadOnly
-                nilai={nilaiSaved!}
-                catatan={sub.catatan}
-                bobot={tugas.bobot}
-                onEdit={() => setEditMode(true)}
-              />
-            ) : (
-              <GradingForm
-                pengumpulanId={pengumpulanId}
-                bobot={tugas.bobot}
-                initialNilai={nilaiSaved}
-                initialCatatan={sub.catatan}
-                isQuiz={isQuiz}
-                onDone={() => {
-                  setEditMode(false)
-                  setGradingTab('kerja')
-                  if (hasNext) onNavigate(students[currentIdx + 1])
-                  else onClose()
-                }}
-              />
-            )}
-          </div>
-        )
-      ) : (
-        <div className="flex flex-col lg:flex-row flex-1 min-h-0">
+            {/* ── Kolom kiri: Pekerjaan Siswa ── */}
+            <div className="flex-1 min-w-0 p-5 space-y-3 lg:border-r border-gray-100 dark:border-gray-800">
 
-          {/* ── Kiri: Submission Viewer ─────────────────────── */}
-          <div className="flex-1 min-w-0 p-5 overflow-y-auto border-b lg:border-b-0 lg:border-r border-gray-100 dark:border-gray-800 space-y-5">
-
-            {/* Info siswa */}
-            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
-              <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shrink-0">
-                <User size={16} className="text-gray-500" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{namaSiswaFetch}</p>
-                {nisnSiswa && <p className="text-xs text-gray-400">NISN: {nisnSiswa}</p>}
-              </div>
-              <div className="ml-auto shrink-0">
-                <StatusBadge status={sub.status} />
-              </div>
-            </div>
-
-            {/* Waktu submit */}
-            {sub.tanggalSubmit && (
-              <p className="text-xs text-gray-400">
-                Dikumpulkan: {format(new Date(sub.tanggalSubmit), 'd MMM yyyy, HH:mm', { locale: localeId })}
-                {sub.isLate && <span className="ml-2 text-amber-500 font-medium">· Terlambat</span>}
-                {sub.revisiKe > 0 && <span className="ml-2 text-blue-400">· Revisi ke-{sub.revisiKe}</span>}
-              </p>
-            )}
-
-            {/* File */}
-            {hasFiles && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">File yang Dikumpulkan</p>
-                <FileList fileKeys={fileKeys} />
-              </div>
-            )}
-
-            {/* Quiz answers */}
-            {isQuizJawaban && tugas.soalKuis && tugas.soalKuis.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
-                  <ClipboardList size={12} /> Jawaban Kuis
-                </p>
-                <div className="space-y-2">
-                  {[...tugas.soalKuis].sort((a, b) => a.urutan - b.urutan).map((soal, idx) => {
-                    const selId   = quizAnswers[soal.id]
-                    const selOpsi = soal.opsi?.find((o) => o.id === selId)
-                    const isMC    = soal.tipe === TipeSoalKuis.MULTIPLE_CHOICE
-                    return (
-                      <div key={soal.id} className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-xs">
-                        <p className="font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                          {idx + 1}. {soal.pertanyaan}
-                        </p>
-                        {selId ? (
-                          <p className={`flex items-center gap-1.5 ${
-                            isMC
-                              ? selOpsi?.isCorrect
-                                ? 'text-emerald-600'
-                                : 'text-red-500'
-                              : 'text-blue-600'
-                          }`}>
-                            <CheckCircle2 size={11} />
-                            {isMC ? (selOpsi?.teks ?? '—') : `${selId.slice(0, 80)}${selId.length > 80 ? '…' : ''}`}
-                            {isMC && selOpsi?.isCorrect && <span className="ml-1 text-emerald-500">(Benar)</span>}
-                            {isMC && !selOpsi?.isCorrect && <span className="ml-1 text-red-400">(Salah)</span>}
-                          </p>
-                        ) : (
-                          <p className="text-gray-400 italic">Tidak dijawab</p>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Jawaban teks (non-quiz) */}
-            {hasJawaban && !isQuizJawaban && (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Jawaban Teks</p>
-                <div
-                  className="prose dark:prose-invert max-w-none text-sm p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 overflow-auto"
-                  dangerouslySetInnerHTML={{ __html: sub.jawaban! }}
+              {/* Worksheet inline */}
+              {isWorksheet && currentSiswaId && !belumSubmit && (
+                <WorksheetGradingView
+                  tugasId={tugas.id}
+                  siswaId={currentSiswaId}
+                  namaSiswa={namaSiswaDisplay}
+                  hideGradingForm
+                  onAutoGradeData={setAutoData}
                 />
-              </div>
-            )}
+              )}
 
-            {!hasFiles && !hasJawaban && !isQuizJawaban && (
-              <div className="flex flex-col items-center py-10 gap-2 text-gray-400">
-                <FileText size={28} className="opacity-30" />
-                <p className="text-sm">Tidak ada file atau jawaban yang dikumpulkan.</p>
-              </div>
-            )}
-          </div>
+              {/* File */}
+              {hasFiles && (
+                <div className="space-y-2">
+                  {!isQuiz && !isWorksheet && (
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      File yang Dikumpulkan
+                    </p>
+                  )}
+                  <FileList fileKeys={fileKeys} />
+                </div>
+              )}
 
-          {/* ── Kanan: Panel Penilaian ───────────────────────── */}
-          <div className="w-full lg:w-80 shrink-0 p-5 space-y-5 overflow-y-auto">
-            <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Tugas</p>
-              <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{tugas.judul}</p>
-              <p className="text-xs text-gray-400 mt-0.5">Bobot maks. {tugas.bobot} poin</p>
+              {/* Quiz — inline dengan QuizGradingView */}
+              {isQuiz && !belumSubmit && sub && tugas.soalKuis?.length && (
+                <QuizGradingView
+                  soalKuis={tugas.soalKuis}
+                  jawabanRaw={sub.jawaban}
+                  bobot={tugas.bobot}
+                />
+              )}
+
+              {/* Jawaban teks — RICH_TEXT / HYBRID (bukan quiz, bukan worksheet) */}
+              {hasJawaban && !isQuiz && !isWorksheet && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    Jawaban Teks
+                  </p>
+                  <div
+                    className="prose dark:prose-invert max-w-none text-sm p-4 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 overflow-auto"
+                    dangerouslySetInnerHTML={{ __html: sub!.jawaban! }}
+                  />
+                </div>
+              )}
+
+              {/* Tidak ada pekerjaan (non-worksheet, non-quiz, sudah submit) */}
+              {!belumSubmit && !isWorksheet && !isQuiz && !hasFiles && !hasJawaban && (
+                <div className="flex flex-col items-center py-10 gap-2 text-gray-400">
+                  <FileText size={24} className="opacity-30" />
+                  <p className="text-sm">Tidak ada file atau jawaban yang dikumpulkan.</p>
+                </div>
+              )}
+
+              {/* Placeholder belum submit di kolom kiri */}
+              {belumSubmit && (
+                <div className="flex flex-col items-center py-10 gap-2 text-gray-300 dark:text-gray-600">
+                  <Star size={24} className="opacity-40" />
+                  <p className="text-sm text-gray-400">Siswa belum mengumpulkan tugas.</p>
+                </div>
+              )}
             </div>
 
-            {/* Tombol kembalikan ke siswa */}
-            {canKembalikan && (
-              <div className="rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/10 p-3.5 space-y-2.5">
-                <div className="flex items-start gap-2">
-                  <RotateCcw size={14} className="text-orange-500 mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-xs font-semibold text-orange-700 dark:text-orange-400">Kembalikan ke Siswa?</p>
-                    <p className="text-[11px] text-orange-600/70 dark:text-orange-500 mt-0.5 leading-snug">
-                      Status kembali ke Draft, siswa bisa memperbaiki dan mengumpulkan ulang.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  disabled={kembalikanMutation.isPending}
-                  onClick={() => { void handleKembalikan() }}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold border border-orange-400 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30 disabled:opacity-50 transition-colors"
-                >
-                  {kembalikanMutation.isPending
-                    ? <><Loader2 size={11} className="animate-spin" /> Memproses…</>
-                    : <><RotateCcw size={11} /> Kembalikan ke Siswa</>
-                  }
-                </button>
-              </div>
-            )}
-
-            {showReadOnly ? (
-              <NilaiReadOnly
-                nilai={nilaiSaved!}
-                catatan={sub.catatan}
-                bobot={tugas.bobot}
-                onEdit={() => setEditMode(true)}
-              />
-            ) : (
-              <GradingForm
+            {/* ── Kolom kanan: Panel Penilaian (sticky di desktop) ── */}
+            <div className="w-full lg:w-72 xl:w-80 shrink-0 px-5 pb-5 pt-0 lg:p-5 lg:sticky lg:top-0 lg:self-start border-t lg:border-t-0 border-gray-100 dark:border-gray-800">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide flex items-center gap-1.5 mb-4">
+                <Star size={11} /> Penilaian
+              </p>
+              <PenilaianPanel
                 pengumpulanId={pengumpulanId}
+                siswaId={currentSiswaId ?? siswaId ?? ''}
+                tugasId={tugas.id}
                 bobot={tugas.bobot}
-                initialNilai={nilaiSaved}
-                initialCatatan={sub.catatan}
                 isQuiz={isQuiz}
-                onDone={() => {
-                  setEditMode(false)
-                  // Jika masih ada siswa berikutnya, otomatis navigasi
-                  if (hasNext) onNavigate(students[currentIdx + 1])
-                  else onClose()
-                }}
+                isBelumSubmit={belumSubmit}
+                autoNilai={finalAutoNilai}
+                autoTotal={finalAutoTotal}
+                savedNilai={savedNilai}
+                savedCatatan={savedCatatan}
+                tujuan={tugas.tujuan as TujuanTugas}
+                status={sub?.status}
+                onDone={goNextOrClose}
               />
-            )}
+            </div>
+
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </Modal>
   )
 }

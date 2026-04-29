@@ -22,10 +22,10 @@ interface Props {
 }
 
 const STATUS_COLOR: Record<StatusSesiGuru, string> = {
-  AKSI_DIBUTUHKAN:    'border-red-200 bg-red-50 text-red-700',
-  BELUM_WAKTUNYA:     'border-gray-200 bg-gray-50 text-gray-500',
-  KELAS_SUDAH_DIBUKA: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-  TERLEWAT:           'border-orange-200 bg-orange-50 text-orange-700',
+  AKSI_DIBUTUHKAN:    'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400',
+  BELUM_WAKTUNYA:     'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400',
+  KELAS_SUDAH_DIBUKA: 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400',
+  TERLEWAT:           'border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400',
 }
 
 const STATUS_LABEL: Record<StatusSesiGuru, string> = {
@@ -113,9 +113,13 @@ export function MapelSlideoverGuru({
         .join(' · ')
     : null
 
-  const totalPending     = todo?.menungguPenilaian.length ?? 0
-  const adaJadwalHariIni = (todo?.jadwalHariIni.length ?? 0) > 0
-  const totalTodo        = totalPending + (adaJadwalHariIni ? 1 : 0)
+  const totalPending     = todo?.menungguPenilaian.filter(
+    (t) => !dismissedTodo.has('tugas-' + t.id)
+  ).length ?? 0
+  const jadwalPerluAksi  = todo?.jadwalHariIni.filter(
+    (j) => j.statusSesi === 'AKSI_DIBUTUHKAN' || j.statusSesi === 'TERLEWAT'
+  ) ?? []
+  const totalTodo        = totalPending + jadwalPerluAksi.length
 
   const totalTugas  = stat?.tugas.length ?? 0
   const totalSubmit = stat?.tugas.reduce((a, t) => a + t.sudahSubmit, 0) ?? 0
@@ -145,41 +149,41 @@ export function MapelSlideoverGuru({
 
         {/* Jadwal */}
         <div className="flex items-center gap-1.5 text-xs">
-          <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+          <Clock className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 shrink-0" />
           {jadwalText ? (
-            <span className="text-gray-600">{jadwalText}</span>
+            <span className="text-gray-600 dark:text-gray-300">{jadwalText}</span>
           ) : (
-            <span className="text-amber-500 italic">Jadwal belum ditentukan</span>
+            <span className="text-amber-500 dark:text-amber-400 italic">Jadwal belum ditentukan</span>
           )}
         </div>
 
         {/* Pengajar */}
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Tim Pengajar</p>
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Tim Pengajar</p>
           {koordinator && (
-            <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
-              <div className="w-7 h-7 rounded-full bg-emerald-200 flex items-center justify-center text-xs font-bold text-emerald-700 shrink-0">
+            <div className="flex items-center gap-2 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2">
+              <div className="w-7 h-7 rounded-full bg-emerald-200 dark:bg-emerald-800 flex items-center justify-center text-xs font-bold text-emerald-700 dark:text-emerald-300 shrink-0">
                 {koordinator.guru.profile.namaLengkap.charAt(0)}
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-800">{koordinator.guru.profile.namaLengkap}</p>
-                <p className="text-[10px] text-emerald-600">Koordinator</p>
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{koordinator.guru.profile.namaLengkap}</p>
+                <p className="text-[10px] text-emerald-600 dark:text-emerald-400">Koordinator</p>
               </div>
             </div>
           )}
           {coTeacher.map((p) => (
-            <div key={p.guru.id} className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2">
-              <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 shrink-0">
+            <div key={p.guru.id} className="flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2">
+              <div className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400 shrink-0">
                 {p.guru.profile.namaLengkap.charAt(0)}
               </div>
-              <p className="text-sm text-gray-700">{p.guru.profile.namaLengkap}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">{p.guru.profile.namaLengkap}</p>
             </div>
           ))}
         </div>
 
         {/* ── Stats 2x2: Siswa | Absensi | Materi | Tugas ── */}
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ringkasan Kelas</p>
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Ringkasan Kelas</p>
           {loadingStat ? (
             <div className="grid grid-cols-2 gap-2">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -189,12 +193,12 @@ export function MapelSlideoverGuru({
           ) : (
             <div className="grid grid-cols-2 gap-2">
               {/* Siswa — L/P breakdown */}
-              <div className="rounded-xl border border-blue-100 bg-blue-50/60 px-3 py-2.5">
-                <p className="text-[10px] font-medium text-blue-500 uppercase tracking-wide">Siswa</p>
-                <p className="text-xl font-bold text-blue-700">
+              <div className="rounded-xl border border-blue-100 dark:border-blue-800 bg-blue-50/60 dark:bg-blue-900/20 px-3 py-2.5">
+                <p className="text-[10px] font-medium text-blue-500 dark:text-blue-400 uppercase tracking-wide">Siswa</p>
+                <p className="text-xl font-bold text-blue-700 dark:text-blue-400">
                   {kelasData?.jumlahSiswa ?? '–'}
                 </p>
-                <p className="text-[10px] text-blue-400 mt-0.5">
+                <p className="text-[10px] text-blue-400 dark:text-blue-500 mt-0.5">
                   {kelasData
                     ? `L ${kelasData.siswaLaki} · P ${kelasData.siswaPerempuan}`
                     : 'Memuat...'}
@@ -205,19 +209,19 @@ export function MapelSlideoverGuru({
               <div className={[
                 'rounded-xl border px-3 py-2.5',
                 pctHadir !== null
-                  ? pctHadir >= 80 ? 'border-emerald-100 bg-emerald-50/60' : 'border-amber-100 bg-amber-50/60'
-                  : 'border-gray-100 bg-gray-50',
+                  ? pctHadir >= 80 ? 'border-emerald-100 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-900/20' : 'border-amber-100 dark:border-amber-800 bg-amber-50/60 dark:bg-amber-900/20'
+                  : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800',
               ].join(' ')}>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">Sesi Absensi</p>
+                <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Sesi Absensi</p>
                 <p className={[
                   'text-xl font-bold',
                   pctHadir !== null
-                    ? pctHadir >= 80 ? 'text-emerald-700' : 'text-amber-600'
-                    : 'text-gray-800',
+                    ? pctHadir >= 80 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
+                    : 'text-gray-800 dark:text-gray-200',
                 ].join(' ')}>
                   {stat?.totalSesiAbsensi ?? '–'}
                 </p>
-                <p className="text-[10px] text-gray-400 mt-0.5">
+                <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
                   {pctHadir !== null ? `${pctHadir}% kehadiran` : 'sesi dilaksanakan'}
                 </p>
               </div>
@@ -226,17 +230,17 @@ export function MapelSlideoverGuru({
               <div className={[
                 'rounded-xl border px-3 py-2.5',
                 readStats && readStats.rasio >= 50
-                  ? 'border-blue-100 bg-blue-50/60'
-                  : 'border-gray-100 bg-gray-50/60',
+                  ? 'border-blue-100 dark:border-blue-800 bg-blue-50/60 dark:bg-blue-900/20'
+                  : 'border-gray-100 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800',
               ].join(' ')}>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">Materi</p>
+                <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Materi</p>
                 <p className={[
                   'text-xl font-bold',
-                  readStats && readStats.rasio >= 50 ? 'text-blue-700' : 'text-gray-800',
+                  readStats && readStats.rasio >= 50 ? 'text-blue-700 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200',
                 ].join(' ')}>
                   {mapel._count.materiPelajaran}
                 </p>
-                <p className="text-[10px] text-gray-400 mt-0.5">
+                <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
                   {readStats
                     ? `${readStats.rasio}% terbaca · ${readStats.uniquePembaca}/${readStats.totalSiswa} siswa`
                     : 'materi dibuat'}
@@ -247,19 +251,19 @@ export function MapelSlideoverGuru({
               <div className={[
                 'rounded-xl border px-3 py-2.5',
                 totalTugas > 0
-                  ? pctSubmit >= 70 ? 'border-emerald-100 bg-emerald-50/60' : 'border-amber-100 bg-amber-50/60'
-                  : 'border-gray-100 bg-gray-50',
+                  ? pctSubmit >= 70 ? 'border-emerald-100 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-900/20' : 'border-amber-100 dark:border-amber-800 bg-amber-50/60 dark:bg-amber-900/20'
+                  : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800',
               ].join(' ')}>
-                <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">Tugas</p>
+                <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Tugas</p>
                 <p className={[
                   'text-xl font-bold',
                   totalTugas > 0
-                    ? pctSubmit >= 70 ? 'text-emerald-700' : 'text-amber-600'
-                    : 'text-gray-800',
+                    ? pctSubmit >= 70 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
+                    : 'text-gray-800 dark:text-gray-200',
                 ].join(' ')}>
                   {mapel._count.tugas}
                 </p>
-                <p className="text-[10px] text-gray-400 mt-0.5">
+                <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
                   {totalTugas > 0
                     ? `${pctSubmit}% terkumpul · ${totalSubmit}/${kelasData?.jumlahSiswa ?? totalSiswa} siswa`
                     : 'tugas dibuat'}
@@ -272,24 +276,32 @@ export function MapelSlideoverGuru({
         {/* To Do */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">To Do</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">To Do</p>
             {totalTodo > 0 && <Badge variant="warning">{totalTodo} item</Badge>}
           </div>
 
           {loadingTodo && <Skeleton className="h-14 rounded-lg" />}
 
           {!loadingTodo && totalTodo === 0 && (
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-              <p className="text-xs text-emerald-700">Tidak ada to do saat ini</p>
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 px-3 py-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
+              <p className="text-xs text-emerald-700 dark:text-emerald-400">Tidak ada to do saat ini</p>
             </div>
           )}
 
           {!loadingTodo && todo?.jadwalHariIni
-            .filter((j) => !dismissedTodo.has('sesi-' + j.jadwalId))
+            .filter((j) =>
+              !dismissedTodo.has('sesi-' + j.jadwalId) &&
+              (j.statusSesi === 'AKSI_DIBUTUHKAN' || j.statusSesi === 'TERLEWAT')
+            )
             .map((j) => (
-              <div key={j.jadwalId}
-                className={'rounded-xl border px-3 py-2.5 space-y-1 ' + (STATUS_COLOR[j.statusSesi] ?? 'bg-gray-50 border-gray-200 text-gray-500')}>
+              <div
+                key={j.jadwalId}
+                role="button"
+                tabIndex={0}
+                onClick={() => nav(`/dashboard/absensi/guru?mataPelajaranId=${mapel.id}`)}
+                onKeyDown={(e) => e.key === 'Enter' && nav(`/dashboard/absensi/guru?mataPelajaranId=${mapel.id}`)}
+                className={'w-full rounded-xl border px-3 py-2.5 space-y-1 cursor-pointer hover:opacity-90 transition-opacity ' + (STATUS_COLOR[j.statusSesi] ?? 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400')}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs font-medium">
                     <Clock className="w-3.5 h-3.5 shrink-0" />
@@ -299,7 +311,7 @@ export function MapelSlideoverGuru({
                     <span className="text-xs font-medium">{STATUS_LABEL[j.statusSesi]}</span>
                     <button
                       type="button"
-                      onClick={() => dismissTodo('sesi-' + j.jadwalId)}
+                      onClick={(e) => { e.stopPropagation(); dismissTodo('sesi-' + j.jadwalId) }}
                       className="w-4 h-4 rounded-full hover:bg-black/10 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity"
                       title="Dismiss"
                     >
@@ -315,29 +327,44 @@ export function MapelSlideoverGuru({
             ))}
 
           {!loadingTodo && totalPending > 0 && !dismissedTodo.has('penilaian') && (
-            <div className="flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5">
-              <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-amber-700">
-                  {totalPending} tugas menunggu penilaian
-                </p>
-                <p className="text-xs text-amber-600">Klik Tugas untuk menilai</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => dismissTodo('penilaian')}
-                className="w-5 h-5 rounded-full hover:bg-amber-100 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity ml-auto shrink-0"
-                title="Dismiss"
-              >
-                <X className="w-3.5 h-3.5 text-amber-700" />
-              </button>
+            <div className="space-y-2">
+              {todo!.menungguPenilaian
+                .filter((t) => !dismissedTodo.has('tugas-' + t.id))
+                .map((t) => (
+                  <div
+                    key={t.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => nav(`/dashboard/tugas/${t.id}`)}
+                    onKeyDown={(e) => e.key === 'Enter' && nav(`/dashboard/tugas/${t.id}`)}
+                    className="w-full flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 px-3 py-2.5 cursor-pointer hover:opacity-90 transition-opacity"
+                  >
+                    <AlertCircle className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-amber-700 dark:text-amber-400 truncate">
+                        {t.judulTugas}
+                      </p>
+                      <p className="text-xs text-amber-600 dark:text-amber-500">
+                        {t.kelas} · {t.namaSiswa} · {t.statusLabel}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); dismissTodo('tugas-' + t.id) }}
+                      className="w-5 h-5 rounded-full hover:bg-amber-100 dark:hover:bg-amber-800 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity shrink-0"
+                      title="Dismiss"
+                    >
+                      <X className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
+                    </button>
+                  </div>
+                ))}
             </div>
           )}
         </div>
 
         {/* Navigasi */}
-        <div className="space-y-2 pt-2 border-t border-gray-100">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Navigasi</p>
+        <div className="space-y-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Navigasi</p>
           <div className="grid grid-cols-2 gap-2">
             <Button size="sm" variant="secondary" leftIcon={<CalendarDays className="w-3.5 h-3.5" />}
               onClick={() => nav('/dashboard/absensi/guru?mataPelajaranId=' + mapel.id)}>

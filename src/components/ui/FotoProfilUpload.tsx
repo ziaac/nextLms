@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { Camera, Loader2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getPublicFileUrl } from '@/lib/constants'
+import { compressImageToFile } from '@/lib/helpers/image-compress'
 
 interface FotoProfilUploadProps {
   currentKey?: string | null
@@ -36,12 +37,20 @@ export function FotoProfilUpload({
     setUploading(true)
 
     try {
-      const key = await onUpload(file)
+      // Kompres gambar sebelum upload (foto profil tidak perlu resolusi tinggi)
+      const compressed = await compressImageToFile(file, file.name, {
+        maxPx: 800,        // Foto profil cukup 800px
+        quality: 0.85,     // Kualitas tinggi untuk foto profil
+        maxBytes: 300_000, // Target 300KB
+      })
+      
+      const key = await onUpload(compressed)
       onSuccess(key)
       // Simpan ke database jika ada handler
       if (onSaveToProfile) await onSaveToProfile(key)
-    } catch {
-      setError('Gagal upload foto. Coba lagi.')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Gagal upload foto. Coba lagi.'
+      setError(msg)
       setPreviewUrl(null)
     } finally {
       setUploading(false)

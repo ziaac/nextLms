@@ -42,10 +42,14 @@ export enum StatusPengumpulan {
 }
 
 export interface QuizSettings {
-  isAutograde?: boolean
-  isAcakSoal?: boolean
-  isAcakOpsi?: boolean
-  isStrictBrowser?: boolean
+  isAutograde?:           boolean
+  isAcakSoal?:            boolean
+  isAcakOpsi?:            boolean
+  isStrictBrowser?:       boolean
+  /** Tampilkan nilai ke siswa langsung setelah submit (default: true) */
+  showNilaiSetelahSubmit?: boolean
+  /** Kapan jawaban benar ditampilkan ke siswa (default: 'LANGSUNG') */
+  showJawabanBenar?:       'LANGSUNG' | 'SETELAH_DINILAI' | 'TIDAK_PERNAH'
 }
 
 export interface OpsiKuisPayload {

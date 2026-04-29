@@ -37,7 +37,7 @@ export function ExportModal({ open, onClose, defaultTahunAjaranId }: Props) {
   const { data, isLoading } = useSiswaLulus({
     tahunAjaranId: tahunAjaranId || undefined,
     jalurPendaftaran: jalur || undefined,
-    limit: 9999,
+    limit: 1000,
     page: 1,
   })
 

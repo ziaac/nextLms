@@ -43,6 +43,12 @@ export const usersApi = {
     return data
   },
 
+  /** PATCH /users/me/profile — update profil sendiri (semua role) */
+  updateMe: async (dto: UpdateUserDto): Promise<UserDetail> => {
+    const { data } = await api.patch('/users/me/profile', dto)
+    return data
+  },
+
   updateFoto: async (id: string, fotoUrl: string): Promise<void> => {
     await api.patch(`/users/${id}/foto`, { fotoUrl })
   },

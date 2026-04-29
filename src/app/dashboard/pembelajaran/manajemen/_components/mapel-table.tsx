@@ -100,16 +100,16 @@ export function MapelTable({
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-gray-200">
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-800">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-gray-50 dark:bg-gray-900/40 border-b border-gray-200 dark:border-gray-800">
             <tr>
               {['', 'Mata Pelajaran', 'Pengajar', 'KKM', 'Target', 'Status', ''].map((h, i) => (
-                <th key={i} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
+                <th key={i} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-950">
             {Array.from({ length: 5 }).map((_, i) => (
               <tr key={i}>
                 {Array.from({ length: 8 }).map((__, j) => (
@@ -125,8 +125,8 @@ export function MapelTable({
 
   if (data.length === 0) {
     return (
-      <div className="rounded-2xl border border-gray-200 bg-white">
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400 dark:text-gray-500">
           <BookOpen className="w-10 h-10 opacity-40" />
           <p className="text-sm font-medium">Tidak ada mata pelajaran</p>
           <p className="text-xs">Coba ubah filter atau tambah mata pelajaran baru</p>
@@ -139,15 +139,15 @@ export function MapelTable({
     <>
       {/* Toolbar hapus bulk */}
       {canBulkDelete && someSelected && (
-        <div className="flex items-center justify-between rounded-lg bg-red-50 border border-red-200 px-4 py-2.5 mb-2">
-          <p className="text-sm text-red-700">
+        <div className="flex items-center justify-between rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-2.5 mb-2">
+          <p className="text-sm text-red-700 dark:text-red-400">
             <span className="font-semibold">{selectedIds.size}</span> mapel dipilih
           </p>
           <Button
             size="sm"
             variant="ghost"
-            leftIcon={<Trash2 className="w-3.5 h-3.5 text-red-500" />}
-            className="text-red-500 hover:bg-red-100"
+            leftIcon={<Trash2 className="w-3.5 h-3.5 text-red-500 dark:text-red-400" />}
+            className="text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40"
             loading={bulkDelete.isPending}
             onClick={() => setConfirmDelete(true)}
           >
@@ -157,13 +157,13 @@ export function MapelTable({
       )}
 
       {/* Desktop */}
-      <div className="hidden md:block rounded-2xl border border-gray-200">
+      <div className="hidden md:block rounded-2xl border border-gray-200 dark:border-gray-800">
         <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[900px]">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-gray-50 dark:bg-gray-900/40 border-b border-gray-200 dark:border-gray-800">
             <tr>
               {['Mata Pelajaran', 'Pengajar','KKM','Target', 'Status', 'Aksi'].map((h) => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{h}</th>
               ))}
               {canBulkDelete && (
                 <th className="px-4 py-3 w-10 text-center">
@@ -172,14 +172,14 @@ export function MapelTable({
                     checked={allDeletableSelected}
                     onChange={toggleSelectAll}
                     disabled={deletableMapel.length === 0}
-                    className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    className="rounded border-gray-300 dark:border-gray-600 text-emerald-600 dark:text-emerald-500 focus:ring-emerald-500 dark:focus:ring-emerald-400"
                     title="Pilih semua yang bisa dihapus"
                   />
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-950">
             {data.map((mapel) => {
               const hasMateri  = (mapel._count?.materiPelajaran ?? 0) > 0
               const canDelete  = !hasMateri
@@ -189,25 +189,25 @@ export function MapelTable({
                 <tr
                   key={mapel.id}
                   className={[
-                    'hover:bg-gray-50 transition-colors cursor-pointer',
-                    isSelected ? 'bg-red-50/40' : '',
+                    'hover:bg-gray-50 dark:hover:bg-gray-900/40 transition-colors cursor-pointer',
+                    isSelected ? 'bg-red-50/40 dark:bg-red-900/20' : '',
                   ].join(' ')}
                   onClick={() => onRowClick(mapel)}
                 >
                   <td className="px-4 py-3">
-                    <p className="font-semibold text-gray-800">{mapel.mataPelajaranTingkat.masterMapel.nama}</p>
-                    <p className="text-xs text-gray-400">{mapel.mataPelajaranTingkat.masterMapel.kode}</p>
+                    <p className="font-semibold text-gray-800 dark:text-gray-100">{mapel.mataPelajaranTingkat.masterMapel.nama}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{mapel.mataPelajaranTingkat.masterMapel.kode}</p>
                     {hasMateri && (
-                      <p className="text-[10px] text-amber-500 mt-0.5">
+                      <p className="text-[10px] text-amber-500 dark:text-amber-400 mt-0.5">
                         {mapel._count.materiPelajaran} materi
                       </p>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-gray-600 max-w-[180px]">
+                  <td className="px-4 py-3 text-gray-600 dark:text-gray-300 max-w-[180px]">
                     <p className="truncate">{formatPengajar(mapel)}</p>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{mapel.kkm}</td>
-                  <td className="px-4 py-3 text-gray-600">{mapel.targetPertemuan}x</td>
+                  <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{mapel.kkm}</td>
+                  <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{mapel.targetPertemuan}x</td>
                   <td className="px-4 py-3">
                     <Badge variant={mapel.isActive ? 'success' : 'danger'}>
                       {mapel.isActive ? 'Aktif' : 'Nonaktif'}
@@ -222,7 +222,7 @@ export function MapelTable({
                       </Button>
                       {onNavigateJadwal && (
                         <Button size="sm" variant="ghost"
-                          leftIcon={<CalendarCheck className="w-3.5 h-3.5 text-blue-400" />}
+                          leftIcon={<CalendarCheck className="w-3.5 h-3.5 text-blue-400 dark:text-blue-500" />}
                           onClick={() => onNavigateJadwal(mapel.kelasId, mapel.semesterId)}>
                           Jadwal
                         </Button>
@@ -252,11 +252,11 @@ export function MapelTable({
                               disabled={!canDelete}
                               leftIcon={<Trash2 className={[
                                 'w-3.5 h-3.5',
-                                canDelete ? 'text-red-400' : 'text-gray-300',
+                                canDelete ? 'text-red-400 dark:text-red-500' : 'text-gray-300 dark:text-gray-600',
                               ].join(' ')} />}
                               onClick={() => canDelete && setConfirmDeleteSingle(mapel)} />
                             {!canDelete && (
-                              <div className="absolute right-0 top-8 z-10 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                              <div className="absolute right-0 top-8 z-10 hidden group-hover:block bg-gray-800 dark:bg-gray-700 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
                                 Sudah ada materi
                               </div>
                             )}
@@ -273,12 +273,12 @@ export function MapelTable({
                           checked={isSelected}
                           disabled={!canDelete}
                           onChange={() => toggleSelect(mapel.id)}
-                          className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="rounded border-gray-300 dark:border-gray-600 text-emerald-600 dark:text-emerald-500 focus:ring-emerald-500 dark:focus:ring-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed"
                           title="Pilih mata pelajaran untuk dihapus"
                           aria-label="Pilih mata pelajaran untuk dihapus"
                         />
                         {!canDelete && (
-                          <div className="absolute right-6 top-0 z-10 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                          <div className="absolute right-6 top-0 z-10 hidden group-hover:block bg-gray-800 dark:bg-gray-700 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
                             Sudah ada materi
                           </div>
                         )}
@@ -303,8 +303,8 @@ export function MapelTable({
           return (
             <div key={mapel.id}
               className={[
-                'rounded-2xl border bg-white p-4 space-y-3 cursor-pointer',
-                isSelected ? 'border-red-300 bg-red-50/30' : 'border-gray-200',
+                'rounded-2xl border bg-white dark:bg-gray-950 p-4 space-y-3 cursor-pointer',
+                isSelected ? 'border-red-300 dark:border-red-700 bg-red-50/30 dark:bg-red-900/20' : 'border-gray-200 dark:border-gray-800',
               ].join(' ')}
               onClick={() => onRowClick(mapel)}
             >
@@ -317,20 +317,20 @@ export function MapelTable({
                       disabled={!canDelete}
                       onChange={() => toggleSelect(mapel.id)}
                       onClick={(e) => e.stopPropagation()}
-                      className="mt-1 rounded border-gray-300 text-emerald-600 disabled:opacity-40"
+                      className="mt-1 rounded border-gray-300 dark:border-gray-600 text-emerald-600 dark:text-emerald-500 disabled:opacity-40"
                                             title="Pilih mata pelajaran untuk dihapus"
                       aria-label={`Pilih ${mapel.mataPelajaranTingkat.masterMapel.nama} untuk dihapus`}
                     />
                   )}
                   <div className="min-w-0">
-                    <p className="font-semibold text-gray-800 truncate">
+                    <p className="font-semibold text-gray-800 dark:text-gray-100 truncate">
                       {mapel.mataPelajaranTingkat.masterMapel.nama}
                     </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                       {mapel.mataPelajaranTingkat.masterMapel.kode}
                     </p>
                     {hasMateri && (
-                      <p className="text-[10px] text-amber-500 mt-0.5">
+                      <p className="text-[10px] text-amber-500 dark:text-amber-400 mt-0.5">
                         {mapel._count.materiPelajaran} materi — tidak dapat dihapus
                       </p>
                     )}
@@ -340,7 +340,7 @@ export function MapelTable({
                   {mapel.isActive ? 'Aktif' : 'Nonaktif'}
                 </Badge>
               </div>
-              <div className="text-xs text-gray-500 space-y-1">
+              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
                 <p><span className="font-medium">Pengajar:</span> {formatPengajar(mapel)}</p>
                 <p>
                   <span className="font-medium">KKM:</span> {mapel.kkm} <span className="mx-2">•</span> 
@@ -362,7 +362,7 @@ export function MapelTable({
           <>
             <Button variant="secondary" onClick={() => setConfirmDeleteSingle(null)}>Batal</Button>
             <Button
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white"
               leftIcon={<Trash2 className="w-4 h-4" />}
               onClick={() => {
                 if (confirmDeleteSingle) {
@@ -378,15 +378,15 @@ export function MapelTable({
       >
         <div className="p-6 space-y-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-gray-700 dark:text-gray-300">
                 Yakin ingin menghapus mata pelajaran{' '}
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {confirmDeleteSingle?.mataPelajaranTingkat.masterMapel.nama}
                 </span>?
               </p>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Tindakan ini tidak dapat dibatalkan.
               </p>
             </div>
@@ -405,7 +405,7 @@ export function MapelTable({
             <Button variant="secondary" onClick={() => setConfirmDelete(false)}>Batal</Button>
             <Button
               loading={bulkDelete.isPending}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white"
               leftIcon={<Trash2 className="w-4 h-4" />}
               onClick={handleBulkDelete}
             >
@@ -416,13 +416,13 @@ export function MapelTable({
       >
         <div className="p-6 space-y-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-gray-700 dark:text-gray-300">
                 Anda akan menghapus{' '}
-                <span className="font-semibold text-red-600">{selectedIds.size} mata pelajaran</span>.
+                <span className="font-semibold text-red-600 dark:text-red-400">{selectedIds.size} mata pelajaran</span>.
               </p>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Tindakan ini tidak dapat dibatalkan. Data terkait (tugas, absensi, penilaian)
                 juga akan ikut terhapus.
               </p>

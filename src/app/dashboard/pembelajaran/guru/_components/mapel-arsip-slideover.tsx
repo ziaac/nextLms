@@ -74,7 +74,7 @@ export function MapelArsipSlideover({ open, onClose, guruId }: Props) {
         {/* ── Filter TA & Semester ── */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               Tahun Ajaran
             </label>
             <Select
@@ -88,7 +88,7 @@ export function MapelArsipSlideover({ open, onClose, guruId }: Props) {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               Semester
             </label>
             <Select
@@ -117,8 +117,8 @@ export function MapelArsipSlideover({ open, onClose, guruId }: Props) {
               <Archive className="w-7 h-7 text-gray-300 dark:text-gray-600" />
             </div>
             <div className="text-center">
-              <p className="text-sm font-medium text-gray-500">Pilih periode arsip</p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Pilih periode arsip</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                 Pilih tahun ajaran dan semester untuk melihat riwayat mata pelajaran Anda.
               </p>
             </div>
@@ -136,7 +136,7 @@ export function MapelArsipSlideover({ open, onClose, guruId }: Props) {
 
         {/* ── Empty ── */}
         {semesterId && !isLoading && arsipList.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 gap-2 text-gray-400">
+          <div className="flex flex-col items-center justify-center py-12 gap-2 text-gray-400 dark:text-gray-500">
             <BookOpen className="w-8 h-8 opacity-40" />
             <p className="text-sm">Tidak ada mata pelajaran pada semester ini.</p>
           </div>
@@ -148,11 +148,11 @@ export function MapelArsipSlideover({ open, onClose, guruId }: Props) {
 
             {/* Banner konteks periode */}
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800">
-              <Archive className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <Archive className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />
               <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold">
                 {taNama} · Semester {semNama}
               </p>
-              <span className="ml-auto text-[10px] text-amber-500 shrink-0">
+              <span className="ml-auto text-[10px] text-amber-500 dark:text-amber-400 shrink-0">
                 {arsipList.length} mapel
               </span>
             </div>

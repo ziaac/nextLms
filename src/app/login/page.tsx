@@ -2,12 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { X } from 'lucide-react'
+import { X, Home } from 'lucide-react'
 import { LoginForm } from '@/components/auth/LoginForm'
 import { LoginBannerPanel } from '@/components/auth/LoginBannerPanel'
 import { ThemeToggle } from '@/components/dashboard/ThemeToggle'
 
-const HOME_URL = 'https://lms.man2kotamakassar.sch.id'
 const LOGO_URL = 'https://storagelms.man2kotamakassar.sch.id/static-assets/static_logoman-150h.png'
 const BANNER_URL_MOBILE = 'https://storagelms.man2kotamakassar.sch.id/static-assets/static_back_login_mobile.webp'
 
@@ -33,16 +32,17 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-5xl lg:rounded-3xl overflow-hidden shadow-2xl flex min-h-screen lg:min-h-[600px] bg-transparent lg:bg-white/60 dark:lg:bg-gray-900/80 lg:backdrop-blur-xl border-none lg:border lg:border-white/50 dark:lg:border-gray-700/40">
 
-        {/* Tombol Close + ThemeToggle (mobile only) */}
+        {/* Tombol Home + ThemeToggle (mobile only) */}
         <div className="lg:hidden absolute top-6 right-6 z-50 flex items-center gap-2">
           <div className="p-1 rounded-full bg-white/60 dark:bg-gray-800/70 backdrop-blur-md border border-gray-200/50 dark:border-gray-600/40 shadow-sm">
             <ThemeToggle />
           </div>
           <Link
-            href={HOME_URL}
+            href="/"
             className="p-2 rounded-full bg-white/60 dark:bg-gray-800/70 hover:bg-white dark:hover:bg-gray-700 border border-gray-200/50 dark:border-gray-600/40 backdrop-blur-md transition-all shadow-sm"
+            title="Kembali ke Beranda"
           >
-            <X size={18} strokeWidth={1.5} className="text-gray-600 dark:text-gray-300" />
+            <Home size={18} strokeWidth={1.5} className="text-gray-600 dark:text-gray-300" />
           </Link>
         </div>
 
@@ -108,7 +108,10 @@ export default function LoginPage() {
           <div className="hidden lg:flex mt-8 pt-6 border-t border-gray-50/50 dark:border-gray-700/40 items-center justify-between text-[11px] text-gray-400 dark:text-gray-500 uppercase font-normal">
             <span>© {new Date().getFullYear()} MAN 2 Kota Makassar</span>
             <ThemeToggle />
-            <Link href={HOME_URL} className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">Beranda</Link>
+            <Link href="/" className="flex items-center gap-1.5 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+              <Home size={12} />
+              Beranda
+            </Link>
           </div>
         </div>
 

@@ -52,7 +52,7 @@ export function UserFilters({
           max={2100}
           className="
             w-full h-10 px-3 rounded-lg text-sm
-            border border-gray-200 dark:border-gray-200
+            border border-gray-200 dark:border-gray-700
             bg-white dark:bg-gray-800
             text-gray-900 dark:text-white
             placeholder:text-gray-400 dark:placeholder:text-gray-500

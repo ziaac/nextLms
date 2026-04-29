@@ -504,7 +504,7 @@ export default function TugasDetailPage() {
                     <th className="px-3 sm:px-5 py-3 font-semibold">Status</th>
                     <th className="px-3 sm:px-5 py-3 font-semibold">Nilai</th>
                     <th className="px-3 sm:px-5 py-3 font-semibold">Waktu Submit</th>
-                    <th className="px-3 sm:px-5 py-3 font-semibold">Aksi</th>
+                    <th className="px-3 sm:px-5 py-3 font-semibold w-px">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -550,25 +550,40 @@ export default function TugasDetailPage() {
                         ) : '—'}
                       </td>
                       {/* Aksi */}
-                      <td className="px-3 sm:px-5 py-3">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenGrading(siswa)}
-                          className={cn(
-                            'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap',
-                            siswa.statusSubmit === StatusPengumpulan.DINILAI
-                              ? 'border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
-                              : siswa.sudahSubmit
-                                ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
-                                : 'border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800',
+                      <td className="px-3 sm:px-5 py-3 w-px">
+                        <div className="flex items-center gap-1.5">
+                          {/* Tombol Lihat Pekerjaan — hanya jika sudah submit */}
+                          {siswa.sudahSubmit && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenGrading(siswa)}
+                              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors whitespace-nowrap"
+                              title="Lihat pekerjaan siswa"
+                            >
+                              <Eye size={11} />
+                              {tugas.bentuk === BentukTugas.INTERACTIVE_WORKSHEET ? 'Lihat Worksheet' : 'Lihat Jawaban'}
+                            </button>
                           )}
-                        >
-                          {siswa.statusSubmit === StatusPengumpulan.DINILAI
-                            ? <><Star size={11} /> Dinilai</>
-                            : siswa.sudahSubmit
-                              ? <><Eye size={11} /> Nilai</>
-                              : <><Eye size={11} /> Buka</>}
-                        </button>
+                          {/* Tombol aksi utama: Nilai / Nilai Manual / Sudah Dinilai */}
+                          <button
+                            type="button"
+                            onClick={() => handleOpenGrading(siswa)}
+                            className={cn(
+                              'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap',
+                              siswa.statusSubmit === StatusPengumpulan.DINILAI
+                                ? 'border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+                                : siswa.sudahSubmit
+                                  ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
+                                  : 'border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800',
+                            )}
+                          >
+                            {siswa.statusSubmit === StatusPengumpulan.DINILAI
+                              ? <><Star size={11} /> Sudah Dinilai</>
+                              : siswa.sudahSubmit
+                                ? <><Award size={11} /> Beri Nilai</>
+                                : <><Star size={11} /> Nilai Manual</>}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -216,12 +216,19 @@ function TodoGuruView({
   })
 
   const menunggu = data?.menungguPenilaian ?? []
+  // Filter out items without id to prevent navigation errors
+  const validMenunggu = menunggu.filter((t) => t.id)
+
+  // Debug log
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Todo Guru Data:', { data, menunggu, validMenunggu })
+  }
 
   if (isLoading) {
     return <div className="flex justify-center py-16"><Spinner /></div>
   }
 
-  if (menunggu.length === 0) {
+  if (validMenunggu.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
         <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center">
@@ -236,25 +243,52 @@ function TodoGuruView({
   }
 
   return (
-    <div className="space-y-2">
-      <SectionHeader icon={ClipboardList} title="Menunggu Penilaian" count={menunggu.length} />
-      {menunggu.map((t: TugasMenungguPenilaianItem) => (
-        <button
-          key={t.pengumpulanTugasId}
-          type="button"
-          onClick={() => router.push(`/dashboard/tugas/${t.tugasId}`)}
-          className="w-full flex items-start gap-3 rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-3.5 py-3 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all text-left"
-        >
-          <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0 mt-0.5">
-            <ClipboardList className="w-4 h-4 text-blue-500" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">{t.judulTugas}</p>
-            <p className="text-[11px] text-gray-400 mt-0.5">{t.namaMapel} · {t.kelas}</p>
-          </div>
-          <ChevronRight className="w-4 h-4 text-gray-300 shrink-0 mt-1" />
-        </button>
-      ))}
+    <div className="space-y-5">
+      {/* Tugas Menunggu Penilaian */}
+      <div className="space-y-2">
+        <SectionHeader icon={ClipboardList} title="Menunggu Penilaian" count={validMenunggu.length} />
+        {validMenunggu.length === 0 ? <AllDone /> : validMenunggu.map((t: TugasMenungguPenilaianItem, idx: number) => (
+          <button
+            key={t.id || `tugas-${idx}`}
+            type="button"
+            onClick={() => router.push(`/dashboard/tugas/${t.id}`)}
+            className="w-full flex items-start gap-3 rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-3.5 py-3 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all text-left"
+          >
+            <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0 mt-0.5">
+              <ClipboardList className="w-4 h-4 text-blue-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">{t.judulTugas}</p>
+              <p className="text-[11px] text-gray-400 mt-0.5">{t.namaMapel} · {t.kelas}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-300 shrink-0 mt-1" />
+          </button>
+        ))}
+      </div>
+
+      {/* Jadwal Hari Ini */}
+      {data?.jadwalHariIni && data.jadwalHariIni.length > 0 && (
+        <div className="space-y-2">
+          <SectionHeader icon={CalendarDays} title="Jadwal Hari Ini" count={data.jadwalHariIni.length} />
+          {data.jadwalHariIni.map((j) => (
+            <button
+              key={j.jadwalId}
+              type="button"
+              onClick={() => router.push('/dashboard/jadwal/guru')}
+              className="w-full flex items-start gap-3 rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-3.5 py-3 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-all text-left"
+            >
+              <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center shrink-0 mt-0.5">
+                <CalendarDays className="w-4 h-4 text-purple-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">{j.namaMapel}</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">{j.kelas} · {j.jamMulai} – {j.jamSelesai}</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-300 shrink-0 mt-1" />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

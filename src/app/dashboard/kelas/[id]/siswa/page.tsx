@@ -122,7 +122,7 @@ export default function KelasSiswaPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-200 p-4 md:p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-4 md:p-6">
         <KelasSiswaTable
           data={filteredSiswa}
           isLoading={loadingSiswa}

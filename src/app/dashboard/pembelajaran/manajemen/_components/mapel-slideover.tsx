@@ -24,10 +24,10 @@ interface Props {
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="text-xl font-bold text-gray-800 mt-0.5">{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+    <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/20 px-4 py-3">
+      <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+      <p className="text-xl font-bold text-gray-800 dark:text-gray-100 mt-0.5">{value}</p>
+      {sub && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -54,10 +54,10 @@ function TodoGuruSection({
   const adaJadwalHariIni = (todo?.jadwalHariIni.length ?? 0) > 0
 
   const statusColor: Record<string, string> = {
-    AKSI_DIBUTUHKAN:    'text-red-600 bg-red-50 border-red-200',
-    BELUM_WAKTUNYA:     'text-gray-500 bg-gray-50 border-gray-200',
-    KELAS_SUDAH_DIBUKA: 'text-emerald-600 bg-emerald-50 border-emerald-200',
-    TERLEWAT:           'text-orange-600 bg-orange-50 border-orange-200',
+    AKSI_DIBUTUHKAN:    'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800',
+    BELUM_WAKTUNYA:     'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800',
+    KELAS_SUDAH_DIBUKA: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800',
+    TERLEWAT:           'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800',
   }
   const statusLabel: Record<string, string> = {
     AKSI_DIBUTUHKAN:    'Perlu Buka Absen',
@@ -75,25 +75,25 @@ function TodoGuruSection({
 
   if (!adaJadwalHariIni && totalPending === 0) return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
         To Do Guru (Koordinator)
       </p>
-      <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2.5">
-        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-        <p className="text-xs text-emerald-700">Tidak ada to do saat ini</p>
+      <div className="flex items-center gap-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 px-3 py-2.5">
+        <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0" />
+        <p className="text-xs text-emerald-700 dark:text-emerald-400">Tidak ada to do saat ini</p>
       </div>
     </div>
   )
 
   return (
     <div className="space-y-3">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
         To Do Guru (Koordinator)
       </p>
 
       {todo?.jadwalHariIni.map((j) => (
         <div key={j.jadwalId}
-          className={`rounded-lg border px-3 py-2.5 space-y-1 ${statusColor[j.statusSesi] ?? 'bg-gray-50 border-gray-200'}`}>
+          className={`rounded-lg border px-3 py-2.5 space-y-1 ${statusColor[j.statusSesi] ?? 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'}`}>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 text-xs">
               <Clock className="w-3.5 h-3.5 shrink-0" />
@@ -108,9 +108,9 @@ function TodoGuruSection({
       ))}
 
       {totalPending > 0 && (
-        <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5">
-          <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />
-          <p className="text-sm text-amber-700">
+        <div className="flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 px-3 py-2.5">
+          <AlertCircle className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" />
+          <p className="text-sm text-amber-700 dark:text-amber-400">
             {totalPending} tugas menunggu penilaian
           </p>
         </div>
@@ -143,7 +143,7 @@ function PerformaSection({
 
   if (isLoading) return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Performa Kelas</p>
+      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Performa Kelas</p>
       <div className="grid grid-cols-3 gap-2">
         {Array.from({ length: 3 }).map((_, i) => (
           <Skeleton key={i} className="h-16 rounded-lg" />
@@ -159,8 +159,8 @@ function PerformaSection({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <TrendingUp className="w-4 h-4 text-gray-400" />
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Performa Kelas</p>
+        <TrendingUp className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Performa Kelas</p>
       </div>
       <div className="grid grid-cols-3 gap-2">
         {[
@@ -168,22 +168,22 @@ function PerformaSection({
             label: 'Kehadiran',
             value: `${rataRataKehadiranSiswa}%`,
             color: rataRataKehadiranSiswa >= 80
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-              : 'bg-amber-50 border-amber-200 text-amber-700',
+              ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400'
+              : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400',
           },
           {
             label: 'Rata Nilai',
             value: rataRataNilaiRaport > 0 ? rataRataNilaiRaport.toFixed(1) : '-',
             color: rataRataNilaiRaport >= 75
-              ? 'bg-blue-50 border-blue-200 text-blue-700'
-              : 'bg-amber-50 border-amber-200 text-amber-700',
+              ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400'
+              : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400',
           },
           {
             label: 'Tugas Selesai',
             value: `${persentaseTugasSelesai}%`,
             color: persentaseTugasSelesai >= 70
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-              : 'bg-amber-50 border-amber-200 text-amber-700',
+              ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400'
+              : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400',
           },
         ].map((s) => (
           <div key={s.label}
@@ -238,49 +238,49 @@ export function MapelSlideover({
           {/* Info dasar */}
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">Kelas</span>
-              <span className="font-medium">{mapel.kelas.namaKelas}</span>
+              <span className="text-gray-500 dark:text-gray-400">Kelas</span>
+              <span className="font-medium text-gray-800 dark:text-gray-100">{mapel.kelas.namaKelas}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Semester</span>
-              <span className="font-medium">{mapel.semester.nama}</span>
+              <span className="text-gray-500 dark:text-gray-400">Semester</span>
+              <span className="font-medium text-gray-800 dark:text-gray-100">{mapel.semester.nama}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">KKM / Bobot</span>
-              <span className="font-medium">{mapel.kkm} / {mapel.bobot} SKS</span>
+              <span className="text-gray-500 dark:text-gray-400">KKM / Bobot</span>
+              <span className="font-medium text-gray-800 dark:text-gray-100">{mapel.kkm} / {mapel.bobot} SKS</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Jadwal</span>
-              <span className="font-medium text-right max-w-[60%]">{jadwalText}</span>
+              <span className="text-gray-500 dark:text-gray-400">Jadwal</span>
+              <span className="font-medium text-right max-w-[60%] text-gray-800 dark:text-gray-100">{jadwalText}</span>
             </div>
           </div>
 
           {/* Pengajar */}
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Pengajar</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Pengajar</p>
             {mapel.pengajar.length === 0 ? (
-              <p className="text-sm text-gray-400">Belum ada pengajar</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500">Belum ada pengajar</p>
             ) : (
               <div className="space-y-2">
                 {koordinator && (
-                  <div className="flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
-                    <div className="w-8 h-8 rounded-full bg-emerald-200 flex items-center justify-center text-xs font-bold text-emerald-700">
+                  <div className="flex items-center gap-3 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2">
+                    <div className="w-8 h-8 rounded-full bg-emerald-200 dark:bg-emerald-900/40 flex items-center justify-center text-xs font-bold text-emerald-700 dark:text-emerald-400">
                       {koordinator.guru.profile.namaLengkap.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">
                         {koordinator.guru.profile.namaLengkap}
                       </p>
-                      <p className="text-xs text-emerald-600">Koordinator</p>
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400">Koordinator</p>
                     </div>
                   </div>
                 )}
                 {coTeacher.map((p) => (
-                  <div key={p.guru.id} className="flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2">
-                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500">
+                  <div key={p.guru.id} className="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/20 px-3 py-2">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400">
                       {p.guru.profile.namaLengkap.charAt(0)}
                     </div>
-                    <p className="text-sm text-gray-700 truncate">{p.guru.profile.namaLengkap}</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 truncate">{p.guru.profile.namaLengkap}</p>
                   </div>
                 ))}
               </div>
@@ -289,7 +289,7 @@ export function MapelSlideover({
 
           {/* Stat mini cards */}
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Statistik</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Statistik</p>
             <div className="grid grid-cols-2 gap-3">
               <StatCard label="Materi"    value={mapel._count.materiPelajaran} sub="konten diunggah" />
               <StatCard label="Tugas"     value={mapel._count.tugas}           sub="tugas dibuat" />
@@ -314,13 +314,13 @@ export function MapelSlideover({
 
           {/* Navigasi */}
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Navigasi</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Navigasi</p>
             <div className="grid grid-cols-2 gap-2">
               <Button size="sm" variant="secondary" leftIcon={<CalendarDays className="w-3.5 h-3.5" />}
                 onClick={() => router.push(`/dashboard/absensi?mataPelajaranId=${mapel.id}`)}>
                 Absensi
               </Button>
-              <Button size="sm" variant="secondary" leftIcon={<CalendarCheck className="w-3.5 h-3.5 text-blue-500" />}
+              <Button size="sm" variant="secondary" leftIcon={<CalendarCheck className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />}
                 onClick={() => router.push(`/dashboard/jadwal?kelasId=${mapel.kelasId}&semesterId=${mapel.semesterId}`)}>
                 Jadwal
               </Button>
@@ -349,7 +349,7 @@ export function MapelSlideover({
 
           {/* Aksi CRUD */}
           {canCrud && (
-            <div className="space-y-2 pt-2 border-t border-gray-100">
+            <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-800">
               <Button size="sm" variant="secondary" className="w-full justify-start"
                 leftIcon={<Edit className="w-3.5 h-3.5" />}
                 onClick={() => onEdit(mapel)}>
@@ -360,7 +360,7 @@ export function MapelSlideover({
                 onClick={() => onToggleActive(mapel)}>
                 {mapel.isActive ? 'Nonaktifkan' : 'Aktifkan'} Mata Pelajaran
               </Button>
-              <Button size="sm" variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600"
+              <Button size="sm" variant="ghost" className="w-full justify-start text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300"
                 leftIcon={<Trash2 className="w-3.5 h-3.5" />}
                 onClick={() => onDelete(mapel)}>
                 Hapus Mata Pelajaran
