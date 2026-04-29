@@ -6,6 +6,11 @@ FROM node:24-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
+# Paksa NPM agar lebih kebal terhadap jaringan yang lambat/putus-nyambung
+RUN npm config set fetch-retries 3 \
+    && npm config set fetch-retry-mintimeout 20000 \
+    && npm config set fetch-retry-maxtimeout 120000
+    
 # Copy package.json dan package-lock.json
 COPY package.json package-lock.json* ./
 # Install semua depedensi (termasuk devDependencies untuk build)
