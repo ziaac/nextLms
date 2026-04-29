@@ -72,11 +72,11 @@ function StatRow({
       <div className="flex-1 min-w-0">
         <p className="text-[11px] text-white/75 uppercase tracking-wide truncate font-medium">{label}</p>
         <div className="flex items-baseline gap-1.5 mt-0.5">
-          <span className="text-sm text-white font-medium">{left}</span>
-          <span className="text-[10px] text-white/40">{leftLabel}</span>
+          <span className="text-xl text-white font-semibold leading-none">{left}</span>
+          <span className="text-[11px] text-white/50">{leftLabel}</span>
           <span className="text-white/20 mx-0.5">/</span>
-          <span className="text-sm text-emerald-300 font-medium">{right}</span>
-          <span className="text-[10px] text-white/40">{rightLabel}</span>
+          <span className="text-xl text-emerald-300 font-semibold leading-none">{right}</span>
+          <span className="text-[11px] text-white/50">{rightLabel}</span>
         </div>
       </div>
     </div>
