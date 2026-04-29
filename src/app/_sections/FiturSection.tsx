@@ -41,28 +41,15 @@ function FiturSkeleton() {
 }
 
 // ── Card ──────────────────────────────────────────────────────────────────────
-function FiturCard({ item, index, variant }: {
-  item: FiturItem; index: number; variant: 'dark' | 'light'
+function FiturCard({ item, index }: {
+  item: FiturItem; index: number
 }) {
   const Icon   = FALLBACK_ICONS[index % FALLBACK_ICONS.length]
   const imgUrl = item.fotoUrl ? getPublicFileUrl(item.fotoUrl) : null
 
   return (
-    <div className={`
-      group flex items-start gap-4 p-5 rounded-2xl border transition-all duration-300
-      hover:-translate-y-0.5 hover:shadow-lg
-      ${variant === 'dark'
-        ? 'border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 hover:shadow-black/20'
-        : 'border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/25 hover:shadow-black/20'
-      }
-    `}>
-      <div className={`
-        w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110
-        ${variant === 'dark'
-          ? 'bg-emerald-500/20 border border-emerald-400/20'
-          : 'bg-white/15 border border-white/20'
-        }
-      `}>
+    <div className="group flex items-start gap-4 p-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
+      <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 bg-emerald-500/20 border border-emerald-400/20">
         {imgUrl ? (
           <img src={imgUrl} alt={item.judul} className="w-6 h-6 object-contain" />
         ) : (
@@ -83,7 +70,7 @@ function FiturCard({ item, index, variant }: {
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
-export function FiturSection({ fitur }: { fitur: FiturItem[] }) {
+export function FiturSection({ fitur, foto2Url }: { fitur: FiturItem[]; foto2Url?: string | null }) {
   const activeItems = fitur.filter((f) => f.isActive).slice(0, 6)
 
   const defaultFitur: FiturItem[] = [
@@ -99,16 +86,26 @@ export function FiturSection({ fitur }: { fitur: FiturItem[] }) {
   const leftItems  = items.slice(0, 3)
   const rightItems = items.slice(3, 6)
 
+  const leftBg  = foto2Url ? getPublicFileUrl(foto2Url) : null
+
   return (
     <section className="relative w-full overflow-hidden bg-white dark:bg-gray-950">
 
       <div className="relative flex flex-col lg:flex-row items-stretch">
 
-        {/* Kolom Kiri — Emerald gelap */}
-        <div className="relative lg:w-1/2 min-h-[400px] bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 overflow-hidden">
-          <div className="absolute inset-0 opacity-10"
-            style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 40%)' }}
-          />
+        {/* Kolom Kiri — background foto2 + overlay seperti login */}
+        <div className="relative lg:w-1/2 min-h-[400px] overflow-hidden">
+          <div className="absolute inset-0">
+            {leftBg
+              ? <img src={leftBg} alt="Fitur" className="w-full h-full object-cover" />
+              : <img src={BANNER_URL} alt="Fitur" className="w-full h-full object-cover" />
+            }
+            <div className="absolute inset-0 backdrop-brightness-75" />
+            {/* Tint emerald */}
+            <div className="absolute inset-0 bg-emerald-950/20" />
+            {/* Fade bawah ke atas */}
+            <div className="absolute bottom-0 left-0 right-0 h-96" style={{ background: 'linear-gradient(to top, #020d0a 0%, rgba(2,13,10,0.5) 50%, transparent 100%)' }} />
+          </div>
           <div className="relative z-10 p-8 lg:p-12 flex flex-col justify-center h-full">
             <div className="mb-8">
               <p className="text-[11px] text-emerald-400/70 uppercase tracking-widest mb-1.5">Platform LMS</p>
@@ -117,26 +114,31 @@ export function FiturSection({ fitur }: { fitur: FiturItem[] }) {
             </div>
             <div className="space-y-3 pr-8">
               {leftItems.map((item, i) => (
-                <FiturCard key={item.id} item={item} index={i} variant="dark" />
+                <FiturCard key={item.id} item={item} index={i} />
               ))}
             </div>
           </div>
         </div>
 
-        {/* Kolom Kanan — Background image */}
+        {/* Kolom Kanan — background BANNER + overlay seperti login */}
         <div className="relative lg:w-1/2 min-h-[400px] overflow-hidden">
           <div className="absolute inset-0">
             <img src={BANNER_URL} alt="Fitur" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-br from-teal-950/85 via-emerald-900/75 to-emerald-800/80" />
+            <div className="absolute inset-0 backdrop-brightness-75" />
+            {/* Tint emerald */}
+            <div className="absolute inset-0 bg-emerald-950/15" />
+            {/* Fade bawah ke atas */}
+            <div className="absolute bottom-0 left-0 right-0 h-96" style={{ background: 'linear-gradient(to top, #020d0a 0%, rgba(2,13,10,0.5) 50%, transparent 100%)' }} />
           </div>
           <div className="relative z-10 p-8 lg:p-12 flex flex-col justify-center h-full">
             <div className="mb-8 lg:pl-8">
-              <p className="text-[11px] text-white/50 uppercase tracking-widest mb-1.5">Lebih Banyak</p>
+              <p className="text-[11px] text-emerald-400/70 uppercase tracking-widest mb-1.5">Platform LMS</p>
               <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight">Kemampuan Sistem</h2>
+              <p className="text-sm text-white/50 mt-2">Fitur lengkap untuk ekosistem madrasah digital</p>
             </div>
             <div className="space-y-3 lg:pl-8">
               {rightItems.map((item, i) => (
-                <FiturCard key={item.id} item={item} index={i + 3} variant="light" />
+                <FiturCard key={item.id} item={item} index={i + 3} />
               ))}
             </div>
           </div>
@@ -165,3 +167,5 @@ export function FiturSection({ fitur }: { fitur: FiturItem[] }) {
     </section>
   )
 }
+
+

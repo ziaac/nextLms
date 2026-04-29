@@ -225,6 +225,8 @@ export function ProfilSection({ profil, stats }: ProfilSectionProps) {
                 <img src={BANNER_URL} alt="Banner" className="w-full h-full object-cover" />
               )}
               <div className="absolute inset-0 bg-black/25" />
+              {/* Fade bawah ke atas — soft */}
+              <div className="absolute bottom-0 left-0 right-0 h-64" style={{ background: 'linear-gradient(to top, rgba(2,13,10,0.6) 0%, rgba(2,13,10,0.25) 50%, transparent 100%)' }} />
             </div>
 
             {/* Card transparan */}

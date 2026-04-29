@@ -79,8 +79,9 @@ function FeaturedCard({ item }: { item: BeritaItem }) {
           <PlaceholderImage variant="news" className="absolute inset-0 w-full h-full" />
         )}
 
-        {/* Overlay — selalu gelap agar teks putih terbaca */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
+        {/* Overlay — fade bawah ke atas */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-96" style={{ background: 'linear-gradient(to top, #020d0a 0%, rgba(2,13,10,0.5) 50%, transparent 100%)' }} />
 
         {/* Content */}
         <div className="absolute bottom-0 left-0 right-0 p-6 space-y-2.5">

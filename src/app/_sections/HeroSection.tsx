@@ -221,6 +221,7 @@ export function HeroSection({ sliders, aktivitas }: { sliders: Slider[]; aktivit
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_30%,_rgba(0,0,0,0.55)_100%)]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/25" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
+        <div className="absolute inset-0 opacity-40" style={{ background: 'linear-gradient(135deg, #0A3C30 0%, transparent 50%, #0A3C30 100%)' }} />
       </div>
 
       {/* Content */}
