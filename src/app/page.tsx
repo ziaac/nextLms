@@ -84,9 +84,9 @@ export default async function HomePage() {
         <div id="beranda"><HeroSection sliders={sliderData} aktivitas={aktivitasData} /></div>
         <div id="profil"><ProfilSection profil={profilData} stats={aktivitasData?.profil ?? statsData} /></div>
         <div id="fitur"><FiturSection fitur={fiturData} foto2Url={profilData?.foto2Url ?? null} /></div>
+        <div id="download"><DownloadSection /></div>
         <div id="berita"><BeritaSection berita={berita} /></div>
         <div id="galeri"><GaleriSection album={galeriDetail} albumList={albums} /></div>
-        <div id="download"><DownloadSection /></div>
       </main>
 
       <PublicFooter profil={profilData} />

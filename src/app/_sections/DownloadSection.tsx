@@ -272,9 +272,8 @@ export function DownloadSection() {
             {/* Footer */}
             <div className="p-6 border-t border-gray-200 dark:border-gray-800 flex justify-end">
               <Button 
-                color="primary" 
                 onPress={() => setShowPWAModal(false)}
-                className="font-semibold bg-emerald-600 hover:bg-emerald-700"
+                className="font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
               >
                 Mengerti
               </Button>
@@ -320,18 +319,17 @@ export function DownloadSection() {
             {/* Footer */}
             <div className="p-6 border-t border-gray-200 dark:border-gray-800 flex gap-2 justify-end">
               <Button 
-                variant="flat" 
                 onPress={() => setShowDevModal(false)}
+                className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
               >
                 Tutup
               </Button>
               <Button 
-                color="primary" 
                 onPress={() => {
                   setShowDevModal(false)
                   setShowPWAModal(true)
                 }}
-                className="font-semibold bg-emerald-600 hover:bg-emerald-700"
+                className="font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
               >
                 Lihat Cara Install PWA
               </Button>
