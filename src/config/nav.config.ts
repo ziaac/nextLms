@@ -3,7 +3,7 @@ import {
   QrCode, Award, Users, DollarSign, CreditCard,
   Settings, BarChart3, Home, Bell, UserCircle, School,
   BookMarked, ShieldCheck, Calendar, Layers,
-  Building2, FolderOpen, ListTodo, Star, ClipboardCheck,
+  Building2, FolderOpen, ListTodo, Star, ClipboardCheck, Megaphone,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
 
@@ -28,32 +28,18 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Dashboard',   href: '/dashboard',        icon: LayoutDashboard },
       { label: 'To Do',       href: '/dashboard/todo',   icon: ListTodo },
+      {
+        label: 'Broadcast Notifikasi',
+        href:  '/dashboard/notifikasi/broadcast',
+        icon:  Megaphone,
+        roles: ['ADMIN', 'SUPER_ADMIN'],
+      },
       { label: 'Profil Saya', href: '/dashboard/profil', icon: UserCircle },
       {
         label: 'Log LCKH',
         href:  '/dashboard/log-lckh',
         icon:  ClipboardCheck,
         roles: ['GURU', 'WALI_KELAS'],
-      },
-    ],
-  },
-
-  // ── AKSI DIPERLUKAN (manajemen) ───────────────────────────────────────────
-  {
-    label: 'AKSI DIPERLUKAN',
-    roles: ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU'],
-    items: [
-      {
-        label: 'To Do',
-        href:  '/dashboard/todo',
-        icon:  ListTodo,
-        roles: ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU'],
-      },
-      {
-        label: 'LCKH Guru',
-        href:  '/dashboard/log-lckh/manajemen',
-        icon:  ClipboardCheck,
-        roles: ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA'],
       },
     ],
   },
@@ -82,6 +68,12 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'AKADEMIK',
     items: [
+      {
+        label: 'LCKH Guru',
+        href:  '/dashboard/log-lckh/manajemen',
+        icon:  ClipboardCheck,
+        roles: ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA'],
+      },
       {
         label: 'Kelas & Siswa',
         href:  '/dashboard/kelas',

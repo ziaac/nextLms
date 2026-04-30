@@ -1,15 +1,18 @@
 'use client'
 
 import { Bell } from 'lucide-react'
-import Link from 'next/link'
 import { useNotificationStore } from '@/stores/notification.store'
 
-export function NotificationBadge() {
+interface NotificationBadgeProps {
+  onClick: () => void
+}
+
+export function NotificationBadge({ onClick }: NotificationBadgeProps) {
   const unreadCount = useNotificationStore((s) => s.unreadCount)
 
   return (
-    <Link
-      href="/dashboard/notifikasi"
+    <button
+      onClick={onClick}
       className="
         relative flex items-center justify-center w-9 h-9 rounded-xl
         text-gray-500 dark:text-gray-400
@@ -17,6 +20,7 @@ export function NotificationBadge() {
         transition-colors
       "
       title="Notifikasi"
+      aria-label="Buka notifikasi"
     >
       <Bell size={18} />
       {unreadCount > 0 && (
@@ -30,6 +34,6 @@ export function NotificationBadge() {
           {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}
-    </Link>
+    </button>
   )
 }

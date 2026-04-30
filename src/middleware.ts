@@ -81,6 +81,10 @@ const ROLE_ROUTES: Record<string, UserRole[]> = {
   '/dashboard/log-lckh/manajemen':     ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA'],
   '/dashboard/log-lckh':               ['GURU', 'WALI_KELAS', 'SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU'],
 
+  // ── Notifikasi ─────────────────────────────────────────────────────────────
+  '/dashboard/notifikasi/broadcast':   ['SUPER_ADMIN', 'ADMIN'],
+  // /dashboard/notifikasi — semua role yang login (tidak dibatasi)
+
   // ── Keuangan ───────────────────────────────────────────────────────────────
   '/dashboard/tagihan':                ['STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN', 'SISWA', 'ORANG_TUA'],
   '/dashboard/pembayaran':             ['STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN', 'SISWA', 'ORANG_TUA'],

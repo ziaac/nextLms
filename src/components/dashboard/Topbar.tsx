@@ -1,13 +1,17 @@
 'use client'
 
+import { useState } from 'react'
 import { Menu } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle'
 import { NotificationBadge } from './NotificationBadge'
+import { NotificationDropdown } from './NotificationDropdown'
 import { UserMenu } from './UserMenu'
 
 interface TopbarProps { onMenuClick: () => void }
 
 export function Topbar({ onMenuClick }: TopbarProps) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+
   return (
     <header className="
       sticky top-0 z-40 flex items-center justify-between
@@ -37,7 +41,16 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
       <div className="flex items-center gap-1">
         <ThemeToggle />
-        <NotificationBadge />
+        {/* Wrapper relative untuk positioning dropdown */}
+        <div className="relative">
+          <NotificationBadge
+            onClick={() => setIsDropdownOpen((prev) => !prev)}
+          />
+          <NotificationDropdown
+            isOpen={isDropdownOpen}
+            onClose={() => setIsDropdownOpen(false)}
+          />
+        </div>
         <UserMenu />
       </div>
     </header>
