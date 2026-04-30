@@ -1,19 +1,11 @@
 import type { TipeNotifikasi } from '@/types/enums'
 
+// Menggunakan logo MAN 2 Makassar sebagai icon default
+const DEFAULT_ICON = 'https://storagelms.man2kotamakassar.sch.id/static-assets/static_logoman-50.png'
+
 export function getTipeIcon(tipe: TipeNotifikasi): string {
-  const icons: Record<TipeNotifikasi, string> = {
-    INFO:           'ℹ️',
-    TUGAS:          '📚',
-    PENILAIAN:      '📊',
-    PEMBAYARAN:     '💳',
-    ABSENSI:        '📋',
-    PENGUMUMAN:     '📢',
-    SIKAP:          '⭐',
-    PERIZINAN:      '📝',
-    EKSTRAKURIKULER:'🏆',
-    SISTEM:         '🔔',
-  }
-  return icons[tipe] ?? '🔔'
+  // Semua tipe notifikasi menggunakan logo MAN 2 Makassar
+  return DEFAULT_ICON
 }
 
 export function getTipeLabel(tipe: TipeNotifikasi): string {

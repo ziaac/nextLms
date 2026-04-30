@@ -217,7 +217,7 @@ export default function PembelajaranSiswaPage() {
 
   if (!bolehAkses) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500">
+      <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
         <p className="text-sm">Anda tidak memiliki akses ke halaman ini.</p>
       </div>
     )
@@ -225,10 +225,10 @@ export default function PembelajaranSiswaPage() {
 
   if (isOrangTua && !loadingKelas && anakList.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 gap-3 text-gray-400">
+      <div className="flex flex-col items-center justify-center h-64 gap-3 text-gray-400 dark:text-gray-500">
         <Users className="w-10 h-10 opacity-40" />
         <p className="text-sm font-medium">Data anak belum tersedia</p>
-        <p className="text-xs text-center max-w-xs">
+        <p className="text-xs text-center max-w-xs text-gray-400 dark:text-gray-500">
           Hubungi admin untuk menghubungkan akun Anda dengan data siswa.
         </p>
       </div>
@@ -269,8 +269,8 @@ export default function PembelajaranSiswaPage() {
 
       {/* ── No active class banner ── */}
       {!isLoading && !kelasAktif && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="text-sm text-amber-700">Tidak ada kelas aktif saat ini.</p>
+        <div className="rounded-2xl border border-amber-200 dark:border-amber-900/40 bg-amber-50 dark:bg-amber-950/20 px-4 py-3">
+          <p className="text-sm text-amber-700 dark:text-amber-400">Tidak ada kelas aktif saat ini.</p>
         </div>
       )}
 
@@ -366,9 +366,9 @@ export default function PembelajaranSiswaPage() {
       {isLoading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4">
-              <div className="h-4 w-3/4 bg-gray-100 rounded animate-pulse" />
-              <div className="h-20 bg-gray-100 rounded-lg animate-pulse" />
+            <div key={i} className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-4">
+              <div className="h-4 w-3/4 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+              <div className="h-20 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
             </div>
           ))}
         </div>
@@ -376,7 +376,7 @@ export default function PembelajaranSiswaPage() {
 
       {/* ── Empty: no mapel at all ── */}
       {!isLoading && mapelList.length === 0 && kelasAktif && (
-        <div className="flex flex-col items-center justify-center py-16 gap-3 text-gray-400">
+        <div className="flex flex-col items-center justify-center py-16 gap-3 text-gray-400 dark:text-gray-500">
           <CalendarDays className="w-10 h-10 opacity-40" />
           <p className="text-sm font-medium">Belum ada mata pelajaran</p>
         </div>
@@ -384,7 +384,7 @@ export default function PembelajaranSiswaPage() {
 
       {/* ── Empty: no mapel on selected day ── */}
       {!isLoading && mapelList.length > 0 && filteredMapel.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-12 gap-2 text-gray-400">
+        <div className="flex flex-col items-center justify-center py-12 gap-2 text-gray-400 dark:text-gray-500">
           <CalendarDays className="w-8 h-8 opacity-30" />
           <p className="text-sm">Tidak ada pelajaran hari {DAY_SHORT[selectedDay] ?? selectedDay}</p>
         </div>

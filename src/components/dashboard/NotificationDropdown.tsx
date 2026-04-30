@@ -115,11 +115,11 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
                     hover:bg-gray-50 dark:hover:bg-gray-800/60
                     transition-colors border-b border-gray-50 dark:border-gray-800/50
                     last:border-b-0
-                    ${!item.isRead ? 'bg-blue-50/40 dark:bg-blue-900/10' : ''}
+                    ${!item.isRead ? 'bg-red-50/40 dark:bg-red-900/10' : ''}
                   `}
                 >
                   {/* Ikon tipe atau gambar */}
-                  <span className="text-lg flex-shrink-0 mt-0.5 w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                  <span className="text-lg flex-shrink-0 mt-0.5 w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
                     {item.imageUrl ? (
                       <img
                         src={item.imageUrl}
@@ -127,7 +127,11 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
                         className="w-full h-full object-contain p-0.5"
                       />
                     ) : (
-                      getTipeIcon(item.tipe)
+                      <img
+                        src={getTipeIcon(item.tipe)}
+                        alt=""
+                        className="w-5 h-5 object-contain"
+                      />
                     )}
                   </span>
 
@@ -137,7 +141,7 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
                         {item.judul}
                       </p>
                       {!item.isRead && (
-                        <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-1" />
+                        <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-1" />
                       )}
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">

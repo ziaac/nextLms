@@ -8,6 +8,7 @@ import { ProfilSection } from './_sections/ProfilSection'
 import { FiturSection } from './_sections/FiturSection'
 import { BeritaSection } from './_sections/BeritaSection'
 import { GaleriSection } from './_sections/GaleriSection'
+import { DownloadSection } from './_sections/DownloadSection'
 
 export const revalidate = 300 // ISR 5 menit
 
@@ -85,6 +86,7 @@ export default async function HomePage() {
         <div id="fitur"><FiturSection fitur={fiturData} foto2Url={profilData?.foto2Url ?? null} /></div>
         <div id="berita"><BeritaSection berita={berita} /></div>
         <div id="galeri"><GaleriSection album={galeriDetail} albumList={albums} /></div>
+        <div id="download"><DownloadSection /></div>
       </main>
 
       <PublicFooter profil={profilData} />

@@ -186,19 +186,43 @@ export const NAV_GROUPS: NavGroup[] = [
   // ── KEUANGAN ──────────────────────────────────────────────────────────────
   {
     label: 'KEUANGAN',
-    roles: ['SISWA', 'ORANG_TUA', 'STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN'],
+    roles: ['SISWA', 'ORANG_TUA', 'KEPALA_SEKOLAH', 'STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN'],
     items: [
       {
-        label: 'Tagihan',
-        href:  '/dashboard/tagihan',
+        label: 'Tagihan Saya',
+        href:  '/dashboard/pembelajaran/siswa/tagihan',
         icon:  DollarSign,
-        roles: ['SISWA', 'ORANG_TUA', 'STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN'],
+        roles: ['SISWA', 'ORANG_TUA'],
+      },
+      {
+        label: 'Kategori Pembayaran',
+        href:  '/dashboard/keuangan/kategori',
+        icon:  Layers,
+        roles: ['STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN'],
+      },
+      {
+        label: 'Tagihan',
+        href:  '/dashboard/keuangan/tagihan',
+        icon:  DollarSign,
+        roles: ['STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN'],
       },
       {
         label: 'Pembayaran',
-        href:  '/dashboard/pembayaran',
+        href:  '/dashboard/keuangan/pembayaran',
         icon:  CreditCard,
-        roles: ['SISWA', 'ORANG_TUA', 'STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN'],
+        roles: ['STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN'],
+      },
+      {
+        label: 'Laporan',
+        href:  '/dashboard/keuangan/laporan',
+        icon:  BarChart3,
+        roles: ['KEPALA_SEKOLAH', 'STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN'],
+      },
+      {
+        label: 'Pengaturan Payment',
+        href:  '/dashboard/keuangan/settings',
+        icon:  Settings,
+        roles: ['ADMIN', 'SUPER_ADMIN'],
       },
     ],
   },
@@ -285,12 +309,6 @@ export const NAV_GROUPS: NavGroup[] = [
         href:  '/dashboard/master-sikap',
         icon:  BookMarked,
         roles: ['ADMIN', 'SUPER_ADMIN'],
-      },
-      {
-        label: 'Kategori Bayar',
-        href:  '/dashboard/kategori-pembayaran',
-        icon:  DollarSign,
-        roles: ['ADMIN', 'SUPER_ADMIN', 'STAFF_KEUANGAN'],
       },
     ],
   },

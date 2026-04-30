@@ -26,6 +26,14 @@ export function formatRupiah(amount: number): string {
   }).format(amount)
 }
 
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(amount)
+}
+
 /** Ambil 2 inisial dari nama — safe jika undefined/null */
 export function getInitials(name?: string | null): string {
   if (!name) return '?'

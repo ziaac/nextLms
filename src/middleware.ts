@@ -15,6 +15,7 @@ const PUBLIC_ROUTES = [
   '/login',
   '/jadwal-publik',
   '/siswa-baru',        // formulir daftar ulang — publik, tanpa login
+  '/informasi',         // halaman dokumentasi fitur — publik, tanpa login
 ]
 
 const PUBLIC_PREFIXES = ['/berita/', '/galeri/', '/jadwal-publik/', '/siswa-baru/']
@@ -46,9 +47,10 @@ const ROLE_ROUTES: Record<string, UserRole[]> = {
   '/dashboard/jadwal/kelas':        ['SISWA', 'ORANG_TUA', 'WALI_KELAS'],
 
   // ── Pembelajaran ───────────────────────────────────────────────────────────
-  '/dashboard/pembelajaran/manajemen': ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU'],
-  '/dashboard/pembelajaran/guru':      ['GURU', 'WALI_KELAS'],
-  '/dashboard/pembelajaran/siswa':     ['SISWA'],
+  '/dashboard/pembelajaran/manajemen':     ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU'],
+  '/dashboard/pembelajaran/guru':          ['GURU', 'WALI_KELAS'],
+  '/dashboard/pembelajaran/siswa/tagihan': ['SISWA', 'ORANG_TUA'],
+  '/dashboard/pembelajaran/siswa':         ['SISWA'],
 
   // ── Kelas ──────────────────────────────────────────────────────────────────
   '/dashboard/kelas-belajar/manajemen': ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU'],
@@ -86,8 +88,16 @@ const ROLE_ROUTES: Record<string, UserRole[]> = {
   // /dashboard/notifikasi — semua role yang login (tidak dibatasi)
 
   // ── Keuangan ───────────────────────────────────────────────────────────────
-  '/dashboard/tagihan':                ['STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN', 'SISWA', 'ORANG_TUA'],
-  '/dashboard/pembayaran':             ['STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN', 'SISWA', 'ORANG_TUA'],
+  // PENTING: Urutan dari yang paling spesifik ke yang paling umum
+  '/dashboard/keuangan/settings':                  ['ADMIN', 'SUPER_ADMIN'],
+  '/dashboard/keuangan/laporan':                   ['KEPALA_SEKOLAH', 'STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN'],
+  '/dashboard/keuangan/kategori':                  ['STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN'],
+  '/dashboard/keuangan/tagihan':                   ['STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN'],
+  '/dashboard/keuangan/pembayaran':                ['STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN'],
+  
+  // Legacy routes (backward compatibility)
+  '/dashboard/tagihan':                            ['STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN', 'SISWA', 'ORANG_TUA'],
+  '/dashboard/pembayaran':                         ['STAFF_KEUANGAN', 'ADMIN', 'SUPER_ADMIN', 'SISWA', 'ORANG_TUA'],
 }
 
 function isPublicRoute(pathname: string): boolean {

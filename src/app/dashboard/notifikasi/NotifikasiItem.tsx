@@ -39,7 +39,7 @@ export function NotifikasiItem({ item }: NotifikasiItemProps) {
         group flex gap-3 p-4 rounded-xl border transition-colors cursor-pointer
         ${item.isRead
           ? 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60'
-          : 'bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+          : 'bg-red-50/50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-900/20'
         }
       `}
       onClick={handleClick}
@@ -48,7 +48,7 @@ export function NotifikasiItem({ item }: NotifikasiItemProps) {
       onKeyDown={(e) => e.key === 'Enter' && handleClick()}
     >
       {/* Ikon tipe atau gambar */}
-      <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-lg overflow-hidden">
+      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-lg overflow-hidden">
         {item.imageUrl ? (
           <img
             src={item.imageUrl}
@@ -56,7 +56,11 @@ export function NotifikasiItem({ item }: NotifikasiItemProps) {
             className="w-full h-full object-contain p-1"
           />
         ) : (
-          getTipeIcon(item.tipe)
+          <img
+            src={getTipeIcon(item.tipe)}
+            alt=""
+            className="w-6 h-6 object-contain"
+          />
         )}
       </div>
 
@@ -69,7 +73,7 @@ export function NotifikasiItem({ item }: NotifikasiItemProps) {
                 {item.judul}
               </p>
               {!item.isRead && (
-                <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+                <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
               )}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
@@ -90,7 +94,6 @@ export function NotifikasiItem({ item }: NotifikasiItemProps) {
             onClick={handleDelete}
             disabled={removeNotifikasi.isPending}
             className="
-              opacity-0 group-hover:opacity-100
               flex-shrink-0 w-7 h-7 rounded-lg
               flex items-center justify-center
               text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20
