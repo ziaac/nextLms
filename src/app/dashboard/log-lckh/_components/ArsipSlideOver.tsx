@@ -4,36 +4,30 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SlideOver, Skeleton, Select } from '@/components/ui'
 import { useTahunAjaranList } from '@/hooks/tahun-ajaran/useTahunAjaran'
-import { useSemesterByTahunAjaran } from '@/hooks/semester/useSemester'
 import { useArsipLog } from '@/hooks/guru-log/useGuruLog'
 import type { ArsipBulanItem, HarianItem } from '@/types/guru-log.types'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 
 interface ArsipSlideOverProps {
-  open: boolean
+  open:    boolean
   onClose: () => void
 }
 
 export function ArsipSlideOver({ open, onClose }: ArsipSlideOverProps) {
   const router = useRouter()
   const [tahunAjaranId, setTahunAjaranId] = useState('')
-  const [semesterId, setSemesterId] = useState('')
   const [expandedBulan, setExpandedBulan] = useState<string | null>(null)
 
   const { data: taList = [] } = useTahunAjaranList()
-  const { data: semList = [] } = useSemesterByTahunAjaran(tahunAjaranId || null)
 
   const taOptions = (taList as { id: string; nama: string }[]).map((t) => ({
     value: t.id,
     label: t.nama,
   }))
-  const semOptions = (semList as { id: string; nama: string }[]).map((s) => ({
-    value: s.id,
-    label: s.nama,
-  }))
 
+  // Query arsip — semua semester dalam tahun ajaran yang dipilih
   const { data: arsipData = [], isLoading } = useArsipLog(
-    tahunAjaranId ? { tahunAjaranId, semesterId: semesterId || undefined } : null,
+    tahunAjaranId ? { tahunAjaranId } : null,
   )
 
   const handleBulanClick = (key: string) => {
@@ -50,12 +44,12 @@ export function ArsipSlideOver({ open, onClose }: ArsipSlideOverProps) {
       open={open}
       onClose={onClose}
       title="Arsip Log LCKH"
-      description="Riwayat log per semester"
+      description="Riwayat log per tahun ajaran"
       width="md"
     >
       <div className="space-y-4">
-        {/* Filter */}
-        <div className="space-y-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
+        {/* Filter — hanya tahun ajaran */}
+        <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
           <Select
             label="Tahun Ajaran"
             options={taOptions}
@@ -63,20 +57,8 @@ export function ArsipSlideOver({ open, onClose }: ArsipSlideOverProps) {
             placeholder="Pilih tahun ajaran"
             onChange={(e) => {
               setTahunAjaranId(e.target.value)
-              setSemesterId('')
               setExpandedBulan(null)
             }}
-          />
-          <Select
-            label="Semester"
-            options={semOptions}
-            value={semesterId}
-            placeholder="Semua semester"
-            onChange={(e) => {
-              setSemesterId(e.target.value)
-              setExpandedBulan(null)
-            }}
-            disabled={!tahunAjaranId}
           />
         </div>
 
@@ -97,8 +79,8 @@ export function ArsipSlideOver({ open, onClose }: ArsipSlideOverProps) {
           </p>
         ) : (
           <div className="space-y-1">
-            {arsipData.map((bulan: ArsipBulanItem) => {
-              const key = `${bulan.tahun}-${bulan.bulan}`
+            {arsipData.map((bulan: ArsipBulanItem, idx: number) => {
+              const key        = `${bulan.tahun}-${bulan.bulan}-${idx}`
               const isExpanded = expandedBulan === key
 
               return (
@@ -111,7 +93,7 @@ export function ArsipSlideOver({ open, onClose }: ArsipSlideOverProps) {
                   >
                     <div className="flex items-center gap-3">
                       {isExpanded
-                        ? <ChevronDown className="w-4 h-4 text-gray-400" />
+                        ? <ChevronDown  className="w-4 h-4 text-gray-400" />
                         : <ChevronRight className="w-4 h-4 text-gray-400" />
                       }
                       <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
@@ -123,7 +105,7 @@ export function ArsipSlideOver({ open, onClose }: ArsipSlideOverProps) {
                     </span>
                   </button>
 
-                  {/* Expand: list hari */}
+                  {/* Expand: list hari yang ada aktivitas */}
                   {isExpanded && (
                     <div className="border-t border-gray-100 dark:border-gray-800 divide-y divide-gray-50 dark:divide-gray-800/50">
                       {bulan.harian

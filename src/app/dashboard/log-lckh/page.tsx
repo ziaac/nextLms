@@ -6,6 +6,8 @@ import { PageHeader, Button, Skeleton } from '@/components/ui'
 import { useHarianLog } from '@/hooks/guru-log/useGuruLog'
 import { useUser } from '@/hooks/users/useUsers'
 import { useAuthStore } from '@/stores/auth.store'
+import { useTahunAjaranActive } from '@/hooks/tahun-ajaran/useTahunAjaran'
+import { useSemesterByTahunAjaran } from '@/hooks/semester/useSemester'
 import { isManajemen } from '@/lib/helpers/role'
 import { LogHarianFilterBar } from './_components/LogHarianFilterBar'
 import { LogHarianTable }     from './_components/LogHarianTable'
@@ -21,25 +23,33 @@ function LogLckhContent() {
 
   // Mode manajemen: ada ?guruId di URL dan user adalah manajemen
   const guruIdParam     = searchParams.get('guruId') ?? undefined
-  const bulanParam      = searchParams.get('bulan')
-  const tahunParam      = searchParams.get('tahun')
   const isManajemenMode = !!guruIdParam && isManajemen(user?.role)
 
   const now = new Date()
-  const [bulan, setBulan] = useState(
-    bulanParam ? Number(bulanParam) : now.getMonth() + 1,
-  )
-  const [tahun, setTahun] = useState(
-    tahunParam ? Number(tahunParam) : now.getFullYear(),
-  )
-  const [arsipOpen, setArsipOpen] = useState(false)
 
-  // Ambil nama guru jika mode manajemen
-  const { data: guruData } = useUser(guruIdParam ?? '')
+  // ── Ambil tahun dari semester/tahun ajaran aktif ──────────────
+  const { data: taListRaw = [] } = useTahunAjaranActive()
+  const taList  = taListRaw as { id: string; nama: string }[]
+  const taAktif = taList[0] ?? null
+
+  const { data: semListRaw = [] } = useSemesterByTahunAjaran(taAktif?.id ?? null)
+  const semAktif = (semListRaw as { id: string; nama: string; isActive?: boolean; urutan?: number; tanggalMulai?: string }[])
+    .filter((s) => s.isActive)
+    .sort((a, b) => (b.urutan ?? 0) - (a.urutan ?? 0))[0] ?? null
+
+  // Tahun dari semester aktif — fallback ke tahun berjalan
+  const tahunAktif = semAktif?.tanggalMulai
+    ? new Date(semAktif.tanggalMulai).getFullYear()
+    : taAktif?.nama
+      ? parseInt(taAktif.nama.split('/')[0], 10) || now.getFullYear()
+      : now.getFullYear()
+
+  const [bulan, setBulan] = useState(now.getMonth() + 1)
+  const [arsipOpen, setArsipOpen] = useState(false)
 
   const { data = [], isLoading, error } = useHarianLog({
     bulan,
-    tahun,
+    tahun: tahunAktif,
     guruId: isManajemenMode ? guruIdParam : undefined,
   })
 
@@ -49,7 +59,7 @@ function LogLckhContent() {
 
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
-  const namaGuru = (guruData as { profile?: { namaLengkap?: string } } | undefined)
+  const namaGuru = (useUser(guruIdParam ?? '').data as { profile?: { namaLengkap?: string } } | undefined)
     ?.profile?.namaLengkap
 
   return (
@@ -100,11 +110,8 @@ function LogLckhContent() {
 
       <LogHarianFilterBar
         bulan={bulan}
-        tahun={tahun}
-        onChange={(b, t) => {
-          setBulan(b)
-          setTahun(t)
-        }}
+        tahun={tahunAktif}
+        onChange={setBulan}
       />
 
       <LogHarianTable
