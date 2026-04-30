@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { usePerizinanList } from '@/hooks/perizinan/usePerizinan'
+import { getListPerizinan } from '@/lib/api/perizinan.api'
 import { useKelasList } from '@/hooks/kelas/useKelas'
 import type {
   JadwalHariIniItem,
@@ -147,9 +148,12 @@ function DashboardGuru() {
   )
 
   // Perizinan pending — hanya untuk yang menjabat wali kelas
-  const { data: perizinanData, isLoading: perizinanLoading } = usePerizinanList(
-    isWaliKelas ? { status: 'PENDING', page: 1, limit: 10 } : undefined,
-  )
+  const { data: perizinanData, isLoading: perizinanLoading } = useQuery({
+    queryKey: ['perizinan', 'list', { status: 'PENDING', page: 1, limit: 10 }],
+    queryFn:  () => getListPerizinan({ status: 'PENDING', page: 1, limit: 10 }),
+    enabled:  isWaliKelas,
+    staleTime: 0,
+  })
   const perizinanPending = perizinanData?.data ?? []
 
   const firstName = user?.namaLengkap?.split(' ')[0] ?? 'Guru'
