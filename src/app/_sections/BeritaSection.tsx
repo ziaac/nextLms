@@ -183,8 +183,35 @@ export function BeritaSection({ berita }: { berita: BeritaItem[] }) {
   const [featured, ...rest] = berita
 
   return (
-    <section className="py-20 bg-gray-50 dark:bg-gray-900/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <section className="relative py-20 bg-white dark:bg-gray-900/50 overflow-hidden">
+      {/* Diagonal strip ornament — diagonal \ (kiri atas ke kanan bawah) with gradient */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <svg
+          viewBox="0 0 1440 600"
+          preserveAspectRatio="none"
+          className="absolute top-0 left-0 w-full h-full"
+        >
+          <defs>
+            {/* Gradient dari putih ke emerald-50 */}
+            <linearGradient id="white-to-emerald" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgb(255 255 255)" />
+              <stop offset="100%" stopColor="rgb(236 253 245)" />
+            </linearGradient>
+          </defs>
+          
+          {/* Layer 3 — terlebar, dengan gradient (diagonal \ dari kiri atas ke kanan bawah) */}
+          <polygon points="0,0 1440,0 1440,600 0,380" fill="url(#white-to-emerald)" className="dark:hidden" />
+          <polygon points="0,0 1440,0 1440,600 0,380" fill="rgba(6,78,59,0.08)" className="hidden dark:block" />
+          {/* Layer 2 — medium */}
+          <polygon points="0,0 1440,0 1440,440 0,220" fill="rgb(255 255 255)" fillOpacity="0.5" className="dark:hidden" />
+          <polygon points="0,0 1440,0 1440,440 0,220" fill="rgba(6,78,59,0.12)" className="hidden dark:block" />
+          {/* Layer 1 — tersempit */}
+          <polygon points="0,0 1440,0 1440,240 0,60" fill="rgb(255 255 255)" className="dark:hidden" />
+          <polygon points="0,0 1440,0 1440,240 0,60" fill="rgba(6,78,59,0.08)" className="hidden dark:block" />
+        </svg>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6">
 
         <div className="flex items-end justify-between mb-10">
           <div>

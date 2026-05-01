@@ -6,6 +6,8 @@ import type {
   MasterSikapListResponse,
   CreateCatatanSikapPayload,
   JenisSikap,
+  RekapKelasResponse,
+  SiswaKelasItem,
 } from '@/types/sikap.types'
 
 const BASE   = '/catatan-sikap'
@@ -46,6 +48,38 @@ export const updateCatatanSikap = (id: string, payload: Partial<CreateCatatanSik
 
 export const deleteCatatanSikap = (id: string) =>
   api.delete(`${BASE}/${id}`).then((r) => r.data)
+
+// ── Rekap Kelas & Siswa Kelas ─────────────────────────────────────────────────
+export const getRekapKelas = (kelasId: string, semesterId?: string): Promise<RekapKelasResponse> =>
+  api
+    .get<RekapKelasResponse>(`${BASE}/rekap/kelas/${kelasId}`, {
+      params: semesterId ? { semesterId } : {},
+    })
+    .then((r) => r.data)
+
+export const getSiswaKelas = (kelasId: string, semesterId?: string): Promise<SiswaKelasItem[]> =>
+  api
+    .get<SiswaKelasItem[]>(`${BASE}/rekap/siswa-kelas/${kelasId}`, {
+      params: semesterId ? { semesterId } : {},
+    })
+    .then((r) => r.data)
+
+// ── Export PDF ────────────────────────────────────────────────────────────────
+export const exportSiswaPdf = (siswaId: string, semesterId?: string): Promise<Blob> =>
+  api
+    .get(`${BASE}/export/siswa/${siswaId}`, {
+      params: semesterId ? { semesterId } : {},
+      responseType: 'blob',
+    })
+    .then((r) => r.data as Blob)
+
+export const exportKelasPdf = (kelasId: string, semesterId?: string): Promise<Blob> =>
+  api
+    .get(`${BASE}/export/kelas/${kelasId}`, {
+      params: semesterId ? { semesterId } : {},
+      responseType: 'blob',
+    })
+    .then((r) => r.data as Blob)
 
 // ── Master Sikap ──────────────────────────────────────────────────────────────
 export interface QueryMasterSikap {

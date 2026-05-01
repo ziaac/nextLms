@@ -44,6 +44,20 @@ export const updateEksternal = (
 export const deleteEksternal = (id: string): Promise<{ message: string }> =>
   api.delete<{ message: string }>(`/guru-log/eksternal/${id}`).then((r) => r.data)
 
+// ── Hide / Unhide Aktivitas Internal ─────────────────────────────────────────
+
+export const hideInternal = (
+  tipe: string,
+  refId: string,
+): Promise<{ message: string }> =>
+  api.post<{ message: string }>('/guru-log/internal/hide', { tipe, refId }).then((r) => r.data)
+
+export const unhideInternal = (
+  tipe: string,
+  refId: string,
+): Promise<{ message: string }> =>
+  api.post<{ message: string }>('/guru-log/internal/unhide', { tipe, refId }).then((r) => r.data)
+
 // ── Cetak PDF ─────────────────────────────────────────────────────────────────
 
 export const downloadLckhPdf = async (

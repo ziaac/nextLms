@@ -70,6 +70,8 @@ export function PublicFooter({ profil }: FooterProps) {
                 { label: 'Beranda',            href: '/' },
                 { label: 'Profil Madrasah',    href: '/profil' },
                 { label: 'Berita & Informasi', href: '/berita' },
+                { label: 'Pengumuman',         href: '/pengumuman' },
+                { label: 'Kalender Akademik',  href: '/kalender-akademik' },
                 { label: 'Galeri Kegiatan',    href: '/galeri' },
                 { label: 'Jadwal Pelajaran',   href: '/jadwal-publik' },
                 { label: 'Masuk / Login',      href: '/login' },

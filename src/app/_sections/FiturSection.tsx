@@ -154,7 +154,7 @@ export function FiturSection({ fitur, foto2Url }: { fitur: FiturItem[]; foto2Url
       </div>
 
       {/* CTA */}
-      <div className="py-6 text-center bg-white dark:bg-gray-950">
+      <div className="py-6 text-center bg-emerald-50 dark:bg-gray-950">
         <Link
           href="/informasi"
           className="inline-flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors group"

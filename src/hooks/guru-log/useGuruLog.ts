@@ -5,6 +5,8 @@ import {
   createEksternal,
   updateEksternal,
   deleteEksternal,
+  hideInternal,
+  unhideInternal,
   downloadLckhPdf,
   getArsipLog,
   getPersetujuan,
@@ -101,6 +103,20 @@ export function useDeleteEksternal(tanggal: string) {
       qc.invalidateQueries({ queryKey: ['guru-log', 'harian'] })
     },
     onError: () => toast.error('Gagal menghapus aktivitas'),
+  })
+}
+
+export function useHideInternal(tanggal: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ tipe, refId }: { tipe: string; refId: string }) =>
+      hideInternal(tipe, refId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: guruLogKeys.detail(tanggal) })
+      qc.invalidateQueries({ queryKey: ['guru-log', 'harian'] })
+      toast.success('Aktivitas disembunyikan dari LCKH')
+    },
+    onError: () => toast.error('Gagal menyembunyikan aktivitas'),
   })
 }
 

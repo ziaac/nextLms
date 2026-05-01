@@ -13,10 +13,12 @@ const LOGO_URL = 'https://storagelms.man2kotamakassar.sch.id/static-assets/stati
 interface NavItem { label: string; href: string }
 
 const DEFAULT_NAV: NavItem[] = [
-  { label: 'Beranda',   href: '/' },
-  { label: 'Profil',    href: '/profil' },
-  { label: 'Informasi', href: '/informasi' },
-  { label: 'Galeri',    href: '/galeri' },
+  { label: 'Beranda',            href: '/' },
+  { label: 'Profil',             href: '/profil' },
+  { label: 'Informasi',          href: '/informasi' },
+  { label: 'Pengumuman',         href: '/pengumuman' },
+  { label: 'Kalender Akademik',  href: '/kalender-akademik' },
+  { label: 'Galeri',             href: '/galeri' },
 ]
 
 // Map href → anchor id di halaman home

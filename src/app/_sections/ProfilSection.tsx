@@ -133,9 +133,9 @@ export function ProfilSection({ profil, stats }: ProfilSectionProps) {
           {/* Layer 3 — terlebar, paling soft, menutupi seluruh tinggi section */}
           <polygon points="0,0 1440,0 1440,380 0,600" fill="rgb(236 253 245)" className="dark:hidden" />
           <polygon points="0,0 1440,0 1440,380 0,600" fill="rgba(6,78,59,0.08)" className="hidden dark:block" />
-          {/* Layer 2 — medium */}
-          <polygon points="0,0 1440,0 1440,220 0,440" fill="rgb(209 250 229)" className="dark:hidden" />
-          <polygon points="0,0 1440,0 1440,220 0,440" fill="rgba(6,78,59,0.15)" className="hidden dark:block" />
+          {/* Layer 2 — medium, lebih soft */}
+          <polygon points="0,0 1440,0 1440,220 0,440" fill="rgb(209 250 229)" fillOpacity="0.5" className="dark:hidden" />
+          <polygon points="0,0 1440,0 1440,220 0,440" fill="rgba(6,78,59,0.12)" className="hidden dark:block" />
           {/* Layer 1 — tersempit, warna sama dengan layer 3 */}
           <polygon points="0,0 1440,0 1440,60 0,240" fill="rgb(236 253 245)" className="dark:hidden" />
           <polygon points="0,0 1440,0 1440,60 0,240" fill="rgba(6,78,59,0.08)" className="hidden dark:block" />

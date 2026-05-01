@@ -1,14 +1,14 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { X, Search, Loader2 } from 'lucide-react'
+import { X, Search, Loader2, TrendingUp, TrendingDown } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { cn } from '@/lib/utils'
 import { useSemesterOptions } from '@/hooks/semester/useSemester'
 import { useMasterSikapList, useCreateCatatanSikap, useUpdateCatatanSikap } from '@/hooks/sikap/useSikap'
 import { usersApi } from '@/lib/api/users.api'
 import { useDebounce } from '@/hooks/useDebounce'
-import { Combobox, type ComboboxOption } from '@/components/ui/Combobox'
+import { Combobox, DateInput, TimePicker, type ComboboxOption } from '@/components/ui'
 import type { CatatanSikapItem, JenisSikap } from '@/types/sikap.types'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
@@ -21,14 +21,18 @@ const todayISO = () => format(new Date(), 'yyyy-MM-dd')
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface Props {
-  open:       boolean
-  onClose:    () => void
-  editItem?:  CatatanSikapItem | null   // jika ada → mode edit
+  open:               boolean
+  onClose:            () => void
+  editItem?:          CatatanSikapItem | null   // jika ada → mode edit
+  prefillSiswaId?:    string                    // pre-fill siswa dari luar (mode tambah dari tabel)
+  prefillSiswaName?:  string                    // nama siswa untuk ditampilkan (read-only label)
+  prefillSemesterId?: string                    // pre-fill semester dari filter aktif
+  prefillSemesterLabel?: string                 // label semester untuk ditampilkan (read-only label)
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export function SikapFormModal({ open, onClose, editItem }: Props) {
+export function SikapFormModal({ open, onClose, editItem, prefillSiswaId, prefillSiswaName, prefillSemesterId, prefillSemesterLabel }: Props) {
   const isEdit = !!editItem
 
   // ── Form state ────────────────────────────────────────────────
@@ -53,7 +57,7 @@ export function SikapFormModal({ open, onClose, editItem }: Props) {
   // ── Remote data ───────────────────────────────────────────────
   const { options: semOptions, activeSem } = useSemesterOptions()
 
-  const { data: masterData } = useMasterSikapList(jenisFilter ? { jenis: jenisFilter } : undefined)
+  const { data: masterData } = useMasterSikapList()
   const masterList = masterData?.data ?? []
 
   const { data: siswaPage } = useQuery({
@@ -64,15 +68,17 @@ export function SikapFormModal({ open, onClose, editItem }: Props) {
   })
   const siswaList = siswaPage?.data ?? []
 
-  // ── Master sikap options (grouped) ────────────────────────────
-  const masterOptions = useMemo<ComboboxOption[]>(() =>
-    masterList.map((m) => ({
+  // ── Master sikap options — digroup Positif / Negatif, filter by jenisFilter ─
+  const masterOptions = useMemo<ComboboxOption[]>(() => {
+    const filtered = jenisFilter
+      ? masterList.filter((m) => m.jenis === jenisFilter)
+      : masterList
+    return filtered.map((m) => ({
       value: m.id,
       label: `[${m.kode}] ${m.nama} (${m.jenis === 'POSITIF' ? '+' : '-'}${Math.abs(m.point)})`,
       group: jenisFilter === '' ? (m.jenis === 'POSITIF' ? 'Positif' : 'Negatif') : undefined,
-    })),
-    [masterList, jenisFilter],
-  )
+    }))
+  }, [masterList, jenisFilter])
 
   // ── Prefill saat edit ─────────────────────────────────────────
   useEffect(() => {
@@ -80,7 +86,7 @@ export function SikapFormModal({ open, onClose, editItem }: Props) {
     if (editItem) {
       setSiswaId(editItem.siswaId)
       setSiswaLabel(editItem.siswa?.profile?.namaLengkap ?? editItem.siswaId)
-      setSemesterId(editItem.semesterId ?? activeSem?.id ?? '')
+      setSemesterId(editItem.semesterId ?? prefillSemesterId ?? activeSem?.id ?? '')
       setMasterSikapId(editItem.masterSikapId)
       setTanggal(editItem.tanggal.slice(0, 10))
       setWaktu(new Date(editItem.waktu).toISOString().slice(11, 16))
@@ -88,9 +94,10 @@ export function SikapFormModal({ open, onClose, editItem }: Props) {
       setKronologi(editItem.kronologi ?? '')
       setTindakLanjut(editItem.tindakLanjut ?? '')
     } else {
-      setSiswaId('')
+      // Pre-fill dari luar (mode tambah dari tabel siswa)
+      setSiswaId(prefillSiswaId ?? '')
       setSiswaLabel('')
-      setSemesterId(activeSem?.id ?? '')
+      setSemesterId(prefillSemesterId ?? activeSem?.id ?? '')
       setMasterSikapId('')
       setTanggal(todayISO())
       setWaktu(nowHHMM())
@@ -99,7 +106,7 @@ export function SikapFormModal({ open, onClose, editItem }: Props) {
       setTindakLanjut('')
       setSiswaSearch('')
     }
-  }, [open, editItem, activeSem?.id])
+  }, [open, editItem, activeSem?.id, prefillSiswaId, prefillSemesterId])
 
   // ── Mutations ─────────────────────────────────────────────────
   const createMut = useCreateCatatanSikap()
@@ -161,8 +168,29 @@ export function SikapFormModal({ open, onClose, editItem }: Props) {
         {/* Scrollable body */}
         <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
 
-          {/* ── Siswa ──────────────────────────────────────── */}
-          {!isEdit && (
+          {/* ── Info konteks (predefined dari tabel) ──────── */}
+          {(prefillSiswaId || prefillSemesterId) && !isEdit && (
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
+              <div className="flex-1 min-w-0 space-y-0.5">
+                {prefillSiswaName && (
+                  <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300 truncate">
+                    {prefillSiswaName}
+                  </p>
+                )}
+                {prefillSemesterLabel && (
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                    {prefillSemesterLabel}
+                  </p>
+                )}
+              </div>
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 shrink-0">
+                Sudah dipilih
+              </span>
+            </div>
+          )}
+
+          {/* ── Siswa — hanya tampil jika belum predefined ── */}
+          {!isEdit && !prefillSiswaId && (
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
                 Siswa <span className="text-red-500">*</span>
@@ -227,56 +255,64 @@ export function SikapFormModal({ open, onClose, editItem }: Props) {
             </div>
           )}
 
-          {/* ── Semester ──────────────────────────────────── */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
-              Semester <span className="text-red-500">*</span>
-            </label>
-            <Combobox
-              options={semOptions}
-              value={semesterId}
-              onChange={setSemesterId}
-              placeholder="Pilih semester..."
-            />
-          </div>
+          {/* ── Semester — hanya tampil jika belum predefined ── */}
+          {!prefillSemesterId && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                Semester <span className="text-red-500">*</span>
+              </label>
+              <Combobox
+                options={semOptions}
+                value={semesterId}
+                onChange={setSemesterId}
+                placeholder="Pilih semester..."
+              />
+            </div>
+          )}
 
-          {/* ── Kategori Sikap ─────────────────────────────── */}
+          {/* ── Kategori Sikap — pills filter + satu searchOnly Combobox ── */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
                 Kategori Sikap <span className="text-red-500">*</span>
               </label>
-              {/* Jenis filter pills */}
+              {/* Pills filter jenis */}
               <div className="flex gap-1">
-                {(['', 'POSITIF', 'NEGATIF'] as const).map((j) => (
+                {([
+                  { key: '' as JenisSikap | '', label: 'Semua' },
+                  { key: 'POSITIF' as JenisSikap, label: 'Positif' },
+                  { key: 'NEGATIF' as JenisSikap, label: 'Negatif' },
+                ] as const).map(({ key, label }) => (
                   <button
-                    key={j}
+                    key={key}
                     type="button"
-                    onClick={() => { setJenisFilter(j); setMasterSikapId('') }}
+                    onClick={() => { setJenisFilter(key); setMasterSikapId('') }}
                     className={cn(
-                      'text-[10px] px-2 py-0.5 rounded-full font-medium transition-colors',
-                      jenisFilter === j
-                        ? j === 'POSITIF'
+                      'inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium transition-colors',
+                      jenisFilter === key
+                        ? key === 'POSITIF'
                           ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
-                          : j === 'NEGATIF'
+                          : key === 'NEGATIF'
                             ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
                             : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                         : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700',
                     )}
                   >
-                    {j === '' ? 'Semua' : j === 'POSITIF' ? 'Positif' : 'Negatif'}
+                    {key === 'POSITIF' && <TrendingUp size={9} />}
+                    {key === 'NEGATIF' && <TrendingDown size={9} />}
+                    {label}
                   </button>
                 ))}
               </div>
             </div>
+            {/* searchOnly: input langsung bisa diketik, tidak ada search box terpisah */}
             <Combobox
               options={masterOptions}
               value={masterSikapId}
               onChange={setMasterSikapId}
-              placeholder="Pilih kategori..."
-              searchable
-              searchPlaceholder="Cari kategori sikap..."
-              minSearchLength={1}
+              placeholder="Ketik nama atau kode kategori..."
+              searchOnly
+              minSearchLength={0}
             />
           </div>
 
@@ -286,24 +322,20 @@ export function SikapFormModal({ open, onClose, editItem }: Props) {
               <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
                 Tanggal <span className="text-red-500">*</span>
               </label>
-              <input
-                type="date"
+              <DateInput
                 value={tanggal}
-                onChange={(e) => setTanggal(e.target.value)}
-                required
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                onChange={setTanggal}
+                min="2000-01-01"
+                max="2070-12-31"
               />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
                 Waktu <span className="text-red-500">*</span>
               </label>
-              <input
-                type="time"
+              <TimePicker
                 value={waktu}
-                onChange={(e) => setWaktu(e.target.value)}
-                required
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all"
+                onChange={setWaktu}
               />
             </div>
           </div>

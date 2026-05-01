@@ -3,6 +3,8 @@
  * Semua endpoint @Public() di backend
  */
 import { API_URL } from '@/lib/constants'
+import type { AnnouncementListResponse } from '@/types/announcement.types'
+import type { KalenderAkademik } from '@/types/kalender-akademik.types'
 
 async function fetchPublic<T>(path: string): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, { next: { revalidate: 300 } })
@@ -37,4 +39,24 @@ export const publicApi = {
   galeriAlbum:  () => fetchPublic<any[]>('/homepage/galeri/kategori'),
   galeriDetail: (id: string) => fetchPublic<any>(`/homepage/galeri/kategori/${id}`),
   jadwalHariIni:() => fetchPublic<any>('/jadwal-pelajaran/publik/hari-ini'),
+
+  // Pengumuman publik (tanpa auth)
+  announcementPublik: (params?: { page?: number; limit?: number; priority?: string }) => {
+    const query = new URLSearchParams()
+    if (params?.page) query.set('page', params.page.toString())
+    if (params?.limit) query.set('limit', params.limit.toString())
+    if (params?.priority) query.set('priority', params.priority)
+    const queryString = query.toString()
+    return fetchPublic<AnnouncementListResponse>(
+      `/announcement/public${queryString ? `?${queryString}` : ''}`
+    )
+  },
+
+  // Kalender akademik publik (tanpa auth)
+  kalenderPublik: (params: { bulan: number; tahun: number }) => {
+    const query = new URLSearchParams()
+    query.set('bulan', params.bulan.toString())
+    query.set('tahun', params.tahun.toString())
+    return fetchPublic<KalenderAkademik[]>(`/kalender-akademik/bulan?${query.toString()}`)
+  },
 }

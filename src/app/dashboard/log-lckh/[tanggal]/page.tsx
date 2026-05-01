@@ -11,6 +11,7 @@ import {
   useCreateEksternal,
   useUpdateEksternal,
   useDeleteEksternal,
+  useHideInternal,
   useDownloadLckhPdf,
 } from '@/hooks/guru-log/useGuruLog'
 import { AktivitasInternalList } from '../_components/AktivitasInternalList'
@@ -39,6 +40,7 @@ function LogDetailContent({ tanggal }: { tanggal: string }) {
   const createMutation   = useCreateEksternal(tanggal)
   const updateMutation   = useUpdateEksternal(tanggal)
   const deleteMutation   = useDeleteEksternal(tanggal)
+  const hideMutation     = useHideInternal(tanggal)
   const downloadMutation = useDownloadLckhPdf()
 
   useEffect(() => {
@@ -104,7 +106,13 @@ function LogDetailContent({ tanggal }: { tanggal: string }) {
         <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
           {isLoading
             ? <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-xl" />)}</div>
-            : <AktivitasInternalList data={data?.aktivitasInternal ?? []} isLoading={false} />
+            : <AktivitasInternalList
+                data={data?.aktivitasInternal ?? []}
+                isLoading={false}
+                readonly={isReadonly}
+                onHide={isReadonly ? undefined : (tipe, refId) => hideMutation.mutate({ tipe, refId })}
+                isHiding={hideMutation.isPending}
+              />
           }
         </div>
       </section>

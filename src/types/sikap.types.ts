@@ -72,6 +72,10 @@ export interface RiwayatSikapItem {
     kategori: string | null
   }
   semester?: { nama: string } | null
+  guru?: {
+    id:      string
+    profile: { namaLengkap: string } | null
+  } | null
 }
 
 export interface RekapSiswaResponse {
@@ -95,6 +99,29 @@ export interface CatatanSikapListResponse {
 export interface MasterSikapListResponse {
   data:  MasterSikapItem[]
   total: number
+}
+
+// ── Rekap Kelas ───────────────────────────────────────────────────────────────
+export interface RekapKelasResponse {
+  kelasId:    string
+  semesterId: string | null
+  rekap: {
+    totalCatatan:       number
+    jumlahPositif:      number
+    jumlahNegatif:      number
+    totalPointPositif:  number
+    totalPointNegatif:  number
+    netPoint:           number
+  }
+}
+
+export interface SiswaKelasItem {
+  siswaId:       string
+  namaLengkap:   string
+  nisn:          string | null
+  jumlahPositif: number
+  jumlahNegatif: number
+  netPoint:      number
 }
 
 // ── Payloads ──────────────────────────────────────────────────────────────────

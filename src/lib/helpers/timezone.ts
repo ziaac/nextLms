@@ -25,6 +25,22 @@ export const formatWaktu = (date: string | Date): string =>
 export const formatTanggalPendek = (date: string | Date): string =>
   formatTanggal(date, { dateStyle: 'medium' })
 
+/**
+ * Kembalikan tanggal sebagai string YYYY-MM-DD di timezone aplikasi (WITA).
+ * Pakai untuk key/lookup grid kalender, agar tidak terjadi pergeseran hari
+ * akibat parsing UTC dari `toISOString()`.
+ */
+export const formatTanggalKey = (date: string | Date): string => {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: TIMEZONE,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(new Date(date))
+  const y = parts.find((p) => p.type === 'year')?.value ?? '1970'
+  const m = parts.find((p) => p.type === 'month')?.value ?? '01'
+  const d = parts.find((p) => p.type === 'day')?.value ?? '01'
+  return `${y}-${m}-${d}`
+}
+
 /** Cek apakah tanggal sudah lewat */
 export const isPast = (date: string | Date): boolean =>
   new Date(date) < new Date()

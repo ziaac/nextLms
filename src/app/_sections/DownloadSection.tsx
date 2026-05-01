@@ -25,9 +25,13 @@ export function DownloadSection() {
   return (
     <>
       <section className="py-20 bg-white dark:bg-gray-950 relative overflow-hidden">
-        {/* SVG Gradient Background - Diagonal Pattern */}
-        <div className="absolute inset-0 pointer-events-none">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        {/* SVG Gradient Background - Diagonal Pattern (terbalik dari ProfilSection) */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <svg
+            viewBox="0 0 1440 600"
+            preserveAspectRatio="none"
+            className="absolute top-0 left-0 w-full h-full"
+          >
             <defs>
               <linearGradient id="emerald-diagonal-1" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="rgb(16, 185, 129)" stopOpacity="0.04" />
@@ -38,24 +42,12 @@ export function DownloadSection() {
                 <stop offset="100%" stopColor="rgb(16, 185, 129)" stopOpacity="0.01" />
               </linearGradient>
             </defs>
-            {/* Large Triangle Top Left */}
-            <polygon 
-              points="0,0 60%,0 0,70%" 
-              fill="url(#emerald-diagonal-1)" 
-            />
-            {/* Large Triangle Bottom Right */}
-            <polygon 
-              points="100%,100% 40%,100% 100%,30%" 
-              fill="url(#emerald-diagonal-2)" 
-            />
-            {/* Diagonal Accent Line */}
-            <line 
-              x1="0%" y1="100%" 
-              x2="100%" y2="0%" 
-              stroke="rgb(16, 185, 129)" 
-              strokeOpacity="0.02" 
-              strokeWidth="2"
-            />
+            {/* Layer 3 — terlebar, diagonal terbalik (dari kanan atas ke kiri bawah) */}
+            <polygon points="1440,0 0,0 0,220 1440,440" fill="url(#emerald-diagonal-1)" />
+            {/* Layer 2 — medium */}
+            <polygon points="1440,0 0,0 0,60 1440,280" fill="url(#emerald-diagonal-2)" />
+            {/* Layer 1 — tersempit */}
+            <polygon points="1440,0 0,0 0,0 1440,120" fill="url(#emerald-diagonal-1)" />
           </svg>
         </div>
 

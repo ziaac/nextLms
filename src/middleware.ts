@@ -16,6 +16,8 @@ const PUBLIC_ROUTES = [
   '/jadwal-publik',
   '/siswa-baru',        // formulir daftar ulang — publik, tanpa login
   '/informasi',         // halaman dokumentasi fitur — publik, tanpa login
+  '/pengumuman',        // halaman pengumuman publik — tanpa login
+  '/kalender-akademik', // halaman kalender akademik publik — tanpa login
 ]
 
 const PUBLIC_PREFIXES = ['/berita/', '/galeri/', '/jadwal-publik/', '/siswa-baru/']
@@ -71,17 +73,22 @@ const ROLE_ROUTES: Record<string, UserRole[]> = {
   '/dashboard/master-dimensi-profil':  ['SUPER_ADMIN', 'ADMIN'],
   '/dashboard/homepage':               ['SUPER_ADMIN', 'ADMIN', 'STAFF_TU', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA'],
   '/dashboard/announcement':           ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'GURU', 'WALI_KELAS'],
+  '/dashboard/kalender':               ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU', 'STAFF_KEUANGAN', 'GURU', 'WALI_KELAS', 'SISWA', 'ORANG_TUA'],
   '/dashboard/pendaftaran-ulang':      ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU'],
   '/dashboard/kategori-pembayaran':    ['SUPER_ADMIN', 'ADMIN', 'STAFF_KEUANGAN'],
   '/dashboard/report':                 ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA'],
   '/dashboard/dokumen-pengajaran':     ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'GURU', 'WALI_KELAS'],
   '/dashboard/perizinan':              ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU', 'GURU', 'WALI_KELAS'],
-  '/dashboard/sikap':                  ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'GURU', 'WALI_KELAS', 'SISWA'],
   '/dashboard/prestasi':               ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'GURU', 'WALI_KELAS', 'SISWA'],
   '/dashboard/ekskul':                 ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'GURU', 'SISWA'],
   '/dashboard/penilaian':              ['GURU', 'WALI_KELAS', 'ADMIN', 'SUPER_ADMIN'],
   '/dashboard/log-lckh/manajemen':     ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA'],
   '/dashboard/log-lckh':               ['GURU', 'WALI_KELAS', 'SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU'],
+
+  // ── Sikap ──────────────────────────────────────────────────────────────────
+  // PENTING: /dashboard/sikap/arsip harus di atas /dashboard/sikap
+  '/dashboard/sikap/arsip':            ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'GURU', 'WALI_KELAS'],
+  '/dashboard/sikap':                  ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'GURU', 'WALI_KELAS', 'SISWA'],
 
   // ── Notifikasi ─────────────────────────────────────────────────────────────
   '/dashboard/notifikasi/broadcast':   ['SUPER_ADMIN', 'ADMIN'],

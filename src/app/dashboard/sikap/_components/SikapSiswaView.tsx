@@ -93,6 +93,12 @@ function RiwayatCard({ item }: {
           Semester: {item.semester.nama}
         </p>
       )}
+      {/* Guru pencatat */}
+      {item.guru?.profile?.namaLengkap && (
+        <p className="mt-1 text-[10px] text-gray-400">
+          Dicatat oleh: <span className="font-medium">{item.guru.profile.namaLengkap}</span>
+        </p>
+      )}
     </div>
   )
 }
