@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react'
 import { getStroke } from 'perfect-freehand'
-import { Play, Pause, Volume2, CheckCircle2, XCircle, ArrowRight } from 'lucide-react'
+import { Play, Pause, Volume2, CheckCircle2, XCircle, ArrowRight, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TipeWidgetWorksheet, AUTO_GRADE_TYPES } from '@/types/worksheet.types'
 import type { WidgetWorksheet, WidgetDraft, KonfigurasiWidget, MatchingPair } from '@/types/worksheet.types'
@@ -80,15 +80,11 @@ function serializePaths(paths: DrawPath[]): string {
 
 const DRAW_COLORS = ['#1d4ed8', '#dc2626', '#16a34a', '#d97706', '#7c3aed', '#0f172a']
 const DRAW_SIZES  = [2, 4, 8, 14]
-const OPACITIES   = [
-  { label: '100%', value: 1 },
-  { label: '70%',  value: 0.7 },
-  { label: '40%',  value: 0.4 },
-  { label: '20%',  value: 0.2 },
-]
 
 function DrawingCanvas({ value, onChange, isReadOnly, bgColor, label }: DrawingCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const pickerRef    = useRef<HTMLDivElement>(null)
+  const triggerRef   = useRef<HTMLButtonElement>(null)
 
   const [paths, setPaths] = useState<DrawPath[]>(() => parsePaths(value))
   const [currentPath, setCurrentPath] = useState<[number, number, number][]>([])
@@ -97,6 +93,21 @@ function DrawingCanvas({ value, onChange, isReadOnly, bgColor, label }: DrawingC
   const [strokeSize,  setStrokeSize]  = useState(4)
   const [opacity,     setOpacity]     = useState(1)
   const [isEraser,    setIsEraser]    = useState(false)
+  const [pickerOpen,  setPickerOpen]  = useState(false)
+
+  // Tutup color picker saat klik di luar
+  useEffect(() => {
+    if (!pickerOpen) return
+    const onDocClick = (e: MouseEvent) => {
+      const target = e.target as Node
+      if (
+        pickerRef.current && !pickerRef.current.contains(target) &&
+        triggerRef.current && !triggerRef.current.contains(target)
+      ) setPickerOpen(false)
+    }
+    document.addEventListener('mousedown', onDocClick)
+    return () => document.removeEventListener('mousedown', onDocClick)
+  }, [pickerOpen])
 
   // Sync value → paths untuk grading / read-only
   useEffect(() => {
@@ -182,44 +193,147 @@ function DrawingCanvas({ value, onChange, isReadOnly, bgColor, label }: DrawingC
       {!isReadOnly && (
         <div className="flex items-center gap-1 px-1.5 py-1 bg-white/95 dark:bg-gray-900/95 border-b border-gray-200 dark:border-gray-700 rounded-t-md shrink-0 flex-wrap">
 
-          {/* Warna */}
-          <div className="flex items-center gap-1">
-            {DRAW_COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => { setColor(c); setIsEraser(false) }}
-                className={cn(
-                  'w-5 h-5 rounded-full border-2 transition-all touch-manipulation',
-                  !isEraser && color === c
-                    ? 'border-gray-700 dark:border-gray-300 scale-125 shadow-sm'
-                    : 'border-transparent opacity-80 hover:opacity-100',
-                )}
-                style={{ background: c }}
-              />
-            ))}
-            {/* Transparan / checkerboard swatch */}
+          {/* ── Color picker (single trigger + popover) ── */}
+          <div className="relative">
             <button
+              ref={triggerRef}
               type="button"
-              onClick={() => { setIsEraser(false); setOpacity(0.3) }}
-              title="Transparan (opacity 30%)"
+              onClick={() => { setIsEraser(false); setPickerOpen((v) => !v) }}
+              title="Pilih warna & opacity"
               className={cn(
-                'w-5 h-5 rounded-full border-2 transition-all touch-manipulation overflow-hidden',
-                !isEraser && opacity < 0.5
-                  ? 'border-gray-700 dark:border-gray-300 scale-125 shadow-sm'
-                  : 'border-gray-300 opacity-80 hover:opacity-100',
+                'flex items-center gap-1 pl-1 pr-1.5 py-0.5 rounded-full border transition-all touch-manipulation',
+                pickerOpen
+                  ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/30 shadow-sm'
+                  : 'border-purple-200 dark:border-purple-800 hover:border-purple-400 hover:bg-purple-50/50 dark:hover:bg-purple-900/20',
               )}
-              style={{
-                background: `
-                  linear-gradient(45deg, #ccc 25%, transparent 25%),
-                  linear-gradient(-45deg, #ccc 25%, transparent 25%),
-                  linear-gradient(45deg, transparent 75%, #ccc 75%),
-                  linear-gradient(-45deg, transparent 75%, #ccc 75%)
-                `,
-                backgroundSize: '6px 6px',
-                backgroundPosition: '0 0, 0 3px, 3px -3px, -3px 0px',
-              }}
-            />
+            >
+              {/*
+                Swatch dengan checkerboard agar opacity rendah tetap terlihat sebagai
+                "transparan" dan bukan putih solid.
+              */}
+              <span
+                className="block w-4 h-4 rounded-full border border-white dark:border-gray-900 shadow-inner relative overflow-hidden"
+                style={{
+                  background: `
+                    linear-gradient(45deg, #d4d4d8 25%, transparent 25%),
+                    linear-gradient(-45deg, #d4d4d8 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, #d4d4d8 75%),
+                    linear-gradient(-45deg, transparent 75%, #d4d4d8 75%)
+                  `,
+                  backgroundSize: '4px 4px',
+                  backgroundPosition: '0 0, 0 2px, 2px -2px, -2px 0px',
+                }}
+              >
+                <span
+                  className="absolute inset-0 rounded-full"
+                  style={{ background: color, opacity }}
+                />
+              </span>
+              <ChevronDown
+                size={9}
+                className={cn(
+                  'text-purple-500 dark:text-purple-400 transition-transform',
+                  pickerOpen && 'rotate-180',
+                )}
+              />
+            </button>
+
+            {pickerOpen && (
+              <div
+                ref={pickerRef}
+                className={cn(
+                  'absolute top-full left-0 mt-1.5 z-50 w-48 p-2.5',
+                  'bg-white dark:bg-gray-900 rounded-xl shadow-xl',
+                  'border border-purple-200 dark:border-purple-800',
+                  'flex flex-col gap-2.5',
+                )}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                {/* Color grid */}
+                <div>
+                  <p className="text-[9px] font-semibold uppercase tracking-wide text-purple-600 dark:text-purple-400 mb-1.5">
+                    Warna
+                  </p>
+                  <div className="grid grid-cols-6 gap-1">
+                    {DRAW_COLORS.map((c) => {
+                      const selected = !isEraser && color === c
+                      return (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => { setColor(c); setIsEraser(false) }}
+                          title={c}
+                          className={cn(
+                            'aspect-square rounded-md border-2 transition-all touch-manipulation',
+                            selected
+                              ? 'border-purple-500 ring-2 ring-purple-300/40 scale-105 shadow-sm'
+                              : 'border-transparent hover:border-purple-300',
+                          )}
+                          style={{ background: c }}
+                        />
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom hex input */}
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className="block w-5 h-5 rounded-md border border-gray-200 dark:border-gray-700 shrink-0"
+                    style={{ background: color }}
+                  />
+                  <input
+                    type="color"
+                    value={color}
+                    onChange={(e) => { setColor(e.target.value); setIsEraser(false) }}
+                    className="flex-1 h-6 rounded cursor-pointer bg-transparent"
+                    title="Warna kustom"
+                  />
+                </div>
+
+                {/* Opacity slider */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-[9px] font-semibold uppercase tracking-wide text-purple-600 dark:text-purple-400">
+                      Opacity
+                    </p>
+                    <span className="text-[10px] font-bold tabular-nums text-purple-700 dark:text-purple-300">
+                      {Math.round(opacity * 100)}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={10}
+                    max={100}
+                    step={5}
+                    value={Math.round(opacity * 100)}
+                    onChange={(e) => { setOpacity(Number(e.target.value) / 100); setIsEraser(false) }}
+                    className="w-full h-1.5 rounded-full appearance-none cursor-pointer bg-gradient-to-r from-purple-100 to-purple-500 dark:from-purple-900 dark:to-purple-400 accent-purple-500"
+                    style={{
+                      // Track menampilkan gradient warna aktif sebagai preview
+                      background: `linear-gradient(to right, ${color}1a, ${color}ff)`,
+                    }}
+                  />
+                  <div className="flex justify-between mt-1">
+                    {[20, 40, 70, 100].map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => { setOpacity(p / 100); setIsEraser(false) }}
+                        className={cn(
+                          'text-[9px] font-semibold px-1 py-0.5 rounded transition-all',
+                          Math.round(opacity * 100) === p
+                            ? 'bg-purple-500 text-white'
+                            : 'text-purple-400 hover:text-purple-600 dark:hover:text-purple-300',
+                        )}
+                      >
+                        {p}%
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="w-px h-4 bg-gray-200 dark:bg-gray-700" />
@@ -243,28 +357,6 @@ function DrawingCanvas({ value, onChange, isReadOnly, bgColor, label }: DrawingC
                   className="rounded-full bg-gray-700 dark:bg-gray-300"
                   style={{ width: s + 1, height: s + 1 }}
                 />
-              </button>
-            ))}
-          </div>
-
-          <div className="w-px h-4 bg-gray-200 dark:bg-gray-700" />
-
-          {/* Opacity */}
-          <div className="flex items-center gap-0.5">
-            {OPACITIES.map((op) => (
-              <button
-                key={op.value}
-                type="button"
-                onClick={() => { setOpacity(op.value); setIsEraser(false) }}
-                title={`Opacity ${op.label}`}
-                className={cn(
-                  'text-[9px] font-semibold px-1.5 py-0.5 rounded transition-all touch-manipulation',
-                  !isEraser && opacity === op.value
-                    ? 'bg-gray-700 text-white dark:bg-gray-300 dark:text-gray-900'
-                    : 'text-gray-400 hover:text-gray-600',
-                )}
-              >
-                {op.label}
               </button>
             ))}
           </div>
@@ -385,6 +477,20 @@ function AudioPlayer({ src }: { src: string }) {
     else         { audioRef.current.play(); setPlaying(true) }
   }
 
+  // Auto-pause saat unmount (mis. siswa pindah halaman) agar audio tidak terus berputar
+  useEffect(() => {
+    const el = audioRef.current
+    return () => {
+      if (el && !el.paused) el.pause()
+    }
+  }, [])
+
+  // Reset playback saat src berubah (ganti widget audio berbeda)
+  useEffect(() => {
+    setPlaying(false)
+    setProgress(0)
+  }, [src])
+
   return (
     <div className="flex items-center gap-2 w-full h-full px-2">
       <audio
@@ -431,22 +537,40 @@ interface MatchingWidgetProps {
   onChange?:  (v: string) => void
   isReadOnly: boolean
   showCorrect: boolean
+  seed?:      string   // untuk deterministic shuffle (mis. widget.id)
 }
 
-function MatchingWidget({ pairs, value, onChange, isReadOnly, showCorrect }: MatchingWidgetProps) {
-  // Shuffle right items once, stable across re-renders using useMemo
+// Deterministic PRNG (mulberry32) — hasilkan shuffle yang konsisten dari seed string
+function hashSeed(s: string): number {
+  let h = 2166136261
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return h >>> 0
+}
+function mulberry32(seed: number): () => number {
+  let t = seed
+  return () => {
+    t = (t + 0x6D2B79F5) >>> 0
+    let r = t
+    r = Math.imul(r ^ (r >>> 15), r | 1)
+    r ^= r + Math.imul(r ^ (r >>> 7), r | 61)
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function MatchingWidget({ pairs, value, onChange, isReadOnly, showCorrect, seed }: MatchingWidgetProps) {
+  // Shuffle right items deterministically dari seed agar urutan stabil lintas remount/sesi
   const shuffledRight = useMemo(() => {
     const rights = pairs.map((p) => p.right)
+    const rand = mulberry32(hashSeed(seed ?? 'default'))
     for (let i = rights.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(rand() * (i + 1));
       [rights[i], rights[j]] = [rights[j], rights[i]]
     }
     return rights
-  // Intentional: pairs di-shuffle sekali saat jumlah pasangan berubah (bukan tiap render).
-  // Menggunakan pairs.length sebagai deps agar shuffle tidak berulang saat konten pairs berubah
-  // tapi jumlahnya tetap sama — ini perilaku yang diinginkan untuk soal matching.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pairs.length])
+  }, [pairs, seed])
 
   const matchMap: Record<string, string> = useMemo(() => {
     try { return value ? JSON.parse(value) : {} } catch { return {} }
@@ -671,17 +795,35 @@ export function WorksheetWidgetRenderer({
       )}
 
       {widget.tipe === TipeWidgetWorksheet.DROPDOWN && (
-        <select
-          className={cn(baseInput, 'cursor-pointer')}
-          value={value}
-          disabled={readOnly}
-          onChange={(e) => onChange?.(e.target.value)}
-        >
-          <option value="">— Pilih —</option>
-          {(cfg.options ?? []).map((opt, i) => (
-            <option key={i} value={opt}>{opt || `Opsi ${i + 1}`}</option>
-          ))}
-        </select>
+        isBuilder ? (
+          // Mode builder: tampilkan semua opsi sebagai list vertikal
+          <div className="w-full h-full overflow-auto flex flex-col gap-0.5 p-1 bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm rounded-md border border-indigo-200/60">
+            {(cfg.options ?? []).length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-[9px] text-indigo-400 italic">Belum ada opsi — atur di inspector</p>
+              </div>
+            ) : (
+              (cfg.options ?? []).map((opt, i) => (
+                <div key={i} className="flex items-center gap-1.5 px-2 py-0.5 rounded text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                  <ChevronDown size={9} className="text-indigo-400 shrink-0" />
+                  <span className="truncate">{opt || <em className="opacity-40">Opsi {i + 1}</em>}</span>
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
+          <select
+            className={cn(baseInput, 'cursor-pointer')}
+            value={value}
+            disabled={readOnly}
+            onChange={(e) => onChange?.(e.target.value)}
+          >
+            <option value="">— Pilih —</option>
+            {(cfg.options ?? []).map((opt, i) => (
+              <option key={i} value={opt}>{opt || `Opsi ${i + 1}`}</option>
+            ))}
+          </select>
+        )
       )}
 
       {widget.tipe === TipeWidgetWorksheet.AUDIO_PLAYER && (
@@ -716,11 +858,27 @@ export function WorksheetWidgetRenderer({
 
       {widget.tipe === TipeWidgetWorksheet.MATCHING && (
         isBuilder ? (
-          <div className="w-full h-full flex items-center justify-center bg-indigo-50/80 dark:bg-indigo-900/20 rounded-md border border-indigo-200/60 dark:border-indigo-800/60">
-            <div className="text-center">
-              <p className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400">Pasangkan</p>
-              <p className="text-[9px] text-indigo-400 dark:text-indigo-600 mt-0.5">{(cfg.pairs ?? []).length} pasangan</p>
-            </div>
+          // Mode builder: tampilkan preview pairs left → right
+          <div className="w-full h-full overflow-auto p-1.5 bg-indigo-50/80 dark:bg-indigo-900/20 rounded-md border border-indigo-200/60 dark:border-indigo-800/60">
+            {(cfg.pairs ?? []).length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-[9px] text-indigo-400 italic">Belum ada pasangan — atur di inspector</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-0.5">
+                {(cfg.pairs ?? []).map((pair, i) => (
+                  <div key={i} className="flex items-center gap-1 text-[9px]">
+                    <span className="flex-1 truncate px-1 py-0.5 bg-white/70 dark:bg-gray-800/70 rounded border border-indigo-200/60 text-indigo-700 dark:text-indigo-300">
+                      {pair.left || <em className="opacity-40">Kiri {i + 1}</em>}
+                    </span>
+                    <ArrowRight size={8} className="text-indigo-300 shrink-0" />
+                    <span className="flex-1 truncate px-1 py-0.5 bg-white/70 dark:bg-gray-800/70 rounded border border-indigo-200/60 text-indigo-700 dark:text-indigo-300">
+                      {pair.right || <em className="opacity-40">Kanan {i + 1}</em>}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <MatchingWidget
@@ -729,6 +887,7 @@ export function WorksheetWidgetRenderer({
             onChange={onChange}
             isReadOnly={readOnly}
             showCorrect={showCorrect}
+            seed={widget.id}
           />
         )
       )}

@@ -24,9 +24,17 @@ interface Props {
   hideGradingForm?: boolean
   /** Callback untuk expose data autograding ke parent */
   onAutoGradeData?: (data: { autoCorrect: number; autoTotal: number; hasManual: boolean; pengumpulanId?: string }) => void
+  /** Navigasi prev/next siswa — opsional, untuk pemakaian standalone */
+  onPrevSiswa?:     () => void
+  onNextSiswa?:     () => void
+  /** Posisi siswa dalam daftar (mis. "3 / 12") — opsional */
+  siswaPosisi?:     { current: number; total: number }
 }
 
-export function WorksheetGradingView({ tugasId, siswaId, namaSiswa, onClose, hideGradingForm, onAutoGradeData }: Props) {
+export function WorksheetGradingView({
+  tugasId, siswaId, namaSiswa, onClose, hideGradingForm, onAutoGradeData,
+  onPrevSiswa, onNextSiswa, siswaPosisi,
+}: Props) {
   const [halamanIdx,  setHalamanIdx]  = useState(0)
   const [imgLoaded,   setImgLoaded]   = useState(false)
   const [manualNilai, setManualNilai] = useState('')
@@ -112,6 +120,35 @@ export function WorksheetGradingView({ tugasId, siswaId, namaSiswa, onClose, hid
 
   return (
     <div className="flex flex-col gap-4">
+
+      {/* ── Navigasi siswa (opsional, hanya jika handler disediakan) ── */}
+      {(onPrevSiswa || onNextSiswa) && (
+        <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+          <button
+            type="button"
+            disabled={!onPrevSiswa}
+            onClick={onPrevSiswa}
+            title="Siswa sebelumnya"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 disabled:opacity-30 hover:bg-white dark:hover:bg-gray-900 transition-colors"
+          >
+            <ChevronLeft size={13} /> Sebelumnya
+          </button>
+          {siswaPosisi && (
+            <span className="text-[11px] text-gray-400 tabular-nums font-medium">
+              Siswa {siswaPosisi.current} / {siswaPosisi.total}
+            </span>
+          )}
+          <button
+            type="button"
+            disabled={!onNextSiswa}
+            onClick={onNextSiswa}
+            title="Siswa berikutnya"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 disabled:opacity-30 hover:bg-white dark:hover:bg-gray-900 transition-colors"
+          >
+            Berikutnya <ChevronRight size={13} />
+          </button>
+        </div>
+      )}
 
       {/* ── Header info ── */}
       <div className="flex items-start justify-between gap-3 flex-wrap">

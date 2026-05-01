@@ -20,6 +20,194 @@ function Label({ children }: { children: React.ReactNode }) {
   return <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">{children}</label>
 }
 
+// ── BgColorPicker — warna + opacity dalam 1 popover, output hex8 (#rrggbbaa) ──
+//
+// Format penyimpanan:
+//   - 'transparent' → benar-benar transparan
+//   - '#rrggbb'     → fully opaque (compat dengan data lama)
+//   - '#rrggbbaa'   → hex8 dengan alpha (modern browsers parse sebagai background)
+//
+// Native <input type="color"> hanya support hex6, jadi alpha disimpan terpisah
+// di local state lalu digabung saat onChange dipanggil ke parent.
+
+function parseHex(input?: string): { hex6: string; alpha: number; transparent: boolean } {
+  if (!input || input === 'transparent') return { hex6: '#ffffff', alpha: 1, transparent: true }
+  const m = /^#([0-9a-f]{6})([0-9a-f]{2})?$/i.exec(input)
+  if (!m) return { hex6: '#ffffff', alpha: 1, transparent: false }
+  const hex6 = `#${m[1]}`
+  const alpha = m[2] ? parseInt(m[2], 16) / 255 : 1
+  return { hex6, alpha, transparent: false }
+}
+
+function buildHex8(hex6: string, alpha: number): string {
+  const a = Math.round(Math.max(0, Math.min(1, alpha)) * 255).toString(16).padStart(2, '0')
+  return alpha >= 1 ? hex6 : `${hex6}${a}`
+}
+
+const CHECKER_BG = `
+  linear-gradient(45deg, #d4d4d8 25%, transparent 25%),
+  linear-gradient(-45deg, #d4d4d8 25%, transparent 25%),
+  linear-gradient(45deg, transparent 75%, #d4d4d8 75%),
+  linear-gradient(-45deg, transparent 75%, #d4d4d8 75%)
+`
+
+interface BgColorPickerProps {
+  value?: string
+  onChange: (v: string) => void
+}
+
+function BgColorPicker({ value, onChange }: BgColorPickerProps) {
+  const parsed = parseHex(value)
+  const [open,    setOpen]    = React.useState(false)
+  const [draftHex, setDraftHex] = React.useState(parsed.hex6)
+  const [draftA,   setDraftA]   = React.useState(parsed.alpha)
+  const triggerRef = React.useRef<HTMLButtonElement>(null)
+  const popRef     = React.useRef<HTMLDivElement>(null)
+
+  // Sync ke draft jika value eksternal berubah
+  React.useEffect(() => {
+    const p = parseHex(value)
+    setDraftHex(p.hex6)
+    setDraftA(p.alpha)
+  }, [value])
+
+  // Click outside menutup popover
+  React.useEffect(() => {
+    if (!open) return
+    const onDoc = (e: MouseEvent) => {
+      const t = e.target as Node
+      if (
+        popRef.current && !popRef.current.contains(t) &&
+        triggerRef.current && !triggerRef.current.contains(t)
+      ) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [open])
+
+  const commit = (hex6: string, alpha: number) => {
+    onChange(buildHex8(hex6, alpha))
+  }
+
+  return (
+    <div className="flex items-center gap-2 relative">
+      {/* Trigger swatch — border netral, tidak berubah saat dipilih */}
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        title="Klik untuk pilih warna & opacity"
+        className={cn(
+          'relative w-9 h-9 rounded-lg border overflow-hidden cursor-pointer transition-all shrink-0',
+          'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600',
+        )}
+        style={{
+          background: CHECKER_BG,
+          backgroundSize: '6px 6px',
+          backgroundPosition: '0 0, 0 3px, 3px -3px, -3px 0px',
+        }}
+      >
+        {!parsed.transparent && parsed.alpha > 0 && (
+          <span
+            className="absolute inset-0"
+            style={{ background: parsed.hex6, opacity: parsed.alpha }}
+          />
+        )}
+      </button>
+
+      <span className="text-[11px] text-gray-500 tabular-nums">
+        {parsed.transparent || parsed.alpha === 0
+          ? 'Transparan'
+          : `${parsed.hex6}${parsed.alpha < 1 ? ` · ${Math.round(parsed.alpha * 100)}%` : ''}`}
+      </span>
+
+      {/* Popover */}
+      {open && (
+        <div
+          ref={popRef}
+          className={cn(
+            'absolute top-full left-0 mt-1.5 z-50 w-52 p-2.5',
+            'bg-white dark:bg-gray-900 rounded-xl shadow-xl',
+            'border border-purple-200 dark:border-purple-800',
+            'flex flex-col gap-2.5',
+          )}
+        >
+          {/* Color picker */}
+          <div>
+            <p className="text-[9px] font-semibold uppercase tracking-wide text-purple-600 dark:text-purple-400 mb-1.5">
+              Warna
+            </p>
+            <div className="flex items-center gap-2">
+              <span
+                className="block w-7 h-7 rounded-md border border-gray-200 dark:border-gray-700 shrink-0 relative overflow-hidden"
+                style={{
+                  background: CHECKER_BG,
+                  backgroundSize: '5px 5px',
+                  backgroundPosition: '0 0, 0 2.5px, 2.5px -2.5px, -2.5px 0px',
+                }}
+              >
+                <span
+                  className="absolute inset-0"
+                  style={{ background: draftHex, opacity: draftA }}
+                />
+              </span>
+              <input
+                type="color"
+                value={draftHex}
+                onChange={(e) => { setDraftHex(e.target.value); commit(e.target.value, draftA) }}
+                className="flex-1 h-7 rounded cursor-pointer bg-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Opacity slider */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[9px] font-semibold uppercase tracking-wide text-purple-600 dark:text-purple-400">
+                Opacity
+              </p>
+              <span className="text-[10px] font-bold tabular-nums text-purple-700 dark:text-purple-300">
+                {Math.round(draftA * 100)}%
+              </span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={Math.round(draftA * 100)}
+              onChange={(e) => {
+                const a = Number(e.target.value) / 100
+                setDraftA(a)
+                commit(draftHex, a)
+              }}
+              className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-purple-500"
+              style={{ background: `linear-gradient(to right, ${draftHex}1a, ${draftHex}ff)` }}
+            />
+            <div className="flex justify-between mt-1">
+              {[0, 25, 50, 75, 100].map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => { setDraftA(p / 100); commit(draftHex, p / 100) }}
+                  className={cn(
+                    'text-[9px] font-semibold px-1 py-0.5 rounded transition-all',
+                    Math.round(draftA * 100) === p
+                      ? 'bg-purple-500 text-white'
+                      : 'text-purple-400 hover:text-purple-600 dark:hover:text-purple-300',
+                  )}
+                >
+                  {p}%
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function Input({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
@@ -314,53 +502,14 @@ export function WidgetInspector({ widget }: Props) {
           </div>
         )}
 
-        {/* Drawing: warna background */}
+        {/* Drawing: warna background — popover picker dengan opacity slider */}
         {widget.tipe === TipeWidgetWorksheet.DRAWING_AREA && (
           <div>
             <Label>Warna Background Area</Label>
-            <div className="flex items-center gap-2 flex-wrap">
-
-              {/* Tombol Transparan (checkerboard) */}
-              <button
-                type="button"
-                title="Transparan (tanpa background)"
-                onClick={() => set({ bgColor: 'transparent' })}
-                className={cn(
-                  'w-8 h-8 rounded border-2 overflow-hidden transition-all shrink-0',
-                  !cfg.bgColor || cfg.bgColor === 'transparent'
-                    ? 'border-blue-500 ring-2 ring-blue-400/40 scale-110'
-                    : 'border-gray-300 hover:border-gray-400',
-                )}
-                style={{
-                  background: `
-                    linear-gradient(45deg, #ccc 25%, transparent 25%),
-                    linear-gradient(-45deg, #ccc 25%, transparent 25%),
-                    linear-gradient(45deg, transparent 75%, #ccc 75%),
-                    linear-gradient(-45deg, transparent 75%, #ccc 75%)
-                  `,
-                  backgroundSize: '8px 8px',
-                  backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px',
-                }}
-              />
-
-              {/* Color picker */}
-              <input
-                type="color"
-                value={!cfg.bgColor || cfg.bgColor === 'transparent' ? '#ffffff' : cfg.bgColor}
-                onChange={(e) => set({ bgColor: e.target.value })}
-                className={cn(
-                  'w-8 h-8 rounded cursor-pointer border-2 transition-all shrink-0',
-                  cfg.bgColor && cfg.bgColor !== 'transparent'
-                    ? 'border-blue-500 ring-2 ring-blue-400/40 scale-110'
-                    : 'border-gray-300 hover:border-gray-400',
-                )}
-                title="Pilih warna background"
-              />
-
-              <span className="text-[11px] text-gray-500">
-                {!cfg.bgColor || cfg.bgColor === 'transparent' ? 'Transparan' : cfg.bgColor}
-              </span>
-            </div>
+            <BgColorPicker
+              value={cfg.bgColor}
+              onChange={(v) => set({ bgColor: v })}
+            />
             <p className="text-[9px] text-gray-400 mt-1">
               Transparan = siswa menggambar langsung di atas gambar
             </p>

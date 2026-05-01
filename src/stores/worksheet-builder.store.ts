@@ -232,16 +232,23 @@ export const useWorksheetBuilderStore = create<WorksheetBuilderState>()(
       halaman: get().halaman.map((h, hi) => ({
         urutan:   hi,
         imageKey: h.imageKey,
-        widget:   h.widget.map((w, wi) => ({
-          tipe:        w.tipe,
-          label:       w.label,
-          posisiX:     w.posisiX,
-          posisiY:     w.posisiY,
-          lebarPct:    w.lebarPct,
-          tinggiPct:   w.tinggiPct,
-          urutan:      wi,
-          konfigurasi: w.konfigurasi,
-        })),
+        widget:   h.widget.map((w, wi) => {
+          // Strip audioUrl dari konfigurasi sebelum dikirim ke server.
+          // audioUrl adalah presigned URL runtime yang di-generate server saat GET,
+          // bukan data yang disimpan ke database.
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { audioUrl: _audioUrl, ...konfigBersih } = w.konfigurasi ?? {}
+          return {
+            tipe:        w.tipe,
+            label:       w.label,
+            posisiX:     w.posisiX,
+            posisiY:     w.posisiY,
+            lebarPct:    w.lebarPct,
+            tinggiPct:   w.tinggiPct,
+            urutan:      wi,
+            konfigurasi: Object.keys(konfigBersih).length > 0 ? konfigBersih : undefined,
+          }
+        }),
       })),
     }),
 

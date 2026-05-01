@@ -48,9 +48,11 @@ interface DragState {
 
 interface Props {
   showLabels?: boolean
+  selectedToolTipe?: TipeWidgetWorksheet | null
+  onToolUsed?: () => void
 }
 
-export function WorksheetCanvas({ showLabels = true }: Props) {
+export function WorksheetCanvas({ showLabels = true, selectedToolTipe, onToolUsed }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const imgRef       = useRef<HTMLImageElement>(null)
   const dragRef      = useRef<DragState | null>(null)
@@ -173,7 +175,18 @@ export function WorksheetCanvas({ showLabels = true }: Props) {
       onDrop={handleDrop}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-      onClick={() => selectWidget(null)}
+      onClick={(e) => {
+        // Tap-to-place: jika ada tool yang dipilih dari toolbar, tempatkan widget di posisi klik
+        if (selectedToolTipe && containerRef.current) {
+          const rect = containerRef.current.getBoundingClientRect()
+          const relX = (e.clientX - rect.left) / rect.width
+          const relY = (e.clientY - rect.top)  / rect.height
+          addWidget(selectedToolTipe, relX, relY)
+          onToolUsed?.()
+          return
+        }
+        selectWidget(null)
+      }}
     >
       {/* Background image */}
       <img
@@ -239,53 +252,78 @@ export function WorksheetCanvas({ showLabels = true }: Props) {
                   onPointerDown={(e) => startDrag(e, widget, 'move')}
                 />
 
+                {/*
+                  Handle adaptif: ukuran clamp() berbasis persentase dari ukuran widget.
+                  - Saat widget besar: handle mentok ke max ramping (12px lebar / 32px panjang)
+                  - Saat widget kecil: handle mengecil proporsional, minimal 5px agar tetap bisa di-grab
+                  - translateX/Y(30%) dari diri sendiri → offset ikut menyusut otomatis
+                */}
+
                 {/* ── Handle: sisi kanan (resize lebar) ── */}
                 <div
                   className={cn(
-                    'absolute top-1/2 -translate-y-1/2 -right-3',
-                    'w-6 h-10 cursor-ew-resize',
+                    'absolute right-0 cursor-ew-resize',
                     'flex items-center justify-center',
                     'bg-blue-500 rounded-full shadow-md',
                     'touch-manipulation',
                   )}
-                  style={{ zIndex: 20 }}
+                  style={{
+                    zIndex: 20,
+                    top:    '50%',
+                    width:  'clamp(5px, 20%, 12px)',
+                    height: 'clamp(14px, 40%, 32px)',
+                    transform: 'translateY(-50%) translateX(30%)',
+                  }}
                   onPointerDown={(e) => { e.stopPropagation(); startDrag(e, widget, 'resize-e') }}
                 >
-                  <div className="flex flex-col gap-0.5">
-                    <div className="w-0.5 h-3 bg-white/70 rounded-full" />
-                  </div>
+                  <div
+                    className="bg-white/70 rounded-full"
+                    style={{ width: 'clamp(1px, 20%, 2px)', height: 'clamp(6px, 50%, 12px)' }}
+                  />
                 </div>
 
                 {/* ── Handle: sisi bawah (resize tinggi) ── */}
                 <div
                   className={cn(
-                    'absolute left-1/2 -translate-x-1/2 -bottom-3',
-                    'h-6 w-10 cursor-ns-resize',
+                    'absolute bottom-0 cursor-ns-resize',
                     'flex items-center justify-center',
                     'bg-blue-500 rounded-full shadow-md',
                     'touch-manipulation',
                   )}
-                  style={{ zIndex: 20 }}
+                  style={{
+                    zIndex: 20,
+                    left:   '50%',
+                    height: 'clamp(5px, 20%, 12px)',
+                    width:  'clamp(14px, 40%, 32px)',
+                    transform: 'translateX(-50%) translateY(30%)',
+                  }}
                   onPointerDown={(e) => { e.stopPropagation(); startDrag(e, widget, 'resize-s') }}
                 >
-                  <div className="flex gap-0.5">
-                    <div className="h-0.5 w-3 bg-white/70 rounded-full" />
-                  </div>
+                  <div
+                    className="bg-white/70 rounded-full"
+                    style={{ height: 'clamp(1px, 20%, 2px)', width: 'clamp(6px, 50%, 12px)' }}
+                  />
                 </div>
 
-                {/* ── Handle: pojok kanan bawah (resize keduanya) ── */}
+                {/* ── Handle: pojok kanan bawah (resize keduanya) ──
+                    Pakai aspect-ratio:1 agar tetap bulat saat width % dari widget (lebar)
+                    diterapkan; height mengikuti width. */}
                 <div
                   className={cn(
-                    'absolute -bottom-3 -right-3',
-                    'w-7 h-7 cursor-se-resize',
+                    'absolute bottom-0 right-0 cursor-se-resize',
                     'flex items-center justify-center',
-                    'bg-blue-600 rounded-full shadow-md border-2 border-white dark:border-gray-900',
+                    'bg-blue-600 rounded-full shadow-md border border-white dark:border-gray-900',
                     'touch-manipulation',
                   )}
-                  style={{ zIndex: 25 }}
+                  style={{
+                    zIndex: 25,
+                    width:  'clamp(8px, 14%, 16px)',
+                    aspectRatio: '1',
+                    transform: 'translateX(30%) translateY(30%)',
+                  }}
                   onPointerDown={(e) => { e.stopPropagation(); startDrag(e, widget, 'resize-se') }}
                 >
-                  <GripVertical size={10} className="text-white rotate-45" />
+                  <GripVertical size={7} className="text-white rotate-45 opacity-90" />
                 </div>
               </>
             )}

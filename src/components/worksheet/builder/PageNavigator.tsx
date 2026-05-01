@@ -104,7 +104,14 @@ export function PageNavigator({ onUploading }: Props) {
           {/* Delete button */}
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); removeHalaman(i) }}
+            onClick={(e) => {
+              e.stopPropagation()
+              const widgetCount = h.widget.length
+              const msg = widgetCount > 0
+                ? `Hapus halaman ${i + 1}? ${widgetCount} widget di halaman ini juga akan terhapus.`
+                : `Hapus halaman ${i + 1}?`
+              if (window.confirm(msg)) removeHalaman(i)
+            }}
             title="Hapus halaman"
             className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity"
           >

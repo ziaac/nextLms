@@ -7,6 +7,7 @@ import {
   Type, Hash, CheckSquare, ChevronDown,
   Minus, Volume2, PenLine, Loader2, ImagePlus,
   ArrowLeftRight, Maximize2, Minimize2,
+  ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { TipeWidgetWorksheet } from '@/types/worksheet.types'
 import type { HalamanDraft } from '@/types/worksheet.types'
@@ -40,6 +41,9 @@ export function WorksheetBuilder({ tugasId, readOnly = false }: Props) {
   const [showLabels,       setShowLabels]       = useState(true)
   const [replacingImage,   setReplacingImage]   = useState(false)
   const [isFullscreen,     setIsFullscreen]     = useState(false)
+  const [leftPanelCollapsed,  setLeftPanelCollapsed]  = useState(false)
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false)
+  const [selectedToolTipe, setSelectedToolTipe] = useState<TipeWidgetWorksheet | null>(null)
   const builderRef         = React.useRef<HTMLDivElement>(null)
   const replaceImgInputRef = React.useRef<HTMLInputElement>(null)
 
@@ -106,6 +110,18 @@ export function WorksheetBuilder({ tugasId, readOnly = false }: Props) {
   // Reset store saat unmount
   useEffect(() => () => store.reset(), [])
 
+  // Warning sebelum tab/window ditutup jika ada perubahan belum tersimpan
+  useEffect(() => {
+    if (!store.isDirty || readOnly) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      // Browser modern mengabaikan custom message tapi tetap menampilkan dialog konfirmasi
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [store.isDirty, readOnly])
+
   const handleSave = async () => {
     if (store.halaman.length === 0) {
       toast.error('Tambah minimal 1 halaman sebelum menyimpan')
@@ -149,19 +165,31 @@ export function WorksheetBuilder({ tugasId, readOnly = false }: Props) {
             <div
               key={tipe}
               draggable
-              onDragStart={(e) => e.dataTransfer.setData('widget-tipe', tipe)}
+              onDragStart={(e) => {
+                e.dataTransfer.setData('widget-tipe', tipe)
+                setSelectedToolTipe(null)
+              }}
+              onClick={() => setSelectedToolTipe(selectedToolTipe === tipe ? null : tipe)}
               className={cn(
                 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border cursor-grab active:cursor-grabbing',
                 'text-xs font-medium select-none transition-all hover:shadow-sm hover:-translate-y-0.5',
                 color,
+                selectedToolTipe === tipe && 'ring-2 ring-offset-1 ring-blue-500 shadow-md -translate-y-0.5',
               )}
-              title={`Drag ke kanvas untuk tambah ${label}`}
+              title={`Drag ke kanvas untuk tambah ${label} (atau tap untuk pilih, lalu tap kanvas)`}
             >
               <Icon size={12} />
               {label}
             </div>
           ))}
         </div>
+
+        {/* Touch hint — tampil saat ada tool yang dipilih */}
+        {selectedToolTipe && (
+          <span className="text-[10px] text-blue-500 dark:text-blue-400 px-1 whitespace-nowrap">
+            Tap kanvas untuk menempatkan {WIDGET_TOOLS.find((t) => t.tipe === selectedToolTipe)?.label}
+          </span>
+        )}
 
         <div className="flex-1" />
 
@@ -231,9 +259,24 @@ export function WorksheetBuilder({ tugasId, readOnly = false }: Props) {
       {/* ── Main layout: Navigator | Canvas | Inspector ── */}
       <div className="flex flex-col md:flex-row gap-3 flex-1 min-h-0">
 
-        {/* Left: Page Navigator — hidden on mobile (prevents overflow) */}
-        <div className="hidden md:block md:w-36 md:flex-shrink-0 md:overflow-y-auto">
-          <PageNavigator />
+        {/* Left: Page Navigator — hidden on mobile */}
+        <div className={cn(
+          'hidden md:flex flex-col flex-shrink-0 transition-all duration-200',
+          leftPanelCollapsed ? 'md:w-8' : 'md:w-36',
+        )}>
+          {/* Toggle button */}
+          <button
+            type="button"
+            onClick={() => setLeftPanelCollapsed((v) => !v)}
+            title={leftPanelCollapsed ? 'Expand panel kiri' : 'Collapse panel kiri'}
+            className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors self-end mb-1 shrink-0"
+          >
+            {leftPanelCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+          </button>
+          {/* Navigator content */}
+          <div className={cn('flex-1 overflow-y-auto', leftPanelCollapsed && 'hidden')}>
+            <PageNavigator />
+          </div>
         </div>
 
         {/* Center: Canvas */}
@@ -299,31 +342,49 @@ export function WorksheetBuilder({ tugasId, readOnly = false }: Props) {
             </div>
           )}
           <div className="flex-1 overflow-auto rounded-xl bg-gray-100 dark:bg-gray-950 p-2">
-            <WorksheetCanvas showLabels={showLabels} />
+            <WorksheetCanvas
+              showLabels={showLabels}
+              selectedToolTipe={selectedToolTipe}
+              onToolUsed={() => setSelectedToolTipe(null)}
+            />
           </div>
         </div>
 
         {/* Right: Inspector — hidden on mobile */}
         <div className={cn(
-          'hidden md:flex flex-col md:w-56 md:flex-shrink-0 rounded-xl border border-gray-200 dark:border-gray-700',
-          'bg-white dark:bg-gray-900 overflow-hidden',
-          'transition-all duration-200',
-          selectedWidget ? 'opacity-100' : 'opacity-50',
+          'hidden md:flex flex-col flex-shrink-0 rounded-xl border border-gray-200 dark:border-gray-700',
+          'bg-white dark:bg-gray-900 overflow-hidden transition-all duration-200',
+          rightPanelCollapsed ? 'md:w-8' : 'md:w-56',
+          !rightPanelCollapsed && (selectedWidget ? 'opacity-100' : 'opacity-50'),
         )}>
-          {selectedWidget ? (
-            <WidgetInspector widget={selectedWidget} />
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full p-4 text-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                <CheckSquare className="w-5 h-5 text-gray-300 dark:text-gray-600" />
+          {/* Toggle button */}
+          <div className="flex items-center justify-start p-1 border-b border-gray-100 dark:border-gray-800 shrink-0">
+            <button
+              type="button"
+              onClick={() => setRightPanelCollapsed((v) => !v)}
+              title={rightPanelCollapsed ? 'Expand panel kanan' : 'Collapse panel kanan'}
+              className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              {rightPanelCollapsed ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
+            </button>
+          </div>
+          {/* Inspector content */}
+          {!rightPanelCollapsed && (
+            selectedWidget ? (
+              <WidgetInspector widget={selectedWidget} />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full p-4 text-center gap-2">
+                <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  <CheckSquare className="w-5 h-5 text-gray-300 dark:text-gray-600" />
+                </div>
+                <p className="text-xs text-gray-400 dark:text-gray-600 leading-relaxed">
+                  Klik widget di kanvas untuk mengatur konfigurasinya
+                </p>
+                <p className="text-[10px] text-gray-300 dark:text-gray-700">
+                  Atau drag widget dari toolbar ke kanvas
+                </p>
               </div>
-              <p className="text-xs text-gray-400 dark:text-gray-600 leading-relaxed">
-                Klik widget di kanvas untuk mengatur konfigurasinya
-              </p>
-              <p className="text-[10px] text-gray-300 dark:text-gray-700">
-                Atau drag widget dari toolbar ke kanvas
-              </p>
-            </div>
+            )
           )}
         </div>
       </div>

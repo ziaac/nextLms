@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import {
   ChevronLeft, ChevronRight, Send, CheckCircle2,
   Loader2, AlertCircle, BookOpen, RotateCcw, AlertTriangle,
+  CloudUpload, Cloud, CloudOff,
 } from 'lucide-react'
 import { useWorksheetDefinition, useMyWorksheetJawaban,
          useSaveWorksheetDraft, useSubmitWorksheet } from '@/hooks/worksheet/useWorksheet'
@@ -27,6 +28,9 @@ export function WorksheetPlayer({ tugasId, isReadOnly = false, tujuanTugas, tang
   const [jawaban,     setJawaban]     = useState<Record<string, string>>({})
   const [submitOpen,  setSubmitOpen]  = useState(false)
   const [imgLoaded,   setImgLoaded]   = useState(false)
+  // Status auto-save: idle (belum ada perubahan), saving, saved, failed
+  const [saveStatus,  setSaveStatus]  = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle')
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isFirstLoad   = useRef(true)
 
@@ -71,14 +75,28 @@ export function WorksheetPlayer({ tugasId, isReadOnly = false, tujuanTugas, tang
     }
   }
 
-  // Auto-save dengan debounce 1500ms
+  // Auto-save dengan debounce 1500ms + tracking status untuk badge UI
   const triggerAutoSave = useCallback((answers: Record<string, string>) => {
     if (readOnly) return
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
     autoSaveTimer.current = setTimeout(() => {
-      saveDraftMutation.mutate({ tugasId, jawaban: answers })
+      setSaveStatus('saving')
+      saveDraftMutation.mutate(
+        { tugasId, jawaban: answers },
+        {
+          onSuccess: () => { setSaveStatus('saved'); setLastSavedAt(new Date()) },
+          onError:   () => { setSaveStatus('failed') },
+        },
+      )
     }, 1500)
-  }, [tugasId, readOnly])
+  }, [tugasId, readOnly, saveDraftMutation])
+
+  // Cleanup timer saat unmount agar tidak ada pending mutation setelah komponen mati
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
+    }
+  }, [])
 
   const setAnswer = useCallback((widgetId: string, value: string) => {
     setJawaban((prev) => {
@@ -89,6 +107,11 @@ export function WorksheetPlayer({ tugasId, isReadOnly = false, tujuanTugas, tang
   }, [triggerAutoSave])
 
   const handleSubmit = async () => {
+    // Cancel pending autosave agar tidak menimpa state setelah submit selesai
+    if (autoSaveTimer.current) {
+      clearTimeout(autoSaveTimer.current)
+      autoSaveTimer.current = null
+    }
     try {
       await submitMutation.mutateAsync({ tugasId, jawaban })
       toast.success('Worksheet berhasil dikumpulkan!')
@@ -96,6 +119,17 @@ export function WorksheetPlayer({ tugasId, isReadOnly = false, tujuanTugas, tang
     } catch {
       toast.error('Gagal mengumpulkan worksheet')
     }
+  }
+
+  const retryAutoSave = () => {
+    setSaveStatus('saving')
+    saveDraftMutation.mutate(
+      { tugasId, jawaban },
+      {
+        onSuccess: () => { setSaveStatus('saved'); setLastSavedAt(new Date()) },
+        onError:   () => { setSaveStatus('failed') },
+      },
+    )
   }
 
   // ── Stats ─────────────────────────────────────────────────────────────
@@ -169,11 +203,37 @@ export function WorksheetPlayer({ tugasId, isReadOnly = false, tujuanTugas, tang
                 Dikembalikan oleh guru — silakan perbaiki dan kumpulkan kembali
               </span>
             </div>
+          ) : saveStatus === 'saving' ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+              <CloudUpload size={12} className="text-blue-500 animate-pulse" />
+              <span className="text-xs font-semibold text-blue-700 dark:text-blue-400">
+                Menyimpan…
+              </span>
+            </div>
+          ) : saveStatus === 'saved' ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+              <Cloud size={12} className="text-emerald-500" />
+              <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                Tersimpan{lastSavedAt && ` ${lastSavedAt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`}
+              </span>
+            </div>
+          ) : saveStatus === 'failed' ? (
+            <button
+              type="button"
+              onClick={retryAutoSave}
+              disabled={saveDraftMutation.isPending}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+            >
+              <CloudOff size={12} className="text-red-500" />
+              <span className="text-xs font-semibold text-red-700 dark:text-red-400">
+                Gagal menyimpan — klik untuk coba lagi
+              </span>
+            </button>
           ) : (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+              <Cloud size={12} className="text-blue-400" />
               <span className="text-xs font-semibold text-blue-700 dark:text-blue-400">
-                Draft tersimpan otomatis
+                Draft otomatis aktif
               </span>
             </div>
           )}
