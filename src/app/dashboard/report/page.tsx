@@ -24,6 +24,64 @@ import {
   Bar,
   Legend,
 } from 'recharts'
+
+// ── Shared chart primitives ───────────────────────────────────────────────────
+
+/** Warna palette — konsisten di semua chart */
+const C = {
+  hadir:     '#10b981',
+  terlambat: '#f59e0b',
+  izin:      '#3b82f6',
+  sakit:     '#8b5cf6',
+  alpa:      '#ef4444',
+  materi:    '#3b82f6',
+  tugas:     '#6366f1',
+  submit:    '#10b981',
+  grid:      '#e5e7eb',
+  gridDark:  '#374151',
+} as const
+
+/** Tick style yang konsisten — abu-abu kecil */
+const TICK = { fontSize: 10, fill: '#9ca3af' }
+
+/** Custom tooltip dengan background blur */
+function ChartTooltip({ active, payload, label, unit }: {
+  active?: boolean
+  payload?: Array<{ name: string; value: number; color: string }>
+  label?: string
+  unit?: string
+}) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-lg px-3 py-2.5 text-xs">
+      {label && <p className="font-semibold text-gray-600 dark:text-gray-300 mb-1.5">{label}</p>}
+      {payload.map((p) => (
+        <div key={p.name} className="flex items-center gap-2 py-0.5">
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
+          <span className="text-gray-500 dark:text-gray-400">{p.name}:</span>
+          <span className="font-semibold text-gray-800 dark:text-gray-100 ml-auto pl-3">
+            {p.value}{unit ?? ''}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Custom legend — dot kecil + label 10px */
+function ChartLegend({ payload }: { payload?: Array<{ value: string; color: string }> }) {
+  if (!payload?.length) return null
+  return (
+    <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-1">
+      {payload.map((p) => (
+        <div key={p.value} className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
+          <span className="text-[10px] text-gray-500 dark:text-gray-400">{p.value}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
 import {
   BookOpen, CalendarDays, ClipboardList, School, Users, User,
   Database, Server, HardDrive, Wifi, RefreshCw, CheckCircle2, XCircle, AlertCircle,
@@ -393,20 +451,29 @@ function ReportEisContent() {
           ) : absensiSeries.length === 0 ? (
             <p className="text-sm text-gray-400 py-20 text-center">Belum ada data absensi.</p>
           ) : (
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={absensiSeries}>
+            <div className="h-64" style={{ minWidth: 0 }}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <AreaChart data={absensiSeries} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gradHadir" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#10b981" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
+                      <stop offset="0%"   stopColor={C.hadir} stopOpacity={0.25} />
+                      <stop offset="100%" stopColor={C.hadir} stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis dataKey="bucketLabel" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
-                  <YAxis tick={{ fontSize: 11 }} domain={[0, 100]} />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="persentaseHadir" stroke="#10b981" fill="url(#gradHadir)" />
+                  <CartesianGrid strokeDasharray="4 4" stroke={C.grid} className="dark:[stroke:#374151]" opacity={0.6} vertical={false} />
+                  <XAxis dataKey="bucketLabel" tick={TICK} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={TICK} axisLine={false} tickLine={false} domain={[0, 100]} tickFormatter={(v) => `${v}%`} width={36} />
+                  <Tooltip content={<ChartTooltip unit="%" />} cursor={{ stroke: C.hadir, strokeWidth: 1, strokeDasharray: '4 4' }} />
+                  <Area
+                    type="monotone"
+                    dataKey="persentaseHadir"
+                    name="Kehadiran"
+                    stroke={C.hadir}
+                    strokeWidth={2}
+                    fill="url(#gradHadir)"
+                    dot={false}
+                    activeDot={{ r: 4, fill: C.hadir, strokeWidth: 0 }}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -423,19 +490,19 @@ function ReportEisContent() {
           ) : absensiSeries.length === 0 ? (
             <p className="text-sm text-gray-400 py-20 text-center">Belum ada data absensi.</p>
           ) : (
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={absensiSeries}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis dataKey="bucketLabel" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="totalHadir"     stackId="a" fill="#10b981" name="Hadir" />
-                  <Bar dataKey="totalTerlambat" stackId="a" fill="#f59e0b" name="Terlambat" />
-                  <Bar dataKey="totalIzin"      stackId="a" fill="#3b82f6" name="Izin" />
-                  <Bar dataKey="totalSakit"     stackId="a" fill="#8b5cf6" name="Sakit" />
-                  <Bar dataKey="totalAlpa"      stackId="a" fill="#ef4444" name="Alpa" />
+            <div className="h-64" style={{ minWidth: 0 }}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <BarChart data={absensiSeries} barCategoryGap="35%" margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="4 4" stroke={C.grid} className="dark:[stroke:#374151]" opacity={0.6} vertical={false} />
+                  <XAxis dataKey="bucketLabel" tick={TICK} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={TICK} axisLine={false} tickLine={false} width={32} />
+                  <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+                  <Legend content={<ChartLegend />} />
+                  <Bar dataKey="totalHadir"     stackId="a" fill={C.hadir}     fillOpacity={0.85} name="Hadir"      radius={[0,0,0,0]} />
+                  <Bar dataKey="totalTerlambat" stackId="a" fill={C.terlambat} fillOpacity={0.85} name="Terlambat"  />
+                  <Bar dataKey="totalIzin"      stackId="a" fill={C.izin}      fillOpacity={0.85} name="Izin"       />
+                  <Bar dataKey="totalSakit"     stackId="a" fill={C.sakit}     fillOpacity={0.85} name="Sakit"      />
+                  <Bar dataKey="totalAlpa"      stackId="a" fill={C.alpa}      fillOpacity={0.85} name="Alpa"       radius={[3,3,0,0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -452,14 +519,29 @@ function ReportEisContent() {
           ) : materiSeries.length === 0 ? (
             <p className="text-sm text-gray-400 py-20 text-center">Belum ada data materi.</p>
           ) : (
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={materiSeries}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis dataKey="bucketLabel" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="totalMateriPublished" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.15} />
+            <div className="h-64" style={{ minWidth: 0 }}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <AreaChart data={materiSeries} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gradMateri" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"   stopColor={C.materi} stopOpacity={0.22} />
+                      <stop offset="100%" stopColor={C.materi} stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="4 4" stroke={C.grid} className="dark:[stroke:#374151]" opacity={0.6} vertical={false} />
+                  <XAxis dataKey="bucketLabel" tick={TICK} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={TICK} axisLine={false} tickLine={false} width={32} allowDecimals={false} />
+                  <Tooltip content={<ChartTooltip />} cursor={{ stroke: C.materi, strokeWidth: 1, strokeDasharray: '4 4' }} />
+                  <Area
+                    type="monotone"
+                    dataKey="totalMateriPublished"
+                    name="Materi"
+                    stroke={C.materi}
+                    strokeWidth={2}
+                    fill="url(#gradMateri)"
+                    dot={false}
+                    activeDot={{ r: 4, fill: C.materi, strokeWidth: 0 }}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -476,16 +558,27 @@ function ReportEisContent() {
           ) : tugasSeries.length === 0 ? (
             <p className="text-sm text-gray-400 py-20 text-center">Belum ada data tugas.</p>
           ) : (
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={tugasSeries}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis dataKey="bucketLabel" tick={{ fontSize: 11 }} interval="preserveStartEnd" />
-                  <YAxis yAxisId="left"  tick={{ fontSize: 11 }} />
-                  <YAxis yAxisId="right" orientation="right" domain={[0, 100]} tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Area yAxisId="left"  type="monotone" dataKey="totalTugasPublished" stroke="#111827" fill="#111827" fillOpacity={0.08} />
-                  <Area yAxisId="right" type="monotone" dataKey="persentaseSubmit"    stroke="#10b981" fill="#10b981" fillOpacity={0.08} />
+            <div className="h-64" style={{ minWidth: 0 }}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <AreaChart data={tugasSeries} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gradTugas" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"   stopColor={C.tugas}  stopOpacity={0.20} />
+                      <stop offset="100%" stopColor={C.tugas}  stopOpacity={0.02} />
+                    </linearGradient>
+                    <linearGradient id="gradSubmit" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"   stopColor={C.submit} stopOpacity={0.20} />
+                      <stop offset="100%" stopColor={C.submit} stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="4 4" stroke={C.grid} className="dark:[stroke:#374151]" opacity={0.6} vertical={false} />
+                  <XAxis dataKey="bucketLabel" tick={TICK} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis yAxisId="left"  tick={TICK} axisLine={false} tickLine={false} width={32} allowDecimals={false} />
+                  <YAxis yAxisId="right" orientation="right" domain={[0, 100]} tick={TICK} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}%`} width={36} />
+                  <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#d1d5db', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                  <Legend content={<ChartLegend />} />
+                  <Area yAxisId="left"  type="monotone" dataKey="totalTugasPublished" name="Tugas"    stroke={C.tugas}  strokeWidth={2} fill="url(#gradTugas)"  dot={false} activeDot={{ r: 4, fill: C.tugas,  strokeWidth: 0 }} />
+                  <Area yAxisId="right" type="monotone" dataKey="persentaseSubmit"    name="% Submit" stroke={C.submit} strokeWidth={2} fill="url(#gradSubmit)" dot={false} activeDot={{ r: 4, fill: C.submit, strokeWidth: 0 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
