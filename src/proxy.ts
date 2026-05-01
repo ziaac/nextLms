@@ -114,7 +114,7 @@ function isPublicRoute(pathname: string): boolean {
   return false
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
 
   // Parse cookie auth sekali di awal — dipakai untuk dua pengecekan
