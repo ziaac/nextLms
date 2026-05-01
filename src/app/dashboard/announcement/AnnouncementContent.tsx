@@ -83,6 +83,8 @@ export function AnnouncementContent() {
       setDetailOpen(true)
       router.replace(pathname, { scroll: false })
     }
+    // Intentional: router, pathname, setSelectedId, setDetailOpen adalah stable references.
+    // Hanya searchParams yang perlu di-watch untuk mendeteksi perubahan URL param.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 

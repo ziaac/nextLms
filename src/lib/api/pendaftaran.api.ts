@@ -1,17 +1,34 @@
-import axios from 'axios'
-import { API_URL } from '@/lib/constants'
+import apiAuth, { apiPublic } from '@/lib/axios'
 import type { VerifikasiIdentitasResult, BiodataSiswaBaru, SiswaLulus, BuatkanAkunResult } from '@/types/pendaftaran.types'
 import type { PaginatedResponse, PaginationParams } from '@/types'
 
-// Public API — tanpa auth header
-const publicApi = axios.create({
-  baseURL: API_URL,
-  timeout: 30_000,
-  headers: { 'Content-Type': 'application/json' },
-})
+// ── Validasi file gambar (client-side) ──────────────────────────────────────
 
-// Auth API — dengan token (untuk admin)
-import apiAuth from '@/lib/axios'
+const ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB
+
+/**
+ * Validasi file gambar sebelum dikirim ke server.
+ * Melempar Error jika file tidak valid (ukuran atau tipe MIME tidak sesuai).
+ *
+ * @param file - File yang akan divalidasi
+ * @throws Error dengan pesan dalam Bahasa Indonesia jika validasi gagal
+ */
+export function validateImageFile(file: File): void {
+  if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.type as typeof ALLOWED_IMAGE_MIME_TYPES[number])) {
+    throw new Error(
+      `Tipe file tidak didukung: "${file.type || 'tidak diketahui'}". ` +
+      'Hanya file gambar JPG, PNG, atau WebP yang diizinkan.',
+    )
+  }
+
+  if (file.size > MAX_IMAGE_SIZE_BYTES) {
+    const sizeMB = (file.size / (1024 * 1024)).toFixed(1)
+    throw new Error(
+      `Ukuran file terlalu besar: ${sizeMB} MB. Maksimal ukuran file adalah 5 MB.`,
+    )
+  }
+}
 
 export interface SiswaLulusParams extends PaginationParams {
   tahunAjaranId?: string
@@ -34,25 +51,25 @@ export const pendaftaranPublicApi = {
     noPendaftaran: string
     tanggalLahir: string
   }): Promise<VerifikasiIdentitasResult> => {
-    const res = await publicApi.post('/pendaftaran-ulang/verifikasi-identitas', data)
+    const res = await apiPublic.post('/pendaftaran-ulang/verifikasi-identitas', data)
     return res.data
   },
 
   // Buat biodata baru
   createBiodata: async (data: Record<string, unknown>): Promise<BiodataSiswaBaru> => {
-    const res = await publicApi.post('/pendaftaran-ulang/biodata', data)
+    const res = await apiPublic.post('/pendaftaran-ulang/biodata', data)
     return res.data
   },
 
   // Update biodata (siswa masih DRAFT)
   updateBiodata: async (id: string, data: Record<string, unknown>): Promise<BiodataSiswaBaru> => {
-    const res = await publicApi.patch(`/pendaftaran-ulang/biodata/${id}`, data)
+    const res = await apiPublic.patch(`/pendaftaran-ulang/biodata/${id}`, data)
     return res.data
   },
 
   // Submit biodata (DRAFT → DIAJUKAN)
   submitBiodata: async (id: string): Promise<BiodataSiswaBaru> => {
-    const res = await publicApi.patch(`/pendaftaran-ulang/biodata/${id}/submit`)
+    const res = await apiPublic.patch(`/pendaftaran-ulang/biodata/${id}/submit`)
     return res.data
   },
 }

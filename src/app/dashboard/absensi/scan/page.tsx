@@ -82,6 +82,9 @@ function ScanContent() {
     // Delay sedikit agar page fully mounted — penting untuk iOS
     const timer = setTimeout(() => requestGps(), 500)
     return () => clearTimeout(timer)
+  // Intentional: requestGps dikeluarkan dari deps karena merupakan callback yang
+  // dibuat ulang tiap render — menambahkannya akan menyebabkan infinite loop GPS request.
+  // Effect ini hanya perlu berjalan saat requireGps berubah.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.sesi.requireGps])
 

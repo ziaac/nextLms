@@ -56,6 +56,8 @@ export default function MapelTingkatFormModal({ open, onClose }: Props) {
       reset()
     }
     prevOpen.current = open
+  // Intentional: createMutation.reset, setSubmitError, reset adalah stable references.
+  // Effect ini hanya perlu berjalan saat modal dibuka/ditutup.
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const onSubmit = async (values: FormValues) => {

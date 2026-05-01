@@ -1,13 +1,20 @@
 import { type ClassValue, clsx } from 'clsx'
+import { AxiosError } from 'axios'
 
 const DISPLAY_TZ = process.env.NEXT_PUBLIC_TIMEZONE ?? 'Asia/Makassar'
+
+interface ApiErrorData {
+  message?: string | string[]
+  error?: string
+}
 
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs)
 }
 
 export function getErrorMessage(error: unknown): string {
-  const data = (error as any)?.response?.data
+  const axiosErr = error as AxiosError<ApiErrorData>
+  const data = axiosErr?.response?.data
   if (data) {
     const msg = data.message
     if (Array.isArray(msg)) return msg.join(', ')

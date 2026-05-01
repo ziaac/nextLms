@@ -16,17 +16,10 @@ import { getPublicFileUrl } from '@/lib/constants'
 import { getErrorMessage } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import type { Berita, StatusBerita } from '@/types/homepage.types'
+import { formatTanggalSaja } from '@/lib/helpers/timezone'
 
 const WRITE_ROLES = new Set(['SUPER_ADMIN', 'ADMIN', 'STAFF_TU'])
 const DELETE_ROLES = new Set(['SUPER_ADMIN', 'ADMIN'])
-
-function formatDate(iso: string | null) {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('id-ID', {
-    day: '2-digit', month: 'short', year: 'numeric',
-  })
-}
-
 function slugify(text: string) {
   return text
     .toLowerCase()
@@ -314,7 +307,7 @@ function BeritaRow({
             {item.author?.profile?.namaLengkap ?? '—'}
           </span>
           <span className="text-[11px] text-gray-400">
-            {formatDate(item.publishedAt ?? item.createdAt)}
+            {formatTanggalSaja(item.publishedAt ?? item.createdAt)}
           </span>
         </div>
       </div>

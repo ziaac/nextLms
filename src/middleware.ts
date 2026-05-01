@@ -154,7 +154,7 @@ export function middleware(request: NextRequest) {
     )
     if (matchedRoute) {
       const allowed = ROLE_ROUTES[matchedRoute]
-      if (!allowed.includes(roleUpper as any)) {
+      if (!(allowed as readonly string[]).includes(roleUpper)) {
         console.warn(`[Middleware] Access denied for role ${roleUpper} to ${pathname}`)
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }

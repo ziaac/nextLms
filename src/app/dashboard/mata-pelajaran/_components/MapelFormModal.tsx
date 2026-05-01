@@ -65,7 +65,8 @@ export default function MapelFormModal({ open, onClose, data }: Props) {
       setSubmitError(null)
     }
     prevOpen.current = open
-    if (!open && !isEdit) reset()
+    // Reset form saat modal ditutup (baik create maupun edit)
+    if (!open) reset({ kode: '', nama: '' })
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

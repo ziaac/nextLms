@@ -59,11 +59,15 @@ export default function TingkatKelasFormModal({ open, onClose, data }: Props) {
     }
     prevOpen.current = open
     if (!open && !isEdit) reset()
+  // Intentional: mutation.reset, setSubmitError, reset adalah stable references.
+  // Effect ini hanya perlu berjalan saat modal dibuka/ditutup.
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!open || !isEdit || !data) return
     reset({ nama: data.nama as 'X' | 'XI' | 'XII' })
+  // Intentional: reset adalah stable reference dari react-hook-form.
+  // Deps [open, data?.id] cukup untuk mendeteksi kapan form perlu di-populate ulang.
   }, [open, data?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const namaValue = watch('nama')

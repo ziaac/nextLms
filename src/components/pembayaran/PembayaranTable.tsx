@@ -6,8 +6,9 @@ import { StatusPembayaranBadge } from '@/components/pembayaran/StatusPembayaranB
 import { formatCurrency } from '@/lib/utils'
 import { formatTanggalLengkap } from '@/lib/helpers/timezone'
 import type { Pembayaran } from '@/types/pembayaran.types'
+import type { MetodePembayaran } from '@/types/enums'
 
-const METODE_LABEL: Record<string, string> = {
+const METODE_LABEL: Record<MetodePembayaran, string> = {
   TUNAI: 'Tunai',
   TRANSFER: 'Transfer',
   VIRTUAL_ACCOUNT: 'Virtual Account',

@@ -442,6 +442,9 @@ function MatchingWidget({ pairs, value, onChange, isReadOnly, showCorrect }: Mat
       [rights[i], rights[j]] = [rights[j], rights[i]]
     }
     return rights
+  // Intentional: pairs di-shuffle sekali saat jumlah pasangan berubah (bukan tiap render).
+  // Menggunakan pairs.length sebagai deps agar shuffle tidak berulang saat konten pairs berubah
+  // tapi jumlahnya tetap sama — ini perilaku yang diinginkan untuk soal matching.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pairs.length])
 

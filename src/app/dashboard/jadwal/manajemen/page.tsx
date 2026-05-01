@@ -51,6 +51,9 @@ export default function JadwalManajemenPage() {
               ? aktifList.reduce((a, b) => (b.urutan > a.urutan ? b : a))  // urutan tertinggi = GENAP
               : aktifList[0] ?? semesterList[semesterList.length - 1]       // fallback: semester terakhir
             if (aktif && selectedSemesterId !== aktif.id) setSelectedSemId(aktif.id)
+          // Intentional: selectedSemesterId dan setSelectedSemId dikeluarkan dari deps.
+          // Effect ini hanya perlu berjalan saat daftar semester berubah (TA baru dipilih).
+          // Menambahkan selectedSemesterId akan menyebabkan loop karena effect mengubah nilai tersebut.
           // eslint-disable-next-line react-hooks/exhaustive-deps
           }, [semesterList])
 

@@ -84,10 +84,8 @@ function MarkdownIcon({ size = 14 }: { size?: number }) {
 // ── Fungsi konversi Markdown → HTML via marked ────────────────
 function markdownToHtml(md: string): string {
   // Konfigurasi marked: GFM (GitHub Flavored Markdown) + line breaks
-  marked.setOptions({
-    gfm:    true,
-    breaks: true,
-  } as any)
+  // Gunakan marked.use() — setOptions deprecated di marked v5+
+  marked.use({ gfm: true, breaks: true })
 
   const raw = marked.parse(md)
   // marked.parse bisa return string | Promise<string> — ambil nilai sync

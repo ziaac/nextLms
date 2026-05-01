@@ -1,8 +1,8 @@
-
 import api from '@/lib/axios'
 import { PaginatedResponse } from '@/types/api.types'
 import {
   TugasItem,
+  TugasPayload,
   TugasQueryParams,
   PengumpulanTugas,
   RekapPengumpulanItem,
@@ -14,7 +14,7 @@ const BASE = '/tugas'
 
 // --- TUGAS MANAGEMENT (GURU/ADMIN) ---
 
-export const createTugas = (payload: any) =>
+export const createTugas = (payload: TugasPayload) =>
   api.post<TugasItem>(BASE, payload).then((r) => r.data)
 
 export const getListTugas = (params: TugasQueryParams) =>
@@ -23,7 +23,7 @@ export const getListTugas = (params: TugasQueryParams) =>
 export const getDetailTugas = (id: string) =>
   api.get<TugasItem>(`${BASE}/${id}`).then((r) => r.data)
 
-export const updateTugas = (id: string, payload: any) =>
+export const updateTugas = (id: string, payload: Partial<TugasPayload>) =>
   api.put<TugasItem>(`${BASE}/${id}`, payload).then((r) => r.data)
 
 export const publishTugas = (id: string) =>
@@ -37,7 +37,13 @@ export const getRekapPengumpulan = (tugasId: string) =>
 
 // --- SUBMISSION (SISWA) ---
 
-export const submitTugas = (tugasId: string, payload: any) =>
+export interface SubmitTugasPayload {
+  fileUrls?: string[]
+  jawaban?: string
+  catatan?: string
+}
+
+export const submitTugas = (tugasId: string, payload: SubmitTugasPayload) =>
   api.post<PengumpulanTugas>(`${BASE}/${tugasId}/submit`, payload).then((r) => r.data)
 
 export const getMySubmission = (tugasId: string) =>

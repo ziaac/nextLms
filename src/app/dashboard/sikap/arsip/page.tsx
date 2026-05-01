@@ -19,10 +19,10 @@ import type { Semester } from '@/types/tahun-ajaran.types'
 // ── Inner component (uses useSearchParams) ────────────────────────────────────
 
 function SikapArsipContent() {
-  const router       = useSearchParams()
-  const nav          = useRouter()
+  const searchParams = useSearchParams()
+  const router       = useRouter()
   const { user }     = useAuthStore()
-  const semesterId   = router.get('semesterId') ?? ''
+  const semesterId   = searchParams.get('semesterId') ?? ''
 
   // ── Resolve semester label ────────────────────────────────────
   const { data: taListRaw = [] } = useTahunAjaranList()
@@ -96,7 +96,7 @@ function SikapArsipContent() {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
         <p className="text-sm text-gray-500">Semester tidak ditemukan.</p>
-        <Button variant="secondary" onClick={() => nav.push('/dashboard/sikap')}>
+        <Button variant="secondary" onClick={() => router.push('/dashboard/sikap')}>
           <ArrowLeft className="w-4 h-4 mr-1.5" />
           Kembali
         </Button>
@@ -125,7 +125,7 @@ function SikapArsipContent() {
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => nav.push('/dashboard/sikap')}
+              onClick={() => router.push('/dashboard/sikap')}
             >
               <ArrowLeft className="w-4 h-4 mr-1.5" />
               Kembali

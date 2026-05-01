@@ -6,7 +6,9 @@ const BASE = '/ruangan'
 export const ruanganApi = {
   getAll: async (): Promise<Ruangan[]> => {
     const res = await api.get<Ruangan[] | { data: Ruangan[] }>(BASE)
-    return Array.isArray(res.data) ? res.data : (res.data as any).data ?? []
+    return Array.isArray(res.data)
+      ? res.data
+      : (res.data as { data: Ruangan[] }).data ?? []
   },
   create: async (dto: CreateRuanganDto): Promise<Ruangan> => {
     const res = await api.post<Ruangan>(BASE, dto)

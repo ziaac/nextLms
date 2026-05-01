@@ -248,6 +248,8 @@ function ReportEisContent() {
   // default TA aktif
   useEffect(() => {
     if (!tahunAjaranId && taAktif) setTahunAjaranId(taAktif)
+    // Intentional: setTahunAjaranId adalah stable setter. tahunAjaranId dikeluarkan
+    // dari deps untuk menghindari loop — effect hanya perlu berjalan saat taAktif tersedia.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taAktif])
 

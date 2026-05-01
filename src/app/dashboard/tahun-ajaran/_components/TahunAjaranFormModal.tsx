@@ -78,6 +78,8 @@ export default function TahunAjaranFormModal({ open, onClose, data }: Props) {
     if (!open && !isEdit) {
       reset()
     }
+  // Intentional: reset, setSubmitError, mutation.reset adalah stable references.
+  // Effect ini hanya perlu berjalan saat modal dibuka/ditutup.
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── useEffect 2: populate form saat edit ──────────────────
@@ -89,6 +91,8 @@ export default function TahunAjaranFormModal({ open, onClose, data }: Props) {
       tanggalSelesai: data.tanggalSelesai.split('T')[0],
       isActive:       data.isActive,
     })
+  // Intentional: reset adalah stable reference dari react-hook-form.
+  // Deps [open, data?.id] cukup untuk mendeteksi kapan form perlu di-populate ulang.
   }, [open, data?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-generate nama dari tanggalMulai (create only) ────
@@ -96,6 +100,8 @@ export default function TahunAjaranFormModal({ open, onClose, data }: Props) {
     if (isEdit) return
     const generated = buildNamaFromDate(tanggalMulai)
     if (generated) setValue('nama', generated)
+  // Intentional: setValue adalah stable reference dari react-hook-form.
+  // buildNamaFromDate adalah pure function, tidak perlu di deps.
   }, [tanggalMulai, isEdit]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Submit ────────────────────────────────────────────────

@@ -135,6 +135,8 @@ export function MapelFormModal({
       setSelectedTingkatId(tingkatKelasIdCtx ?? '')
       setSelectedTAId(tahunAjaranIdCtx ?? '')
     }
+  // Intentional: reset, setter state, dan mutation.reset adalah stable references.
+  // Effect ini hanya perlu berjalan saat modal dibuka/ditutup atau editData berubah.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editData?.id])
 

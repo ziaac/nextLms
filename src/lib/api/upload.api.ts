@@ -1,4 +1,5 @@
 import api from '@/lib/axios'
+import { validateImageFile } from '@/lib/api/pendaftaran.api'
 
 export interface UploadPrivateResult {
   key: string
@@ -57,7 +58,7 @@ export async function uploadPublicFile(
 
 export const uploadApi = {
   suratPerizinan:    (file: File) => uploadPrivateFile(file, '/upload/perizinan'),
-  fotoProfil:        (file: File) => uploadPrivateFile(file, '/upload/profil'),
+  fotoProfil:        (file: File) => { validateImageFile(file); return uploadPrivateFile(file, '/upload/profil') },
   biodataAkta:       (file: File) => uploadPrivateFile(file, '/upload/biodata/akta'),
   biodataKK:         (file: File) => uploadPrivateFile(file, '/upload/biodata/kk'),
   biodataKIP:        (file: File) => uploadPrivateFile(file, '/upload/biodata/kip'),
@@ -72,9 +73,9 @@ export const uploadApi = {
   tugasSubmit:       (file: File) => uploadPrivateFile(file, '/upload/tugas/submit'),
 
   // ── Homepage (public files — return { url, key }) ──────────────
-  homepageSlider:  (file: File) => uploadPublicFile(file, '/upload/homepage/slider'),
-  homepageBerita:  (file: File) => uploadPublicFile(file, '/upload/homepage/berita'),
-  homepageGaleri:  (file: File) => uploadPublicFile(file, '/upload/homepage/galeri'),
-  homepageFoto:    (file: File) => uploadPublicFile(file, '/upload/homepage/foto'),
-  homepageProfil:  (file: File) => uploadPublicFile(file, '/upload/homepage/profil-madrasah'),
+  homepageSlider:  (file: File) => { validateImageFile(file); return uploadPublicFile(file, '/upload/homepage/slider') },
+  homepageBerita:  (file: File) => { validateImageFile(file); return uploadPublicFile(file, '/upload/homepage/berita') },
+  homepageGaleri:  (file: File) => { validateImageFile(file); return uploadPublicFile(file, '/upload/homepage/galeri') },
+  homepageFoto:    (file: File) => { validateImageFile(file); return uploadPublicFile(file, '/upload/homepage/foto') },
+  homepageProfil:  (file: File) => { validateImageFile(file); return uploadPublicFile(file, '/upload/homepage/profil-madrasah') },
 }

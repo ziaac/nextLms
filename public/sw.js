@@ -1,61 +1,183 @@
-const CACHE_NAME     = 'lms-man2-v3'
-const IMG_CACHE_NAME = 'lms-man2-images-v1'
-const OLD_CACHES     = ['lms-man2-v1', 'lms-man2-v2']
+/**
+ * Service Worker — LMS MAN 2 Kota Makassar
+ *
+ * AUDIT CACHE STRATEGY (2026-05-01)
+ * ──────────────────────────────────────────────────────────────────────────
+ * Prinsip utama: data fresh > performa cache untuk modul kritis.
+ *
+ * TIDAK DI-CACHE (network-only, biarkan browser handle):
+ *   - /api/*                  → semua API endpoint (absensi, jadwal, pembayaran,
+ *                               notifikasi, dll.) — data real-time, TIDAK BOLEH stale
+ *   - Halaman dashboard       → HTML Next.js bisa berisi data SSR; biarkan fresh
+ *   - Request ke hostname lain → CDN/storage eksternal punya cache sendiri
+ *
+ * DI-CACHE (aman karena konten tidak berubah):
+ *   - /_next/static/*         → JS/CSS bundle Next.js (content-hashed, aman cache lama)
+ *   - Gambar dari storage MinIO (UUID-based URL, tidak pernah berubah)
+ *   - Gambar statis lokal (.webp, .jpg, .png, .svg, dll.)
+ *
+ * STRATEGI PER TIPE:
+ *   - Static JS/CSS (_next/static): Cache-first (konten sudah content-hashed)
+ *   - Gambar:                       Cache-first + max 200 item, 30 hari TTL
+ *   - Semua lainnya:                Network-only (tidak di-cache)
+ * ──────────────────────────────────────────────────────────────────────────
+ */
 
+const STATIC_CACHE_NAME = 'lms-man2-static-v4'   // JS/CSS Next.js bundles
+const IMG_CACHE_NAME    = 'lms-man2-images-v2'    // Gambar (storage + lokal)
+
+// Cache lama yang harus dihapus saat aktivasi
+const OLD_CACHES = [
+  'lms-man2-v1',
+  'lms-man2-v2',
+  'lms-man2-v3',
+  'lms-man2-images-v1',
+]
+
+// Batas cache gambar agar tidak membengkak
+const IMG_CACHE_MAX_ITEMS = 200
+const IMG_CACHE_MAX_AGE_SECONDS = 30 * 24 * 60 * 60 // 30 hari
+
+// ── Install ──────────────────────────────────────────────────────────────
 self.addEventListener('install', () => {
+  // Langsung aktif tanpa menunggu tab lama ditutup
   self.skipWaiting()
 })
 
+// ── Activate — bersihkan cache lama ─────────────────────────────────────
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => OLD_CACHES.includes(key))
-          .map((key) => caches.delete(key))
+    caches.keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => OLD_CACHES.includes(key))
+            .map((key) => {
+              console.log('[SW] Menghapus cache lama:', key)
+              return caches.delete(key)
+            })
+        )
       )
-    ).then(() => self.clients.claim())
+      .then(() => self.clients.claim())
   )
 })
 
+// ── Message handler — terima SKIP_WAITING dari ServiceWorkerRegister ────
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
+})
+
+// ── Fetch — inti cache strategy ─────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
+  // Hanya handle GET
   if (event.request.method !== 'GET') return
 
   const url = new URL(event.request.url)
 
-  // ── Cache-first untuk gambar dari MinIO storage ──
-  // Gambar tidak berubah (UUID-based URL), aman di-cache lama
-  const isStorageImage = url.hostname.includes('storagelms') ||
-    url.pathname.match(/\.(webp|jpg|jpeg|png|gif|svg|avif)$/i)
+  // ── 1. API ENDPOINTS — TIDAK DI-CACHE (network-only) ──────────────────
+  // Semua /api/* harus selalu fresh: absensi, jadwal, pembayaran, notifikasi, dll.
+  // Biarkan browser handle langsung tanpa intervensi service worker.
+  if (url.pathname.startsWith('/api/')) {
+    return // network-only: tidak intercept
+  }
 
-  if (isStorageImage) {
-    event.respondWith(
-      caches.open(IMG_CACHE_NAME).then((cache) =>
-        cache.match(event.request).then((cached) => {
-          if (cached) return cached
-          return fetch(event.request).then((res) => {
-            if (res.ok) cache.put(event.request, res.clone())
-            return res
-          })
-        })
-      )
-    )
+  // ── 2. Request ke hostname lain — TIDAK DI-CACHE ──────────────────────
+  // Termasuk storage MinIO eksternal yang punya cache header sendiri.
+  // KECUALI: gambar dari storage MinIO kita tangani di blok berikutnya.
+  const isOwnHost = url.hostname === self.location.hostname
+  const isStorageHost = url.hostname.includes('storagelms')
+
+  if (!isOwnHost && !isStorageHost) {
+    return // network-only untuk hostname asing
+  }
+
+  // ── 3. GAMBAR — Cache-first dengan TTL dan batas jumlah ───────────────
+  // Gambar dari MinIO (UUID-based URL) dan gambar statis lokal tidak berubah.
+  // Aman di-cache lama. Gunakan cache-first untuk performa offline.
+  const isImage =
+    isStorageHost ||
+    url.pathname.match(/\.(webp|jpg|jpeg|png|gif|svg|avif|ico)$/i)
+
+  if (isImage) {
+    event.respondWith(handleImageCache(event.request))
     return
   }
 
-  // ── Network-first untuk request lainnya (API, halaman) ──
-  // Jangan cache API calls
-  if (url.pathname.startsWith('/api/') || url.hostname !== self.location.hostname) {
-    return // biarkan browser handle langsung
+  // ── 4. STATIC ASSETS Next.js — Cache-first ────────────────────────────
+  // /_next/static/ berisi JS/CSS dengan content hash di nama file.
+  // Konten tidak pernah berubah untuk URL yang sama → aman cache-first.
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(handleStaticCache(event.request))
+    return
   }
 
-  event.respondWith(
-    fetch(event.request)
-      .then((res) => {
-        const clone = res.clone()
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
-        return res
-      })
-      .catch(() => caches.match(event.request))
-  )
+  // ── 5. HALAMAN & LAINNYA — Network-only ───────────────────────────────
+  // Halaman HTML Next.js (termasuk dashboard, absensi, jadwal, pembayaran)
+  // bisa mengandung data SSR yang harus selalu fresh.
+  // Tidak di-cache — biarkan browser handle langsung.
+  // (Tidak ada event.respondWith → browser fetch normal)
 })
+
+// ── Helper: Cache-first untuk gambar dengan TTL & batas item ────────────
+async function handleImageCache(request) {
+  const cache = await caches.open(IMG_CACHE_NAME)
+  const cached = await cache.match(request)
+
+  if (cached) {
+    // Cek TTL dari header Date response yang di-cache
+    const dateHeader = cached.headers.get('date')
+    if (dateHeader) {
+      const cachedAt = new Date(dateHeader).getTime()
+      const ageSeconds = (Date.now() - cachedAt) / 1000
+      if (ageSeconds < IMG_CACHE_MAX_AGE_SECONDS) {
+        return cached // masih fresh, gunakan cache
+      }
+      // Sudah expired, hapus dan fetch ulang
+      await cache.delete(request)
+    } else {
+      return cached // tidak ada header Date, percaya cache
+    }
+  }
+
+  try {
+    const response = await fetch(request)
+    if (response.ok) {
+      // Trim cache jika sudah terlalu banyak
+      await trimImageCache(cache)
+      await cache.put(request, response.clone())
+    }
+    return response
+  } catch {
+    // Offline: kembalikan cache lama meski expired (lebih baik dari error)
+    return cached || Response.error()
+  }
+}
+
+// ── Helper: Trim cache gambar agar tidak melebihi batas ─────────────────
+async function trimImageCache(cache) {
+  const keys = await cache.keys()
+  if (keys.length >= IMG_CACHE_MAX_ITEMS) {
+    // Hapus item paling lama (FIFO)
+    const toDelete = keys.slice(0, keys.length - IMG_CACHE_MAX_ITEMS + 1)
+    await Promise.all(toDelete.map((key) => cache.delete(key)))
+  }
+}
+
+// ── Helper: Cache-first untuk static assets Next.js ─────────────────────
+async function handleStaticCache(request) {
+  const cache = await caches.open(STATIC_CACHE_NAME)
+  const cached = await cache.match(request)
+  if (cached) return cached
+
+  try {
+    const response = await fetch(request)
+    if (response.ok) {
+      await cache.put(request, response.clone())
+    }
+    return response
+  } catch {
+    return cached || Response.error()
+  }
+}

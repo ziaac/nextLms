@@ -44,30 +44,16 @@ export default async function HomePage() {
     .map((m: any) => ({ label: m.label, href: m.target }))
 
   // ── Kumpulkan URL gambar critical (above-the-fold) untuk preload ──
+  // Hanya preload gambar yang BENAR-BENAR tampil di viewport pertama (hero/slider).
+  // Jangan preload gambar yang ada di section bawah (profil, berita, galeri) —
+  // browser akan warning "preloaded but not used within a few seconds" jika
+  // gambar tersebut belum masuk viewport saat window load event.
   const criticalImages: string[] = []
 
-  // Slider pertama
+  // Hanya slider pertama yang aktif — ini satu-satunya yang truly above-the-fold
   const firstSlider = (sliderData as any[]).find((s) => s.isActive)
   if (firstSlider?.imageUrl) {
     const url = getPublicFileUrl(firstSlider.imageUrl)
-    if (url) criticalImages.push(url)
-  }
-
-  // Foto kepala madrasah
-  if (profilData?.fotoKepala) {
-    const url = getPublicFileUrl(profilData.fotoKepala)
-    if (url) criticalImages.push(url)
-  }
-
-  // Foto profil (background card statistik)
-  if (profilData?.foto1Url) {
-    const url = getPublicFileUrl(profilData.foto1Url)
-    if (url) criticalImages.push(url)
-  }
-
-  // Foto berita featured
-  if (berita[0]?.fotoUrl) {
-    const url = getPublicFileUrl(berita[0].fotoUrl)
     if (url) criticalImages.push(url)
   }
 

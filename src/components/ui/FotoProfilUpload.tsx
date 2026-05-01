@@ -5,6 +5,7 @@ import { Camera, Loader2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getPublicFileUrl } from '@/lib/constants'
 import { compressImageToFile } from '@/lib/helpers/image-compress'
+import { validateImageFile } from '@/lib/api/pendaftaran.api'
 
 interface FotoProfilUploadProps {
   currentKey?: string | null
@@ -30,6 +31,15 @@ export function FotoProfilUpload({
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    // Validasi MIME type dan ukuran file sebelum upload
+    try {
+      validateImageFile(file)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'File tidak valid.')
+      if (inputRef.current) inputRef.current.value = ''
+      return
+    }
 
     const localUrl = URL.createObjectURL(file)
     setPreviewUrl(localUrl)

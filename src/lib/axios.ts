@@ -77,3 +77,13 @@ api.interceptors.response.use(
 )
 
 export default api
+
+/**
+ * Instance axios untuk endpoint publik (tanpa auth header / interceptor token).
+ * Gunakan ini untuk endpoint yang tidak memerlukan autentikasi.
+ */
+export const apiPublic = axios.create({
+  baseURL: API_URL,
+  timeout: 30_000,
+  headers: { 'Content-Type': 'application/json' },
+})

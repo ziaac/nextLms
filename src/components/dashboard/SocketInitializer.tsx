@@ -10,6 +10,7 @@ import { getUnreadCount } from '@/lib/api/notifikasi.api'
 import { queryClient } from '@/lib/query-client'
 import { notifikasiKeys } from '@/hooks/notifikasi'
 import type { NotifikasiBaru } from '@/types/notifikasi.types'
+import { resolveNotifikasiUrl } from './notifikasi-utils'
 
 /**
  * Komponen ini mount setelah login, menghubungkan socket dan
@@ -53,7 +54,8 @@ export function SocketInitializer() {
           ? {
               label: 'Lihat',
               onClick: () => {
-                window.location.href = data.actionUrl as string
+                const resolvedUrl = resolveNotifikasiUrl(data.actionUrl, data.tipe, null)
+                if (resolvedUrl) window.location.href = resolvedUrl
               },
             }
           : undefined,

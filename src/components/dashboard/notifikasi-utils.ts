@@ -23,3 +23,25 @@ export function getTipeLabel(tipe: TipeNotifikasi): string {
   }
   return labels[tipe] ?? tipe
 }
+
+/**
+ * Normalisasi actionUrl dari notifikasi lama yang mungkin punya format URL yang salah.
+ * Contoh: notifikasi PENGUMUMAN lama menyimpan `/pengumuman/:id` (halaman publik, 404 untuk user login)
+ * seharusnya `/dashboard/announcement?detail=:id`.
+ */
+export function resolveNotifikasiUrl(
+  actionUrl: string | null,
+  tipe: TipeNotifikasi,
+  referenceId: string | null,
+): string | null {
+  if (!actionUrl) return null
+
+  // Perbaiki URL lama pengumuman: /pengumuman/:id → /dashboard/announcement?detail=:id
+  const pengumumanLama = actionUrl.match(/^\/pengumuman\/([a-f0-9-]+)$/)
+  if (pengumumanLama) {
+    const id = referenceId ?? pengumumanLama[1]
+    return `/dashboard/announcement?detail=${id}`
+  }
+
+  return actionUrl
+}

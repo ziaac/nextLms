@@ -199,6 +199,9 @@ export function QuizModal({ tugas, tugasId, onClose }: Props) {
     }, 1000)
 
     return () => clearInterval(id)
+    // Intentional: handleFinalSubmit dikeluarkan dari deps karena dibuat ulang tiap render.
+    // Menambahkannya akan menyebabkan timer di-reset setiap render. Timer hanya perlu
+    // dimulai ulang saat phase atau tanggalSelesai berubah.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, tugas.tanggalSelesai])
 
@@ -254,6 +257,9 @@ export function QuizModal({ tugas, tugasId, onClose }: Props) {
     } finally {
       setIsSubmitting(false)
     }
+  // Intentional: submitMutation dikeluarkan dari deps karena merupakan stable reference
+  // dari react-query. Menambahkannya akan menyebabkan fungsi ini dibuat ulang setiap render
+  // dan berpotensi menyebabkan double-submit.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [answers, tugasId, isSubmitting, STORAGE_KEY])
 

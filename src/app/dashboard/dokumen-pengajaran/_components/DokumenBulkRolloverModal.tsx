@@ -200,6 +200,8 @@ export function DokumenBulkRolloverModal({ open, onClose, guruId }: Props) {
       setSumberMapelId(''); setTujuanMapelIds([])
       setCheckResult(null)
     }
+  // Intentional: sumber.reset, tujuan.reset, dan setter state adalah stable references.
+  // Effect ini hanya perlu berjalan saat modal dibuka/ditutup.
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedSumber       = sumber.mapelList.find((m) => m.id === sumberMapelId)

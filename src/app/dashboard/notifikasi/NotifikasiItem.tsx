@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { getTipeIcon, getTipeLabel } from '@/components/dashboard/notifikasi-utils'
+import { getTipeIcon, getTipeLabel, resolveNotifikasiUrl } from '@/components/dashboard/notifikasi-utils'
 import { useMarkAsRead, useRemoveNotifikasi } from '@/hooks/notifikasi'
 import { formatTanggalLengkap } from '@/lib/helpers/timezone'
 import type { NotifikasiItem as NotifikasiItemType } from '@/types/notifikasi.types'
@@ -21,8 +21,9 @@ export function NotifikasiItem({ item }: NotifikasiItemProps) {
     if (!item.isRead) {
       markAsRead.mutate(item.id)
     }
-    if (item.actionUrl) {
-      router.push(item.actionUrl)
+    const resolvedUrl = resolveNotifikasiUrl(item.actionUrl, item.tipe, item.referenceId ?? null)
+    if (resolvedUrl) {
+      router.push(resolvedUrl)
     }
   }
 

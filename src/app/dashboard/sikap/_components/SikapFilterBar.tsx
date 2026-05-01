@@ -59,6 +59,10 @@ export function SikapFilterBar({
     if (aktif && aktif.id !== semesterId) {
       onTahunAjaranChange(tahunAjaranId, aktif.id)
     }
+  // Intentional: semesterId dan onTahunAjaranChange dikeluarkan dari deps.
+  // Effect ini hanya perlu berjalan saat daftar semester atau TA berubah.
+  // Menambahkan semesterId akan menyebabkan loop karena effect mengubah nilai tersebut.
+  // onTahunAjaranChange adalah prop callback yang tidak di-memoize.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [semList, tahunAjaranId, arsipMode])
 

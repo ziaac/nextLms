@@ -75,6 +75,9 @@ export function WorksheetGradingView({ tugasId, siswaId, namaSiswa, onClose, hid
         pengumpulanId: detail?.pengumpulanId,
       })
     }
+  // Intentional: onAutoGradeData adalah prop callback yang tidak di-memoize oleh parent.
+  // Menambahkannya ke deps akan menyebabkan infinite loop karena callback baru dibuat tiap render.
+  // Effect ini hanya perlu berjalan saat nilai auto-grade atau loading state berubah.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoCorrect, autoTotal, hasManual, detail?.pengumpulanId, defLoading, detailLoading])
 

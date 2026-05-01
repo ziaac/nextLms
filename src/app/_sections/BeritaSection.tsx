@@ -5,19 +5,13 @@ import Link from 'next/link'
 import { Calendar, Eye, Tag, ArrowRight, Newspaper } from 'lucide-react'
 import { getPublicFileUrl } from '@/lib/constants'
 import { PlaceholderImage } from '@/components/public/PlaceholderImage'
+import { formatTanggalSaja } from '@/lib/helpers/timezone'
 
 interface BeritaItem {
   id: string; judul: string; slug: string; excerpt?: string | null
   fotoUrl?: string | null; publishedAt?: string | null; viewCount: number
   kategori?: { nama: string } | null
   author?: { profile?: { namaLengkap: string } | null } | null
-}
-
-function formatDate(iso: string | null | undefined) {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString('id-ID', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  })
 }
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -102,7 +96,7 @@ function FeaturedCard({ item }: { item: BeritaItem }) {
           <div className="flex items-center gap-3 text-xs text-white/55 pt-1">
             <span className="flex items-center gap-1">
               <Calendar size={11} />
-              {formatDate(item.publishedAt)}
+              {formatTanggalSaja(item.publishedAt ?? '')}
             </span>
             <span className="flex items-center gap-1">
               <Eye size={11} />
@@ -163,7 +157,7 @@ function ListCard({ item }: { item: BeritaItem }) {
           <div className="flex items-center gap-2 text-xs text-gray-400">
             <span className="flex items-center gap-1">
               <Calendar size={10} />
-              {formatDate(item.publishedAt)}
+              {formatTanggalSaja(item.publishedAt ?? '')}
             </span>
             <span className="flex items-center gap-1">
               <Eye size={10} />

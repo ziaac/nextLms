@@ -77,6 +77,8 @@ export default function SemesterFormModal({ open, onClose, tahunAjaranId, data }
     if (!open && !isEdit) {
       reset()
     }
+  // Intentional: mutation.reset, setSubmitError, reset adalah stable references.
+  // Effect ini hanya perlu berjalan saat modal dibuka/ditutup.
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── useEffect 2: populate form saat edit ──────────────────
@@ -88,6 +90,8 @@ export default function SemesterFormModal({ open, onClose, tahunAjaranId, data }
       tanggalSelesai: data.tanggalSelesai.split('T')[0],
       isActive:       data.isActive,
     })
+  // Intentional: reset adalah stable reference dari react-hook-form.
+  // Deps [open, data?.id] cukup untuk mendeteksi kapan form perlu di-populate ulang.
   }, [open, data?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Submit ────────────────────────────────────────────────

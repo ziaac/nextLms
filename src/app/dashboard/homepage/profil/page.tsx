@@ -148,6 +148,9 @@ export default function ProfilPage() {
       akreditasi: (profil as any).akreditasi  ?? '',
     })
     setIsDirty(false)
+  // Intentional: profil (query data) dikeluarkan dari deps — effect ini hanya
+  // perlu sync form saat profilId berubah, bukan setiap kali data di-refetch.
+  // Menambahkan profil akan menyebabkan form reset setiap background refetch.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profilId])
 

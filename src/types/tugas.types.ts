@@ -94,7 +94,7 @@ export interface TugasItem {
   bentuk: BentukTugas
   modePengerjaan: ModePengerjaan
   bobot: number
-  bobotPenilaian?: any
+  bobotPenilaian?: BobotPenilaian
   tanggalMulai: string
   tanggalSelesai: string
   allowLateSubmission: boolean
@@ -110,7 +110,7 @@ export interface TugasItem {
   // Relations (Populated by include)
   materiPelajarans?: MateriItem[]
   mataPelajaran?: MataPelajaran
-  kelas?: any
+  kelas?: TugasKelas
   guru?: UserItem
   _count?: {
     pengumpulanTugas: number
@@ -200,6 +200,25 @@ export interface TugasQueryParams {
   isSemesterAktif?: boolean
 }
 
+export interface BobotPenilaian {
+  tugasHarian?: number
+  uts?: number
+  uas?: number
+  praktikum?: number
+  proyek?: number
+  portofolio?: number
+  [key: string]: number | undefined
+}
+
+export interface TugasKelas {
+  id: string
+  namaKelas: string
+  tingkatKelas?: {
+    nama: string
+    jenjang: string
+  }
+}
+
 export interface TugasPayload {
   materiPelajaranIds?: string[]
   mataPelajaranId: string
@@ -213,7 +232,7 @@ export interface TugasPayload {
   bentuk: BentukTugas
   modePengerjaan: ModePengerjaan
   bobot: number
-  bobotPenilaian?: any
+  bobotPenilaian?: BobotPenilaian
   tanggalMulai: string
   tanggalSelesai: string
   allowLateSubmission: boolean

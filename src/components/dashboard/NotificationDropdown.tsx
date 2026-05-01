@@ -7,7 +7,8 @@ import { Bell, Check, Trash2 } from 'lucide-react'
 import { Skeleton } from '@/components/ui'
 import { useNotifikasi, useMarkAsRead, useMarkAllAsRead } from '@/hooks/notifikasi'
 import { formatTanggalLengkap } from '@/lib/helpers/timezone'
-import { getTipeIcon } from './notifikasi-utils'
+import { getTipeIcon, resolveNotifikasiUrl } from './notifikasi-utils'
+import type { NotifikasiItem } from '@/types/notifikasi.types'
 
 interface NotificationDropdownProps {
   isOpen: boolean
@@ -38,13 +39,14 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
 
   const notifikasi = data?.data ?? []
 
-  const handleItemClick = async (id: string, actionUrl: string | null) => {
+  const handleItemClick = async (id: string, actionUrl: string | null, tipe: NotifikasiItem['tipe'], referenceId: string | null) => {
     onClose()
     if (!markAsRead.isPending) {
       markAsRead.mutate(id)
     }
-    if (actionUrl) {
-      router.push(actionUrl)
+    const resolvedUrl = resolveNotifikasiUrl(actionUrl, tipe, referenceId)
+    if (resolvedUrl) {
+      router.push(resolvedUrl)
     }
   }
 
@@ -109,7 +111,7 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
             {notifikasi.map((item) => (
               <li key={item.id}>
                 <button
-                  onClick={() => handleItemClick(item.id, item.actionUrl)}
+                  onClick={() => handleItemClick(item.id, item.actionUrl, item.tipe, item.referenceId ?? null)}
                   className={`
                     w-full text-left px-4 py-3 flex gap-3 items-start
                     hover:bg-gray-50 dark:hover:bg-gray-800/60

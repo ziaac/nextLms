@@ -151,6 +151,9 @@ export function DokumenBulkAddModal({ open, onClose, isAdmin, guruId }: Props) {
       setTargetIds([])
       setDocs([newRow()])
     }
+  // Intentional: filter.reset, setAdminGuruId, setTargetIds, setDocs, newRow adalah
+  // stable references. Menambahkannya ke deps tidak diperlukan dan bisa menyebabkan
+  // re-render yang tidak perlu.
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset mapel & targets saat guru berubah (admin)
@@ -158,6 +161,8 @@ export function DokumenBulkAddModal({ open, onClose, isAdmin, guruId }: Props) {
     filter.setSemId('')
     filter.setFilterMapelTingkatId('')
     setTargetIds([])
+  // Intentional: filter.setSemId, filter.setFilterMapelTingkatId, setTargetIds adalah
+  // stable references. Effect ini hanya perlu berjalan saat adminGuruId berubah.
   }, [adminGuruId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Jenis yang sudah dipakai (untuk filter antar-row) ────────

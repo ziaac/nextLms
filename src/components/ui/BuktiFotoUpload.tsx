@@ -16,6 +16,7 @@ import { Camera, ImagePlus, X, Loader2 }  from 'lucide-react'
 import { compressImageToFile, formatFileSize } from '@/lib/helpers/image-compress'
 import { uploadPrivateFile }              from '@/lib/api/upload.api'
 import { getPresignedUrl }                from '@/lib/api/upload.api'
+import { validateImageFile }              from '@/lib/api/pendaftaran.api'
 
 export interface BuktiFotoUploadProps {
   /** Key MinIO yang sudah tersimpan (dari form state) */
@@ -70,6 +71,14 @@ export function BuktiFotoUpload({
 
     setError(null)
     setSizeInfo(null)
+
+    // Validasi MIME type dan ukuran file sebelum upload
+    try {
+      validateImageFile(file)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'File tidak valid.')
+      return
+    }
 
     // Buat local preview dulu (sebelum kompres)
     const localUrl = URL.createObjectURL(file)

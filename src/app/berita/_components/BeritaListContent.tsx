@@ -5,11 +5,7 @@ import Link from 'next/link'
 import { Calendar, Eye, Tag, Search, ArrowRight } from 'lucide-react'
 import { getPublicFileUrl } from '@/lib/constants'
 import { PlaceholderImage } from '@/components/public/PlaceholderImage'
-
-function formatDate(iso: string | null | undefined) {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-}
+import { formatTanggalSaja } from '@/lib/helpers/timezone'
 
 function LazyImg({ src, alt }: { src: string; alt: string }) {
   const [loaded, setLoaded] = useState(false)
@@ -123,7 +119,7 @@ export function BeritaListContent({ beritaData, kategori }: Props) {
                         {featured.judul}
                       </h2>
                       <div className="flex items-center gap-3 text-xs text-white/55 mt-2">
-                        <span className="flex items-center gap-1"><Calendar size={11} />{formatDate(featured.publishedAt)}</span>
+                        <span className="flex items-center gap-1"><Calendar size={11} />{formatTanggalSaja(featured.publishedAt)}</span>
                         <span className="flex items-center gap-1"><Eye size={11} />{featured.viewCount}</span>
                       </div>
                     </div>
@@ -151,7 +147,7 @@ export function BeritaListContent({ beritaData, kategori }: Props) {
                         {b.judul}
                       </h4>
                       <p className="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
-                        <Calendar size={10} />{formatDate(b.publishedAt)}
+                        <Calendar size={10} />{formatTanggalSaja(b.publishedAt)}
                       </p>
                     </div>
                   </article>
@@ -177,7 +173,7 @@ export function BeritaListContent({ beritaData, kategori }: Props) {
                       {b.judul}
                     </h3>
                     <div className="flex items-center gap-3 text-xs text-gray-400 mt-2">
-                      <span className="flex items-center gap-1"><Calendar size={10} />{formatDate(b.publishedAt)}</span>
+                      <span className="flex items-center gap-1"><Calendar size={10} />{formatTanggalSaja(b.publishedAt)}</span>
                       <span className="flex items-center gap-1"><Eye size={10} />{b.viewCount}</span>
                     </div>
                   </div>

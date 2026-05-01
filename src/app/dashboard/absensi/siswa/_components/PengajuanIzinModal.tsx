@@ -77,6 +77,8 @@ export function PengajuanIzinModal({ open, onClose, jadwal }: Props) {
       fileBuktiUrl:   '',
     })
     resetMutation()
+    // Intentional: reset & resetMutation adalah stable references dari react-hook-form/react-query.
+    // Menambahkan keduanya ke deps akan menyebabkan infinite re-render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
