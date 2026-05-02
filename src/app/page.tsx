@@ -43,26 +43,31 @@ export default async function HomePage() {
     .sort((a: any, b: any) => a.urutan - b.urutan)
     .map((m: any) => ({ label: m.label, href: m.target }))
 
-  // ── Kumpulkan URL gambar critical (above-the-fold) untuk preload ──
-  // Hanya preload gambar yang BENAR-BENAR tampil di viewport pertama (hero/slider).
-  // Jangan preload gambar yang ada di section bawah (profil, berita, galeri) —
-  // browser akan warning "preloaded but not used within a few seconds" jika
-  // gambar tersebut belum masuk viewport saat window load event.
-  const criticalImages: string[] = []
-
-  // Hanya slider pertama yang aktif — ini satu-satunya yang truly above-the-fold
+  // ── Preload gambar LCP (slider pertama yang aktif) ──────────────────────────
+  // fetchpriority=high + preload memberitahu browser untuk fetch gambar ini
+  // sebelum CSS selesai diparse — mengurangi LCP secara signifikan.
   const firstSlider = (sliderData as any[]).find((s) => s.isActive)
-  if (firstSlider?.imageUrl) {
-    const url = getPublicFileUrl(firstSlider.imageUrl)
-    if (url) criticalImages.push(url)
-  }
+  const lcpImageUrl = firstSlider?.imageUrl ? getPublicFileUrl(firstSlider.imageUrl) : null
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
-      {/* Preload gambar critical above-the-fold */}
-      {criticalImages.map((url) => (
-        <link key={url} rel="preload" as="image" href={url} />
-      ))}
+      {/*
+        Preconnect ke MinIO storage — browser akan membuka koneksi TCP+TLS lebih awal
+        sehingga request gambar pertama tidak perlu menunggu handshake.
+        Ini mengurangi latency ~100-300ms untuk semua gambar dari domain ini.
+      */}
+      <link rel="preconnect" href="https://storagelms.man2kotamakassar.sch.id" />
+      <link rel="dns-prefetch" href="https://storagelms.man2kotamakassar.sch.id" />
+
+      {/* Preload gambar LCP (slider pertama) — harus di-fetch sebelum JS dieksekusi */}
+      {lcpImageUrl && (
+        <link
+          rel="preload"
+          as="image"
+          href={lcpImageUrl}
+          fetchPriority="high"
+        />
+      )}
 
       <PublicNavbar menuItems={navItems} />
 

@@ -48,6 +48,13 @@ const ROLE_ROUTES: Record<string, UserRole[]> = {
   '/dashboard/jadwal/guru':         ['GURU', 'WALI_KELAS'],
   '/dashboard/jadwal/kelas':        ['SISWA', 'ORANG_TUA', 'WALI_KELAS'],
 
+  // ── Kurikulum & RPP & AI Generator ─────────────────────────────────────────
+  // PENTING: Urutan dari yang paling spesifik ke yang paling umum
+  '/dashboard/ai-generator/riwayat': ['GURU', 'WALI_KELAS'],
+  '/dashboard/ai-generator':         ['GURU', 'WALI_KELAS'],
+  '/dashboard/rpp':                  ['GURU', 'WALI_KELAS', 'SUPER_ADMIN', 'ADMIN'],
+  '/dashboard/kurikulum':            ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA'],
+
   // ── Pembelajaran ───────────────────────────────────────────────────────────
   '/dashboard/pembelajaran/manajemen':     ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA', 'STAFF_TU'],
   '/dashboard/pembelajaran/guru':          ['GURU', 'WALI_KELAS'],

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tidak Ada Koneksi — LMS MAN 2</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --emerald: #059669;
+      --emerald-light: #d1fae5;
+      --gray-900: #111827;
+      --gray-600: #4b5563;
+      --gray-400: #9ca3af;
+      --gray-100: #f3f4f6;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --border: #334155;
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --emerald-light: #064e3b;
+      }
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f9fafb;
+        --card: #ffffff;
+        --border: #e5e7eb;
+        --text-primary: #111827;
+        --text-secondary: #6b7280;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      padding: 2.5rem 2rem;
+      max-width: 22rem;
+      width: 100%;
+      text-align: center;
+    }
+
+    .icon-wrap {
+      width: 4rem;
+      height: 4rem;
+      border-radius: 1rem;
+      background: var(--emerald-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+    }
+
+    .icon-wrap svg {
+      width: 2rem;
+      height: 2rem;
+      color: var(--emerald);
+      stroke: var(--emerald);
+    }
+
+    h1 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 1.75rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--emerald);
+      color: #fff;
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.625rem 1.5rem;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      text-decoration: none;
+    }
+
+    .btn:hover { opacity: 0.88; }
+
+    .hint {
+      margin-top: 1.25rem;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <script>
+      // Coba fetch ke / untuk cek koneksi.
+      // Jika berhasil, navigate ke / — jangan reload /offline.html.
+      // Jika gagal, tetap di halaman ini.
+      function tryReconnect() {
+        fetch('/', { method: 'HEAD', cache: 'no-store' })
+          .then(() => { window.location.replace('/') })
+          .catch(() => {
+            const btn = document.querySelector('.btn')
+            if (btn) {
+              btn.textContent = 'Masih offline...'
+              setTimeout(() => { btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Coba Lagi' }, 2000)
+            }
+          })
+      }
+
+      // Auto-reconnect: pantau status online, langsung redirect saat koneksi kembali
+      window.addEventListener('online', () => {
+        window.location.replace('/')
+      })
+    </script>
+    <div class="icon-wrap">
+    <div class="icon-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="1" y1="1" x2="23" y2="23"/>
+        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/>
+        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+        <path d="M10.71 5.05A16 16 0 0 1 22.56 9"/>
+        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+        <line x1="12" y1="20" x2="12.01" y2="20"/>
+      </svg>
+    </div>
+
+    <h1>Tidak Ada Koneksi</h1>
+    <p>Periksa koneksi internet Anda, lalu coba lagi. Halaman yang pernah dikunjungi mungkin masih tersedia.</p>
+
+    <button class="btn" onclick="tryReconnect()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+      Coba Lagi
+    </button>
+
+    <p class="hint">LMS MAN 2 Kota Makassar</p>
+  </div>
+</body>
+</html>

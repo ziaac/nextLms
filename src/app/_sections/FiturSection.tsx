@@ -1,7 +1,7 @@
 'use client'
 
-import Link from 'next/link'
 import { Sparkles, BookOpen, QrCode, CalendarDays, Award, Users, CreditCard, Bell, GraduationCap } from 'lucide-react'
+import Link from 'next/link'
 import { getPublicFileUrl } from '@/lib/constants'
 
 const BANNER_URL = 'https://storagelms.man2kotamakassar.sch.id/static-assets/static_login_image.webp'
@@ -48,7 +48,7 @@ function FiturCard({ item, index }: {
   const imgUrl = item.fotoUrl ? getPublicFileUrl(item.fotoUrl) : null
 
   return (
-    <div className="group flex items-start gap-4 p-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
+    <a href="/informasi" className="group flex items-start gap-4 p-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
       <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 bg-emerald-500/20 border border-emerald-400/20">
         {imgUrl ? (
           <img src={imgUrl} alt={item.judul} className="w-6 h-6 object-contain" />
@@ -65,7 +65,7 @@ function FiturCard({ item, index }: {
           {item.deskripsi}
         </p>
       </div>
-    </div>
+    </a>
   )
 }
 

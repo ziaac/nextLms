@@ -36,6 +36,14 @@ const nextConfig: NextConfig = {
           { key: 'Content-Type', value: 'application/manifest+json; charset=utf-8' },
         ],
       },
+      // Cache agresif untuk static assets hanya di production.
+      // Di dev, Next.js mengelola cache sendiri — jangan di-override.
+      ...(!isDev ? [{
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      }] : []),
       {
         // CSP untuk semua halaman
         // unsafe-eval dibutuhkan oleh beberapa library (recharts, heroui) di dev mode
@@ -56,6 +64,7 @@ const nextConfig: NextConfig = {
               "connect-src 'self' https://storagelms.man2kotamakassar.sch.id https://apilms.man2kotamakassar.sch.id wss: ws:",
               "media-src 'self' blob:",
               "object-src 'none'",
+              "frame-src 'self' blob: https://storagelms.man2kotamakassar.sch.id",
               "frame-ancestors 'none'",
             ].join('; '),
           },

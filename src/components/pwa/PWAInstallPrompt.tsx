@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image                   from 'next/image'
+import Image from 'next/image'
 import { Download, Share, Plus, X } from 'lucide-react'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -9,11 +9,32 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
-// Deklarasi global agar TypeScript mengenali properti custom di window
 declare global {
   interface Window {
-    __deferredPrompt?: BeforeInstallPromptEvent | null;
+    __deferredPrompt?: BeforeInstallPromptEvent | null
   }
+}
+
+// ── Persistence ──────────────────────────────────────────────────────
+// Gunakan localStorage agar dismiss bertahan lintas session/refresh.
+// Prompt tidak akan muncul lagi selama COOLDOWN_DAYS hari.
+const STORAGE_KEY   = 'pwa-prompt-dismissed-at'
+const COOLDOWN_DAYS = 30
+const SHOW_DELAY_MS = 4000  // Tunda 4 detik agar tidak langsung muncul saat load
+
+function isDismissedRecently(): boolean {
+  try {
+    const val = localStorage.getItem(STORAGE_KEY)
+    if (!val) return false
+    const daysSince = (Date.now() - parseInt(val, 10)) / (1000 * 60 * 60 * 24)
+    return daysSince < COOLDOWN_DAYS
+  } catch {
+    return false
+  }
+}
+
+function markDismissed() {
+  try { localStorage.setItem(STORAGE_KEY, String(Date.now())) } catch { /* ignore */ }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -38,34 +59,38 @@ export function PWAInstallPrompt() {
   const [installing,     setInstalling]     = useState(false)
 
   useEffect(() => {
+    // Tidak perlu prompt jika sudah standalone (sudah di-install)
     if (isInStandaloneMode()) return
-    // Jangan tampilkan lagi jika sudah di-dismiss dalam session ini
-    if (sessionStorage.getItem('pwa-prompt-dismissed')) return
+    // Tidak perlu prompt jika baru saja di-dismiss
+    if (isDismissedRecently()) return
 
     const ios = isIOS()
     setIsIOSDevice(ios)
 
-    if (!ios) {
-      // Ambil event yang sudah ditangkap lebih awal oleh ServiceWorkerRegister
-      if (window.__deferredPrompt) {
-        setDeferredPrompt(window.__deferredPrompt)
+    // Tunda kemunculan agar tidak langsung muncul saat halaman baru load
+    const timer = setTimeout(() => {
+      if (!ios) {
+        if (window.__deferredPrompt) {
+          setDeferredPrompt(window.__deferredPrompt)
+          setShow(true)
+          return
+        }
+        // Fallback: pasang listener jika event belum fire saat mount
+        const handler = (e: Event) => {
+          e.preventDefault()
+          window.__deferredPrompt = e as BeforeInstallPromptEvent
+          setDeferredPrompt(e as BeforeInstallPromptEvent)
+          setShow(true)
+        }
+        window.addEventListener('beforeinstallprompt', handler, { once: true })
+        return () => window.removeEventListener('beforeinstallprompt', handler)
+      } else {
+        // iOS: tampilkan panduan install sekali, lalu cooldown
         setShow(true)
-        return
       }
+    }, SHOW_DELAY_MS)
 
-      // Fallback: pasang listener jika event belum fire saat mount
-      const handler = (e: Event) => {
-        e.preventDefault()
-        window.__deferredPrompt = e as BeforeInstallPromptEvent
-        setDeferredPrompt(e as BeforeInstallPromptEvent)
-        setShow(true)
-      }
-      window.addEventListener('beforeinstallprompt', handler, { once: true })
-      return () => window.removeEventListener('beforeinstallprompt', handler)
-    } else {
-      // iOS: tampilkan panduan sekali per session
-      setShow(true)
-    }
+    return () => clearTimeout(timer)
   }, [])
 
   async function handleInstall() {
@@ -73,14 +98,18 @@ export function PWAInstallPrompt() {
     setInstalling(true)
     await deferredPrompt.prompt()
     const { outcome } = await deferredPrompt.userChoice
-    if (outcome === 'accepted') setShow(false)
     setInstalling(false)
     setDeferredPrompt(null)
-    window.__deferredPrompt = null // Reset global state
+    window.__deferredPrompt = null
+    // Jika accepted, sembunyikan selamanya (tidak perlu cooldown)
+    if (outcome === 'accepted') {
+      markDismissed()
+    }
+    setShow(false)
   }
 
   function handleLater() {
-    sessionStorage.setItem('pwa-prompt-dismissed', '1')
+    markDismissed()
     setShow(false)
   }
 
@@ -91,7 +120,6 @@ export function PWAInstallPrompt() {
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-end sm:justify-center p-4 bg-black/50"
       onClick={handleLater}
     >
-      {/* Tombol escape — selalu visible di pojok atas, apapun kondisi card */}
       <button
         onClick={handleLater}
         className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors"
@@ -104,7 +132,6 @@ export function PWAInstallPrompt() {
         className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-
         {/* App identity */}
         <div className="flex items-center gap-3.5 px-6 pt-5 pb-5">
           <div className="shrink-0 rounded-2xl overflow-hidden">
@@ -126,7 +153,6 @@ export function PWAInstallPrompt() {
           </div>
         </div>
 
-        {/* Divider */}
         <div className="mx-6 border-t border-gray-100 dark:border-gray-800" />
 
         {/* Body */}
@@ -140,7 +166,6 @@ export function PWAInstallPrompt() {
               : 'Install agar bisa dibuka langsung dari layar utama tanpa browser.'}
           </p>
 
-          {/* iOS steps */}
           {isIOSDevice && (
             <div className="space-y-2.5 mb-5">
               <div className="flex items-center gap-3 px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/60 rounded-xl">
@@ -158,7 +183,6 @@ export function PWAInstallPrompt() {
             </div>
           )}
 
-          {/* Actions */}
           <div className="flex gap-2.5">
             <button
               onClick={handleLater}
@@ -178,7 +202,6 @@ export function PWAInstallPrompt() {
             )}
           </div>
         </div>
-
       </div>
     </div>
   )

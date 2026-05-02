@@ -23,8 +23,9 @@
  * ──────────────────────────────────────────────────────────────────────────
  */
 
-const STATIC_CACHE_NAME = 'lms-man2-static-v4'   // JS/CSS Next.js bundles
+const STATIC_CACHE_NAME = 'lms-man2-static-v5'   // JS/CSS Next.js bundles
 const IMG_CACHE_NAME    = 'lms-man2-images-v2'    // Gambar (storage + lokal)
+const OFFLINE_URL       = '/offline.html'
 
 // Cache lama yang harus dihapus saat aktivasi
 const OLD_CACHES = [
@@ -32,6 +33,7 @@ const OLD_CACHES = [
   'lms-man2-v2',
   'lms-man2-v3',
   'lms-man2-images-v1',
+  'lms-man2-static-v4',
 ]
 
 // Batas cache gambar agar tidak membengkak
@@ -39,9 +41,13 @@ const IMG_CACHE_MAX_ITEMS = 200
 const IMG_CACHE_MAX_AGE_SECONDS = 30 * 24 * 60 * 60 // 30 hari
 
 // ── Install ──────────────────────────────────────────────────────────────
-self.addEventListener('install', () => {
-  // Langsung aktif tanpa menunggu tab lama ditutup
-  self.skipWaiting()
+self.addEventListener('install', (event) => {
+  // Pre-cache halaman offline agar selalu tersedia tanpa koneksi
+  event.waitUntil(
+    caches.open(STATIC_CACHE_NAME)
+      .then((cache) => cache.add(OFFLINE_URL))
+      .then(() => self.skipWaiting())
+  )
 })
 
 // ── Activate — bersihkan cache lama ─────────────────────────────────────
@@ -113,11 +119,17 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // ── 5. HALAMAN & LAINNYA — Network-only ───────────────────────────────
-  // Halaman HTML Next.js (termasuk dashboard, absensi, jadwal, pembayaran)
-  // bisa mengandung data SSR yang harus selalu fresh.
-  // Tidak di-cache — biarkan browser handle langsung.
-  // (Tidak ada event.respondWith → browser fetch normal)
+  // ── 5. HALAMAN & LAINNYA — Network-first dengan offline fallback ──────
+  // Halaman HTML Next.js harus selalu fresh dari network.
+  // Jika network gagal (offline), tampilkan offline.html.
+  // KHUSUS: /offline.html sendiri — jangan intercept, biarkan browser
+  // fetch langsung dari cache SW (sudah di-pre-cache saat install).
+  // Ini mencegah loop: offline.html → SW intercept → coba network → gagal → offline.html lagi.
+  if (url.pathname === OFFLINE_URL) {
+    return // biarkan browser ambil dari pre-cache normal
+  }
+
+  event.respondWith(handleNavigationWithFallback(event.request))
 })
 
 // ── Helper: Cache-first untuk gambar dengan TTL & batas item ────────────
@@ -179,5 +191,17 @@ async function handleStaticCache(request) {
     return response
   } catch {
     return cached || Response.error()
+  }
+}
+
+// ── Helper: Network-first untuk navigasi dengan offline fallback ─────────
+async function handleNavigationWithFallback(request) {
+  try {
+    return await fetch(request)
+  } catch {
+    // Offline — tampilkan halaman offline yang sudah di-pre-cache saat install
+    const cache = await caches.open(STATIC_CACHE_NAME)
+    const offline = await cache.match(OFFLINE_URL)
+    return offline || Response.error()
   }
 }

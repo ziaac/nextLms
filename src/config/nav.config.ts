@@ -4,6 +4,7 @@ import {
   Settings, BarChart3, Home, Bell, UserCircle, School,
   BookMarked, ShieldCheck, Calendar, Layers,
   Building2, FolderOpen, ListTodo, Star, ClipboardCheck, Megaphone,
+  FileText, Sparkles,
 } from 'lucide-react'
 import type { UserRole } from '@/types'
 
@@ -115,6 +116,24 @@ export const NAV_GROUPS: NavGroup[] = [
         href:  '/dashboard/tugas',
         icon:  ClipboardList,
         roles: ['GURU', 'WALI_KELAS', 'SISWA', 'ADMIN', 'SUPER_ADMIN'],
+      },
+      {
+        label: 'RPP',
+        href:  '/dashboard/rpp',
+        icon:  FileText,
+        roles: ['GURU', 'WALI_KELAS', 'SUPER_ADMIN', 'ADMIN'],
+      },
+      {
+        label: 'AI Generator',
+        href:  '/dashboard/ai-generator',
+        icon:  Sparkles,
+        roles: ['GURU', 'WALI_KELAS'],
+      },
+      {
+        label: 'Kurikulum',
+        href:  '/dashboard/kurikulum',
+        icon:  BookOpen,
+        roles: ['SUPER_ADMIN', 'ADMIN', 'KEPALA_SEKOLAH', 'WAKIL_KEPALA'],
       },
       {
         label: 'Jadwal & Absensi',

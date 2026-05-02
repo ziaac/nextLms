@@ -157,20 +157,26 @@ function InfoCard({ aktivitas }: { aktivitas: AktivitasData | null }) {
 }
 
 // ── Slide image dengan loading state ─────────────────────────────────────────
-function SlideImage({ src, alt, onError }: { src: string; alt: string; onError: () => void }) {
+function SlideImage({ src, alt, onError, isPriority }: {
+  src: string; alt: string; onError: () => void; isPriority?: boolean
+}) {
   const [loaded, setLoaded] = useState(false)
 
   return (
     <>
       {!loaded && (
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-gray-900 to-teal-950 animate-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-gray-900 to-teal-950" />
       )}
       <img
         src={src}
         alt={alt}
+        fetchPriority={isPriority ? 'high' : 'auto'}
+        decoding={isPriority ? 'sync' : 'async'}
         onLoad={() => setLoaded(true)}
         onError={onError}
-        className={`w-full h-full object-cover transition-opacity duration-700 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+        width={1920}
+        height={1080}
+        className={`w-full h-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
       />
     </>
   )
@@ -214,9 +220,18 @@ export function HeroSection({ sliders, aktivitas }: { sliders: Slider[]; aktivit
             src={slideImgUrl}
             alt={currentSlide.judul}
             onError={() => setImgError(true)}
+            isPriority={current === 0}
           />
         ) : (
-          <img src={BANNER_URL} alt="Banner" className="w-full h-full object-cover" />
+          <img
+            src={BANNER_URL}
+            alt="Banner MAN 2 Kota Makassar"
+            fetchPriority="high"
+            decoding="sync"
+            width={1920}
+            height={1080}
+            className="w-full h-full object-cover"
+          />
         )}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_30%,_rgba(0,0,0,0.55)_100%)]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/25" />
