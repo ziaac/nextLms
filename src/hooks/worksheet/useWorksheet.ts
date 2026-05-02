@@ -92,7 +92,11 @@ export function useSubmitWorksheet() {
     mutationFn: ({ tugasId, jawaban }: { tugasId: string; jawaban: Record<string, string> }) =>
       submitWorksheet(tugasId, jawaban),
     onSuccess:  (_, { tugasId }) => {
+      // Invalidate worksheet jawaban (status bar di WorksheetPlayer)
       void qc.invalidateQueries({ queryKey: WORKSHEET_KEYS.myJawaban(tugasId) })
+      // Invalidate submission tugas (card "STATUS KAMU" di page.tsx)
+      // Tanpa ini, card STATUS KAMU tetap "Belum Dikumpul" meski worksheet sudah dikumpulkan
+      void qc.invalidateQueries({ queryKey: ['tugas', 'submission', 'me', tugasId] })
     },
   })
 }
