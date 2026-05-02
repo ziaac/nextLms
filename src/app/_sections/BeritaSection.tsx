@@ -89,11 +89,11 @@ function FeaturedCard({ item }: { item: BeritaItem }) {
             {item.judul}
           </h3>
           {item.excerpt && (
-            <p className="text-sm text-white/75 line-clamp-2 leading-relaxed">
+            <p className="text-sm text-white/85 line-clamp-2 leading-relaxed">
               {item.excerpt}
             </p>
           )}
-          <div className="flex items-center gap-3 text-xs text-white/55 pt-1">
+          <div className="flex items-center gap-3 text-xs text-white/70 pt-1">
             <span className="flex items-center gap-1">
               <Calendar size={11} />
               {formatTanggalSaja(item.publishedAt ?? '')}

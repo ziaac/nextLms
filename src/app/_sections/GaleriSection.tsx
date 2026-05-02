@@ -25,17 +25,21 @@ function Lightbox({ url, onClose }: { url: string; onClose: () => void }) {
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Preview foto"
     >
       <button
         type="button"
         onClick={onClose}
-        className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+        aria-label="Tutup preview foto"
+        className="absolute top-4 right-4 w-11 h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
       >
         <X size={18} />
       </button>
       <img
         src={url}
-        alt="Preview"
+        alt="Preview foto galeri"
         className="max-w-full max-h-[90vh] rounded-2xl object-contain shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       />
@@ -83,13 +87,15 @@ export function GaleriSection({ album, albumList }: GaleriSectionProps) {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 auto-rows-[160px]">
             {/* Featured — span 2x2 */}
             {featured && (
-              <div
-                className="col-span-2 row-span-2 relative rounded-2xl overflow-hidden cursor-pointer group bg-gray-100 dark:bg-gray-800"
+              <button
+                type="button"
+                aria-label={`Lihat foto: ${featured.judul ?? 'Foto featured'}`}
+                className="col-span-2 row-span-2 relative rounded-2xl overflow-hidden cursor-pointer group bg-gray-100 dark:bg-gray-800 text-left"
                 onClick={() => setLightboxUrl(getPublicFileUrl(featured.fotoUrl))}
               >
                 <img
                   src={getPublicFileUrl(featured.fotoUrl)}
-                  alt={featured.judul ?? ''}
+                  alt={featured.judul ?? 'Foto featured galeri'}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
                 />
@@ -106,26 +112,28 @@ export function GaleriSection({ album, albumList }: GaleriSectionProps) {
                     Featured
                   </span>
                 </div>
-              </div>
+              </button>
             )}
 
             {/* Rest */}
             {rest.map((foto) => (
-              <div
+              <button
                 key={foto.id}
+                type="button"
+                aria-label={`Lihat foto: ${foto.judul ?? 'Foto galeri'}`}
                 className="relative rounded-2xl overflow-hidden cursor-pointer group bg-gray-100 dark:bg-gray-800"
                 onClick={() => setLightboxUrl(getPublicFileUrl(foto.fotoUrl))}
               >
                 <img
                   src={getPublicFileUrl(foto.fotoUrl)}
-                  alt={foto.judul ?? ''}
+                  alt={foto.judul ?? 'Foto galeri'}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                   <ZoomIn size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-              </div>
+              </button>
             ))}
 
             {/* Placeholder jika kurang dari 10 */}

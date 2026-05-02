@@ -27,7 +27,7 @@ export const updateTugas = (id: string, payload: Partial<TugasPayload>) =>
   api.put<TugasItem>(`${BASE}/${id}`, payload).then((r) => r.data)
 
 export const publishTugas = (id: string) =>
-  api.patch<TugasItem>(`${BASE}/${id}/publish`).then((r) => r.data)
+  api.patch<TugasItem>(`${BASE}/${id}/publish`, {}).then((r) => r.data)
 
 export const deleteTugas = (id: string) =>
   api.delete<{ message: string }>(`${BASE}/${id}`).then((r) => r.data)

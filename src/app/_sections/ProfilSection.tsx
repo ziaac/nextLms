@@ -182,10 +182,10 @@ export function ProfilSection({ profil, stats }: ProfilSectionProps) {
                 <p className="text-xs text-emerald-600 dark:text-emerald-500 uppercase tracking-wider font-medium mb-1">
                   Kepala Madrasah
                 </p>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
                   {profil.namaKepala}
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{profil.nama}</p>
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{profil.nama}</p>
                 {profil.akreditasi && (
                   <span className="inline-flex items-center mt-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
                     Akreditasi {profil.akreditasi}
@@ -246,7 +246,7 @@ export function ProfilSection({ profil, stats }: ProfilSectionProps) {
 
                   {/* Header card — tanpa sub-heading, langsung label */}
                   <div>
-                    <p className="text-[11px] text-white/70 uppercase tracking-widest mb-0.5">Statistik Akademik</p>
+                    <p className="text-[11px] text-white/80 uppercase tracking-widest mb-0.5">Statistik Akademik</p>
                     <p className="text-xl text-white font-light leading-tight">Data Madrasah</p>
                   </div>
 
@@ -260,13 +260,13 @@ export function ProfilSection({ profil, stats }: ProfilSectionProps) {
                   {/* Jadwal hari ini */}
                   <div className="flex flex-col flex-1 overflow-hidden">
                     <div className="flex justify-between items-center mb-2 border-b border-white/10 pb-1.5">
-                      <p className="text-[10px] text-white/50 uppercase tracking-wide">Jadwal Hari Ini</p>
+                      <p className="text-[10px] text-white/70 uppercase tracking-wide">Jadwal Hari Ini</p>
                       <div className="flex items-center gap-2">
-                        <span className="flex items-center gap-1 text-[9px] text-white/40">
+                        <span className="flex items-center gap-1 text-[9px] text-white/60">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
                           absensi terbuka
                         </span>
-                        <p className="text-[10px] text-white/70 uppercase">{hariIni}</p>
+                        <p className="text-[10px] text-white/80 uppercase">{hariIni}</p>
                       </div>
                     </div>
                     <div className="space-y-1.5 flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>

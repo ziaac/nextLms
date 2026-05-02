@@ -61,7 +61,7 @@ function FiturCard({ item, index }: {
         <h3 className="text-base font-semibold mb-1.5 leading-tight text-white">
           {item.judul}
         </h3>
-        <p className="text-sm leading-relaxed line-clamp-2 text-white/55">
+        <p className="text-sm leading-relaxed line-clamp-2 text-white/70">
           {item.deskripsi}
         </p>
       </div>
@@ -108,9 +108,9 @@ export function FiturSection({ fitur, foto2Url }: { fitur: FiturItem[]; foto2Url
           </div>
           <div className="relative z-10 p-8 lg:p-12 flex flex-col justify-center h-full">
             <div className="mb-8">
-              <p className="text-[11px] text-emerald-400/70 uppercase tracking-widest mb-1.5">Platform LMS</p>
+              <p className="text-[11px] text-emerald-400/80 uppercase tracking-widest mb-1.5">Platform LMS</p>
               <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight">Fitur Unggulan</h2>
-              <p className="text-sm text-white/50 mt-2">Solusi digital terintegrasi untuk madrasah modern</p>
+              <p className="text-sm text-white/70 mt-2">Solusi digital terintegrasi untuk madrasah modern</p>
             </div>
             <div className="space-y-3 pr-8">
               {leftItems.map((item, i) => (
@@ -132,9 +132,9 @@ export function FiturSection({ fitur, foto2Url }: { fitur: FiturItem[]; foto2Url
           </div>
           <div className="relative z-10 p-8 lg:p-12 flex flex-col justify-center h-full">
             <div className="mb-8 lg:pl-8">
-              <p className="text-[11px] text-emerald-400/70 uppercase tracking-widest mb-1.5">Platform LMS</p>
+              <p className="text-[11px] text-emerald-400/80 uppercase tracking-widest mb-1.5">Platform LMS</p>
               <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight">Kemampuan Sistem</h2>
-              <p className="text-sm text-white/50 mt-2">Fitur lengkap untuk ekosistem madrasah digital</p>
+              <p className="text-sm text-white/70 mt-2">Fitur lengkap untuk ekosistem madrasah digital</p>
             </div>
             <div className="space-y-3 lg:pl-8">
               {rightItems.map((item, i) => (

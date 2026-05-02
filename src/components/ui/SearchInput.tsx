@@ -9,9 +9,17 @@ interface SearchInputProps {
   onChange: (value: string) => void
   placeholder?: string
   className?: string
+  /** id untuk input — dibutuhkan agar label bisa terhubung via htmlFor */
+  id?: string
+  /** name untuk input — dibutuhkan untuk form submission */
+  name?: string
+  /** aria-label untuk aksesibilitas — default "Cari" jika tidak ada label visual */
+  ariaLabel?: string
 }
 
-export function SearchInput({ value, onChange, placeholder = 'Cari...', className }: SearchInputProps) {
+export function SearchInput({
+  value, onChange, placeholder = 'Cari...', className, id, name, ariaLabel = 'Cari',
+}: SearchInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   return (
@@ -22,7 +30,11 @@ export function SearchInput({ value, onChange, placeholder = 'Cari...', classNam
       />
       <input
         ref={inputRef}
+        id={id}
+        name={name ?? id}
         type="text"
+        role="searchbox"
+        aria-label={ariaLabel}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -39,6 +51,7 @@ export function SearchInput({ value, onChange, placeholder = 'Cari...', classNam
       {value && (
         <button
           onClick={() => { onChange(''); inputRef.current?.focus() }}
+          aria-label="Hapus pencarian"
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
         >
           <X size={14} />

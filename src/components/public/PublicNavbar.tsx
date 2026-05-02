@@ -58,27 +58,33 @@ export function PublicNavbar({ menuItems }: { menuItems?: NavItem[] }) {
   const [open,      setOpen]      = useState(false)
   const [scrolled,  setScrolled]  = useState(false)
   const [logoError, setLogoError] = useState(false)
+  // Mencegah hydration mismatch: tunda render bagian yang bergantung pada
+  // client state (isAuthenticated dari localStorage, scrolled dari window)
+  const [mounted, setMounted] = useState(false)
 
   const isHeroPage = pathname === '/'
 
   const navItems = menuItems?.length ? menuItems : DEFAULT_NAV
 
-  // Filter item login jika sudah authenticated
+  // Setelah mount, baru gunakan isAuthenticated yang sebenarnya
+  const authReady      = mounted ? isAuthenticated : false
   const filteredNavItems = navItems.filter((item) => {
-    if (isAuthenticated && (item.href === '/login' || item.label.toLowerCase() === 'login')) {
+    if (authReady && (item.href === '/login' || item.label.toLowerCase() === 'login')) {
       return false
     }
     return true
   })
 
   useEffect(() => {
+    setMounted(true)
     const handler = () => setScrolled(window.scrollY > 80)
     window.addEventListener('scroll', handler, { passive: true })
     handler()
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
-  const isTransparent = isHeroPage && !scrolled
+  // Saat belum mounted, gunakan nilai default yang sama dengan SSR
+  const isTransparent = isHeroPage && (mounted ? !scrolled : true)
 
   // Smooth scroll ke anchor saat di halaman home
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, label: string) => {
@@ -146,7 +152,7 @@ export function PublicNavbar({ menuItems }: { menuItems?: NavItem[] }) {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+        <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center" aria-label="Menu navigasi utama">
           {filteredNavItems.map((item) => {
             const resolved = resolveHref(item.href, item.label)
             const active   = item.href === '/'
@@ -178,17 +184,17 @@ export function PublicNavbar({ menuItems }: { menuItems?: NavItem[] }) {
         <div className="flex items-center gap-2 ml-auto">
           <ThemeToggle />
           <Link
-            href={isAuthenticated ? '/dashboard' : '/login'}
+            href={authReady ? '/dashboard' : '/login'}
             className={cn(
               'hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all',
-              isAuthenticated
+              authReady
                 ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
                 : isTransparent
                   ? 'border border-white/60 text-white hover:bg-white/15 backdrop-blur-sm'
                   : 'border border-emerald-600 text-emerald-700 dark:text-emerald-400 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20',
             )}
           >
-            {isAuthenticated
+            {authReady
               ? <><LayoutDashboard size={14} /> Dashboard</>
               : <><LogIn size={14} /> Masuk</>
             }
@@ -197,6 +203,9 @@ export function PublicNavbar({ menuItems }: { menuItems?: NavItem[] }) {
           <button
             type="button"
             onClick={() => setOpen(!open)}
+            aria-label="Menu navigasi"
+            aria-expanded={mounted ? open : false}
+            aria-controls="mobile-menu"
             className={cn(
               'lg:hidden w-9 h-9 flex items-center justify-center rounded-xl transition-colors',
               isTransparent
@@ -211,7 +220,12 @@ export function PublicNavbar({ menuItems }: { menuItems?: NavItem[] }) {
 
       {/* Mobile menu */}
       {open && (
-        <div className="lg:hidden bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 px-4 py-4 space-y-1">
+        <div
+          id="mobile-menu"
+          role="navigation"
+          aria-label="Menu navigasi mobile"
+          className="lg:hidden bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 px-4 py-4 space-y-1"
+        >
           {filteredNavItems.map((item) => {
             const resolved = resolveHref(item.href, item.label)
             return (
@@ -232,11 +246,11 @@ export function PublicNavbar({ menuItems }: { menuItems?: NavItem[] }) {
           })}
           <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
             <Link
-              href={isAuthenticated ? '/dashboard' : '/login'}
+              href={authReady ? '/dashboard' : '/login'}
               onClick={() => setOpen(false)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
             >
-              {isAuthenticated ? <><LayoutDashboard size={14} /> Dashboard</> : <><LogIn size={14} /> Masuk</>}
+              {authReady ? <><LayoutDashboard size={14} /> Dashboard</> : <><LogIn size={14} /> Masuk</>}
             </Link>
           </div>
         </div>

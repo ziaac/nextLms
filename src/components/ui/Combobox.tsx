@@ -25,6 +25,12 @@ interface Props {
   hasError?:          boolean
   className?:         string
   dropdownMinWidth?:  string
+  /** id untuk elemen trigger — dibutuhkan agar label bisa terhubung via htmlFor */
+  id?:                string
+  /** name untuk hidden input — dibutuhkan untuk form submission & autofill */
+  name?:              string
+  /** aria-label untuk aksesibilitas jika tidak ada label visual */
+  ariaLabel?:         string
 }
 
 export function Combobox({
@@ -37,6 +43,7 @@ export function Combobox({
   size = 'default',
   disabled, hasError, className = '',
   dropdownMinWidth,
+  id, name, ariaLabel,
 }: Props) {
   const [open,  setOpen]  = useState(false)
   const [query, setQuery] = useState('')
@@ -133,12 +140,19 @@ export function Combobox({
         ].join(' ')}>
           <input
             ref={searchRef}
+            id={id}
+            name={name}
             type="text"
             disabled={disabled}
             value={open ? query : selectedLabel}
             onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
             onFocus={() => { setOpen(true); setQuery('') }}
             placeholder={placeholder}
+            aria-label={ariaLabel ?? placeholder}
+            aria-expanded={open}
+            aria-haspopup="listbox"
+            role="combobox"
+            autoComplete="off"
             className={[
               'flex-1 min-w-0 bg-transparent outline-none truncate',
               triggerPad,
@@ -196,10 +210,18 @@ export function Combobox({
 
   return (
     <div ref={ref} className={'relative w-full ' + className}>
+      {/* Hidden input untuk form submission & autofill */}
+      {name && (
+        <input type="hidden" name={name} value={value} />
+      )}
       <button
+        id={id}
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setOpen((v) => !v)}
+        aria-label={ariaLabel ?? placeholder}
+        aria-expanded={open}
+        aria-haspopup="listbox"
         className={[
           'w-full flex items-center justify-between gap-1 border',
           'rounded-lg',
@@ -233,6 +255,8 @@ export function Combobox({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={searchPlaceholder}
+                aria-label={searchPlaceholder}
+                autoComplete="off"
                 className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 placeholder-gray-400 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
               />
               {query.length > 0 && query.length < minSearchLength && (

@@ -66,17 +66,17 @@ function StatRow({
         ? 'bg-emerald-500/10 border-emerald-400/20'
         : 'bg-white/5 border-white/10'
     }`}>
-      <div className="w-7 h-7 rounded-full border border-white/15 bg-white/8 flex items-center justify-center text-white/70 shrink-0">
+      <div className="w-7 h-7 rounded-full border border-white/15 bg-white/8 flex items-center justify-center text-white/80 shrink-0">
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] text-white/75 uppercase tracking-wide truncate font-medium">{label}</p>
+        <p className="text-[11px] text-white/85 uppercase tracking-wide truncate font-medium">{label}</p>
         <div className="flex items-baseline gap-1.5 mt-0.5">
           <span className="text-xl text-white font-semibold leading-none">{left}</span>
-          <span className="text-[11px] text-white/50">{leftLabel}</span>
-          <span className="text-white/20 mx-0.5">/</span>
+          <span className="text-[11px] text-white/70">{leftLabel}</span>
+          <span className="text-white/30 mx-0.5">/</span>
           <span className="text-xl text-emerald-300 font-semibold leading-none">{right}</span>
-          <span className="text-[11px] text-white/50">{rightLabel}</span>
+          <span className="text-[11px] text-white/70">{rightLabel}</span>
         </div>
       </div>
     </div>
@@ -105,7 +105,7 @@ function InfoCard({ aktivitas }: { aktivitas: AktivitasData | null }) {
           <p className="text-[10px] text-white/50 uppercase tracking-wider mb-0.5">
             {a?.semesterNama && a?.tahunAjaran ? `${a.semesterNama} · ${a.tahunAjaran}` : 'Aktivitas Akademik'}
           </p>
-          <h3 className="text-lg text-white leading-none font-light">Semester Ini</h3>
+          <p className="text-lg text-white leading-none font-light">Semester Ini</p>
         </div>
 
         {!a && (
@@ -265,19 +265,33 @@ export function HeroSection({ sliders, aktivitas }: { sliders: Slider[]; aktivit
 
             {activeSliders.length > 1 && (
               <div className="flex items-center gap-3">
-                <button type="button" onClick={prev}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white transition-colors">
+                <button
+                  type="button"
+                  onClick={prev}
+                  aria-label="Slide sebelumnya"
+                  className="w-11 h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white transition-colors"
+                >
                   <ChevronLeft size={16} />
                 </button>
-                <div className="flex gap-1.5">
-                  {activeSliders.map((_, i) => (
-                    <button key={i} type="button" onClick={() => { setCurrent(i); setImgError(false) }}
-                      className={`rounded-full transition-all ${i === current ? 'w-6 h-2 bg-emerald-400' : 'w-2 h-2 bg-white/30 hover:bg-white/60'}`}
+                <div className="flex gap-2" role="tablist" aria-label="Navigasi slide">
+                  {activeSliders.map((slide, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      role="tab"
+                      aria-selected={i === current}
+                      aria-label={`Slide ${i + 1}: ${slide.judul}`}
+                      onClick={() => { setCurrent(i); setImgError(false) }}
+                      className={`rounded-full transition-all min-w-[11px] min-h-[11px] ${i === current ? 'w-6 h-2.5 bg-emerald-400' : 'w-2.5 h-2.5 bg-white/30 hover:bg-white/60'}`}
                     />
                   ))}
                 </div>
-                <button type="button" onClick={next}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white transition-colors">
+                <button
+                  type="button"
+                  onClick={next}
+                  aria-label="Slide berikutnya"
+                  className="w-11 h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/25 border border-white/20 text-white transition-colors"
+                >
                   <ChevronRight size={16} />
                 </button>
               </div>

@@ -138,22 +138,28 @@ export function DownloadSection() {
 
       {/* PWA Installation Modal */}
       {showPWAModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pwa-modal-title"
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-gray-200 dark:border-gray-800">
             {/* Header */}
             <div className="p-6 border-b border-gray-200 dark:border-gray-800">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+                  <h2 id="pwa-modal-title" className="text-xl font-bold text-gray-900 dark:text-white mb-1">
                     Cara Install Progressive Web App
-                  </h3>
+                  </h2>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Install LMS sebagai aplikasi di perangkat Anda
                   </p>
                 </div>
                 <button
                   onClick={() => setShowPWAModal(false)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  aria-label="Tutup panduan instalasi PWA"
+                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                 >
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
@@ -276,17 +282,23 @@ export function DownloadSection() {
 
       {/* Under Development Modal */}
       {showDevModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="dev-modal-title"
+        >
           <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full border border-gray-200 dark:border-gray-800">
             {/* Header */}
             <div className="p-6 border-b border-gray-200 dark:border-gray-800">
               <div className="flex items-start justify-between">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                <h2 id="dev-modal-title" className="text-lg font-bold text-gray-900 dark:text-white">
                   Dalam Pengembangan
-                </h3>
+                </h2>
                 <button
                   onClick={() => setShowDevModal(false)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  aria-label="Tutup dialog"
+                  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                 >
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
