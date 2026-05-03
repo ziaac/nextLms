@@ -26,10 +26,6 @@ type ExecCmd =
   | 'justifyLeft' | 'justifyCenter' | 'justifyRight'
   | 'formatBlock' | 'createLink' | 'insertHorizontalRule' | 'formatBlock'
 
-function exec(cmd: ExecCmd, value?: string) {
-  document.execCommand(cmd, false, value)
-}
-
 interface ToolbarBtnProps {
   title:    string
   onClick:  () => void
@@ -98,6 +94,23 @@ export function RichTextEditor({
 }: Props) {
   const editorRef = useRef<HTMLDivElement>(null)
   const isInternalChange = useRef(false)
+
+  /**
+   * Eksekusi execCommand dengan:
+   * 1. Focus dulu ke editor agar selection tidak hilang
+   * 2. Panggil onChange setelah eksekusi karena execCommand TIDAK selalu
+   *    mentrigger event 'input' di semua browser (terutama Chrome untuk list)
+   */
+  const exec = useCallback((cmd: ExecCmd, value?: string) => {
+    const el = editorRef.current
+    if (!el) return
+    el.focus()
+    document.execCommand(cmd, false, value)
+    // Force sync ke React — execCommand mungkin tidak trigger onInput
+    isInternalChange.current = true
+    onChange(el.innerHTML)
+    Promise.resolve().then(() => { isInternalChange.current = false })
+  }, [onChange])
 
   // ── Paste HTML modal state ───────────────────────────────────
   const [pasteHtmlOpen, setPasteHtmlOpen] = useState(false)
@@ -203,7 +216,7 @@ export function RichTextEditor({
     if (url) exec('createLink', url)
   }
 
-  const formatBlock = (tag: string) => exec('formatBlock', tag)
+  const formatBlock = useCallback((tag: string) => exec('formatBlock', tag), [exec])
 
   return (
     <div className={cn(
@@ -409,6 +422,10 @@ export function RichTextEditor({
         className={cn(
           'px-7 py-6 outline-none',
           'prose dark:prose-invert max-w-none',
+          // Tailwind Preflight mereset list-style ke none — kembalikan secara eksplisit
+          // agar tombol ul/ol menghasilkan bullet & nomor yang terlihat
+          '[&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6',
+          '[&_li]:my-0.5',
           'empty:before:content-[attr(data-placeholder)]',
           'empty:before:text-gray-400 empty:before:pointer-events-none empty:before:not-italic',
         )}

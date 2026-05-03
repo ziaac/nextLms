@@ -5,9 +5,7 @@ import { Button, Spinner, Select, Skeleton } from '@/components/ui'
 import { RichTextEditor } from '@/components/ui/RichTextEditor'
 import { useDraftDetail } from '@/hooks/ai-generator/useAiGenerator'
 import { useMataPelajaranList } from '@/hooks/mata-pelajaran/useMataPelajaran'
-import { useKurikulumAktif, useFormatBaku } from '@/hooks/kurikulum/useKurikulum'
 import type { DraftAI, SaveDraftDto, JenisKontenAI } from '@/types/ai-generator.types'
-import type { StrukturFieldItem } from '@/types/kurikulum.types'
 
 interface Props {
   draftId:   string
@@ -22,29 +20,6 @@ const SAVE_LABEL: Record<string, string> = {
   TUGAS:            'Simpan sebagai Tugas',
 }
 
-/** Map JenisKontenAI → JenisFormatBaku (untuk lookup format baku) */
-const JENIS_TO_FORMAT: Record<JenisKontenAI, string> = {
-  RPP:              'RPP',
-  MATERI_PELAJARAN: 'MATERI_PELAJARAN',
-  TUGAS:            'ASESMEN',
-}
-
-/** Ubah key snake_case atau camelCase menjadi label terbaca */
-function toReadableLabel(key: string): string {
-  // snake_case: "tujuan_pembelajaran" → "Tujuan Pembelajaran"
-  if (key.includes('_')) {
-    return key
-      .split('_')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ')
-  }
-  // camelCase: "tujuanPembelajaran" → "Tujuan Pembelajaran"
-  return key
-    .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, (c) => c.toUpperCase())
-    .trim()
-}
-
 /** Normalisasi konten: AI kadang wrap dalam array berisi satu objek */
 function normalizeKonten(raw: unknown): Record<string, unknown> {
   if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === 'object' && raw[0] !== null) {
@@ -57,26 +32,19 @@ function normalizeKonten(raw: unknown): Record<string, unknown> {
 }
 
 /**
- * Untuk RPP dengan format PDF_TEMPLATE:
- * Jika konten berisi banyak key (format lama), gabungkan menjadi satu field 'konten'.
- * Jika sudah ada key 'konten', kembalikan apa adanya.
+ * Untuk RPP: jika konten berisi banyak key (draft lama dengan multi-field),
+ * gabungkan menjadi satu field 'konten'.
+ * Draft baru selalu menghasilkan { konten: "<html>" } sehingga tidak ada perubahan.
  */
-function normalizeRppKontenToSingle(
-  raw: Record<string, unknown>,
-  isRpp: boolean,
-  hasSingleKonten: boolean,
-): Record<string, unknown> {
-  if (!isRpp) return raw
-  // Sudah format baru (satu key 'konten') atau ada strukturField (multi-key terstruktur)
-  if (hasSingleKonten) return raw
+function normalizeRppKontenToSingle(raw: Record<string, unknown>): Record<string, unknown> {
+  // Sudah format baru — satu key 'konten'
+  if (typeof raw['konten'] === 'string' && !!raw['konten']) return raw
 
-  // Format lama: gabungkan semua key menjadi satu HTML
   const keys = Object.keys(raw)
   if (keys.length === 0) return raw
-  // Jika hanya ada key 'konten', sudah benar
   if (keys.length === 1 && keys[0] === 'konten') return raw
 
-  // Pisahkan header identitas dari section A/B/C
+  // Format lama: gabungkan semua key menjadi satu HTML
   const headerKeys  = keys.filter((k) => !/^[A-Z]\./.test(k))
   const sectionKeys = keys.filter((k) => /^[A-Z]\./.test(k)).sort()
 
@@ -107,40 +75,22 @@ export function DraftEditorView({ draftId, onCancel, onSave, isSaving }: Props) 
   const [konten, setKonten]               = useState<Record<string, unknown>>({})
   const [mataPelajaranId, setMataPelajaranId] = useState('')
 
-  // Format baku: gunakan kurikulum SAAT draft dibuat (bukan yang aktif sekarang).
-  // Ini menjamin konsistensi editor meski format baku sudah berubah di semester berikutnya.
-  // Fallback ke kurikulum aktif jika kurikulumId tidak tersimpan (draft lama).
-  const { data: formatBakuFromSnapshot } = useFormatBaku(draft?.kurikulumId ?? null)
-  const { data: kurikulumAktif }         = useKurikulumAktif()
-
   // Load mata pelajaran (per kelas) untuk semester draft
   const { data: mapelData } = useMataPelajaranList(
     draft ? { semesterId: draft.semesterId, limit: 100 } : undefined,
   )
 
-  // Hitung strukturField lebih awal (sebelum useEffect) agar bisa dipakai sebagai dependency
-  const strukturField = useMemo((): StrukturFieldItem[] | null => {
-    if (!draft) return null
-    const jenisFormatBaku = JENIS_TO_FORMAT[draft.jenisKonten]
-    const formatBakuList  = formatBakuFromSnapshot ?? kurikulumAktif?.formatBaku ?? []
-    const formatBaku      = formatBakuList.find((fb) => fb.jenisFormat === jenisFormatBaku)
-    return formatBaku?.strukturField?.length ? formatBaku.strukturField as StrukturFieldItem[] : null
-  }, [draft, formatBakuFromSnapshot, kurikulumAktif])
-
   useEffect(() => {
     if (draft?.konten) {
       const raw = normalizeKonten(draft.konten)
-      // Untuk RPP PDF_TEMPLATE: normalisasi multi-key ke single 'konten'
-      const isRpp = draft.jenisKonten === 'RPP'
-      const hasSingleKonten = typeof raw['konten'] === 'string' && !!raw['konten']
-      const hasStrukturField = !!(strukturField && strukturField.length > 0)
-      // Normalisasi hanya jika RPP dan tidak ada strukturField (PDF_TEMPLATE / fallback)
-      const normalized = isRpp && !hasStrukturField
-        ? normalizeRppKontenToSingle(raw, isRpp, hasSingleKonten)
+      // RPP selalu dinormalisasi ke single 'konten' HTML
+      // (format baku kurikulum tidak lagi terhubung ke AI generate)
+      const normalized = draft.jenisKonten === 'RPP'
+        ? normalizeRppKontenToSingle(raw)
         : raw
       setKonten(normalized)
     }
-  }, [draft?.id, draft?.konten, strukturField])
+  }, [draft?.id, draft?.konten, draft?.jenisKonten])
 
   const mapelOptions = useMemo(
     () =>
@@ -156,11 +106,17 @@ export function DraftEditorView({ draftId, onCancel, onSave, isSaving }: Props) 
     setKonten((prev) => ({ ...prev, [key]: value }))
   }
 
-  /** Render nilai complex (array/object) sebagai string untuk textarea */
-  const getFieldValue = (key: string): string => {
+  /** Render nilai untuk field editor.
+   * Untuk richtext: strip \n agar tidak muncul sebagai karakter visible di editor.
+   * Untuk textarea biasa: biarkan apa adanya.
+   */
+  const getFieldValue = (key: string, richtext = false): string => {
     const val = konten[key]
     if (val == null) return ''
-    if (typeof val === 'string') return val
+    if (typeof val === 'string') {
+      // \n dalam HTML hanya whitespace — strip agar tidak muncul di rich text editor
+      return richtext ? val.replace(/\n/g, ' ').replace(/ {2,}/g, ' ').trim() : val
+    }
     return JSON.stringify(val, null, 2)
   }
 
@@ -191,8 +147,7 @@ export function DraftEditorView({ draftId, onCancel, onSave, isSaving }: Props) 
     )
   }
 
-  // strukturField sudah dihitung via useMemo di atas
-  const fields = renderFieldsFor(draft, strukturField)
+  const fields = renderFieldsFor(draft.jenisKonten)
 
   return (
     <div className="space-y-6">
@@ -212,7 +167,7 @@ export function DraftEditorView({ draftId, onCancel, onSave, isSaving }: Props) 
             </label>
             {f.richtext ? (
               <RichTextEditor
-                value={getFieldValue(f.key)}
+                value={getFieldValue(f.key, true)}
                 onChange={(val) => updateField(f.key, val)}
               />
             ) : (
@@ -261,25 +216,29 @@ export function DraftEditorView({ draftId, onCancel, onSave, isSaving }: Props) 
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Tentukan field editor berdasarkan jenisKonten.
+ *
+ * RPP — selalu satu field 'konten' richtext (HTML).
+ *   Format baku kurikulum tidak lagi terhubung ke AI generate.
+ *   AI selalu menghasilkan { "konten": "<html...>" }.
+ *
+ * MATERI_PELAJARAN & TUGAS — skema tetap sesuai output AI.
+ */
 function renderFieldsFor(
-  draft: DraftAI,
-  strukturField: StrukturFieldItem[] | null,
+  jenisKonten: JenisKontenAI,
 ): { key: string; label: string; richtext: boolean }[] {
-  // Normalisasi konten
-  const konten = normalizeKonten(draft.konten)
-
-  // ── MATERI_PELAJARAN & TUGAS: skema tetap (tidak bergantung format baku) ──
-  if (draft.jenisKonten === 'MATERI_PELAJARAN') {
+  if (jenisKonten === 'MATERI_PELAJARAN') {
     return [
-      { key: 'judul',              label: 'Judul',              richtext: false },
-      { key: 'deskripsi',          label: 'Deskripsi',          richtext: false },
-      { key: 'tujuanPembelajaran', label: 'Tujuan Pembelajaran',richtext: false },
-      { key: 'kompetensiDasar',    label: 'Kompetensi Dasar',   richtext: false },
-      { key: 'konten',             label: 'Konten',             richtext: true  },
+      { key: 'judul',              label: 'Judul',               richtext: false },
+      { key: 'deskripsi',          label: 'Deskripsi',           richtext: false },
+      { key: 'tujuanPembelajaran', label: 'Tujuan Pembelajaran', richtext: false },
+      { key: 'kompetensiDasar',    label: 'Kompetensi Dasar',    richtext: false },
+      { key: 'konten',             label: 'Konten',              richtext: true  },
     ]
   }
 
-  if (draft.jenisKonten === 'TUGAS') {
+  if (jenisKonten === 'TUGAS') {
     return [
       { key: 'judul',     label: 'Judul',     richtext: false },
       { key: 'deskripsi', label: 'Deskripsi', richtext: false },
@@ -287,22 +246,6 @@ function renderFieldsFor(
     ]
   }
 
-  // ── RPP: gunakan strukturField dari format baku jika tersedia ─────────────
-  if (strukturField && strukturField.length > 0) {
-    // Urutkan sesuai urutan yang didefinisikan admin
-    return strukturField
-      .slice()
-      .sort((a, b) => a.urutan - b.urutan)
-      .map((f) => ({
-        key:      f.key,
-        label:    f.label,
-        richtext: f.tipe === 'richtext' || f.tipe === 'list' || f.tipe === 'table',
-      }))
-  }
-
-  // ── Fallback RPP: PDF_TEMPLATE atau format baku belum diisi ───────────────
-  // Gabungkan semua key menjadi satu field 'konten' untuk editor tunggal.
-  // Normalisasi ini terjadi di sini (read-only untuk renderFieldsFor),
-  // konten aktual digabung di normalizeKontenForSingleField().
+  // RPP — satu field konten HTML
   return [{ key: 'konten', label: 'Konten RPP', richtext: true }]
 }

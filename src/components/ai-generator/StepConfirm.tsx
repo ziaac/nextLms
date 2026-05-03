@@ -5,8 +5,8 @@ import { Sparkles } from 'lucide-react'
 import type { JenisKontenAI, ProviderAI } from '@/types/ai-generator.types'
 
 const PROVIDER_OPTIONS: { value: ProviderAI; label: string; hint?: string }[] = [
-  { value: 'GEMINI',     label: 'Google Gemini',   hint: 'Gratis (free tier) · Baca PDF native' },
-  { value: 'OPENAI',     label: 'OpenAI (GPT)',     hint: 'Berbayar · Baca PDF native' },
+  { value: 'GEMINI',     label: 'Google Gemini',   hint: 'Direkomendasikan · Gratis · Baca PDF native' },
+  { value: 'OPENAI',     label: 'OpenAI (GPT)',     hint: 'Wajib API key berbayar · Free tier sangat terbatas (3 req/menit) · Baca PDF native' },
   { value: 'QWEN',       label: 'Qwen (Alibaba)',   hint: 'Murah · qwen-plus ~$0.04/1M token' },
   { value: 'DEEPSEEK',   label: 'DeepSeek',         hint: 'Murah · deepseek-chat ~$0.07/1M token' },
   { value: 'OPENROUTER', label: 'OpenRouter',       hint: 'Gateway multi-model · harga variatif' },
@@ -30,8 +30,6 @@ interface Summary {
   topik:          string
   promptTambahan: string
   dokumenCount:   number
-  /** true jika sistem menambahkan PDF template format baku secara otomatis */
-  hasPdfTemplate?: boolean
 }
 
 interface Props {
@@ -68,11 +66,6 @@ export function StepConfirm({ summary, value, onChange, onGenerate, isPending }:
             <p className="font-medium text-gray-900 dark:text-gray-100">
               {summary.dokumenCount} dokumen
             </p>
-            {summary.hasPdfTemplate && (
-              <p className="text-xs text-gray-400 mt-0.5">
-                1 format baku (sistem) + {summary.dokumenCount - 1} dokumen Anda
-              </p>
-            )}
           </div>
           <div className="col-span-2">
             <p className="text-xs text-gray-500">Judul</p>

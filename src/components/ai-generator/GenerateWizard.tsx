@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui'
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -9,7 +9,6 @@ import { StepSelectContext, type ContextValue } from './StepSelectContext'
 import { StepFillParams, type ParamsValue } from './StepFillParams'
 import { StepSelectDokumen } from './StepSelectDokumen'
 import { StepConfirm, type ProviderValue } from './StepConfirm'
-import { useKurikulumAktif } from '@/hooks/kurikulum/useKurikulum'
 import type {
   InitiateGenerateDto,
   JenisKontenAI,
@@ -21,13 +20,6 @@ interface Props {
 }
 
 const STEPS = ['Jenis', 'Konteks', 'Parameter', 'Dokumen', 'Konfirmasi'] as const
-
-/** Map JenisKontenAI → JenisFormatBaku */
-const JENIS_TO_FORMAT: Record<JenisKontenAI, string> = {
-  RPP:              'RPP',
-  MATERI_PELAJARAN: 'MATERI_PELAJARAN',
-  TUGAS:            'ASESMEN',
-}
 
 export function GenerateWizard({ onSubmit, isPending }: Props) {
   const [step, setStep] = useState(0)
@@ -51,22 +43,6 @@ export function GenerateWizard({ onSubmit, isPending }: Props) {
     byoa:     false,
     apiKey:   '',
   })
-
-  // Fetch kurikulum aktif untuk cek apakah ada PDF template format baku
-  const { data: kurikulumAktif } = useKurikulumAktif()
-
-  /**
-   * Cek apakah format baku untuk jenis konten ini adalah PDF_TEMPLATE.
-   * Jika ya, sistem akan otomatis menambahkan 1 dokumen template di backend.
-   */
-  const hasPdfTemplate = useMemo(() => {
-    if (!jenisKonten || !kurikulumAktif?.formatBaku) return false
-    const jenisFormat = JENIS_TO_FORMAT[jenisKonten]
-    const formatBaku  = kurikulumAktif.formatBaku.find(
-      (fb) => fb.jenisFormat === jenisFormat,
-    )
-    return formatBaku?.formatTipe === 'PDF_TEMPLATE' && !!formatBaku.pdfTemplateKey
-  }, [jenisKonten, kurikulumAktif])
 
   const canNext = (() => {
     switch (step) {
@@ -152,11 +128,10 @@ export function GenerateWizard({ onSubmit, isPending }: Props) {
         {step === 2 && jenisKonten && (
           <StepFillParams jenisKonten={jenisKonten} value={params} onChange={setParams} />
         )}
-        {step === 3 && jenisKonten && (
+        {step === 3 && (
           <StepSelectDokumen
             semesterId={context.semesterId}
             tahunAjaranId={context.tahunAjaranId}
-            jenisKonten={jenisKonten}
             selectedIds={dokumenIds}
             onChange={setDokumenIds}
           />
@@ -168,9 +143,7 @@ export function GenerateWizard({ onSubmit, isPending }: Props) {
               judul:          params.judul,
               topik:          params.topik,
               promptTambahan: params.promptTambahan,
-              // +1 jika ada PDF template format baku dari sistem
-              dokumenCount:      dokumenIds.length + (hasPdfTemplate ? 1 : 0),
-              hasPdfTemplate,
+              dokumenCount:   dokumenIds.length,
             }}
             value={provider}
             onChange={setProvider}
@@ -204,4 +177,3 @@ export function GenerateWizard({ onSubmit, isPending }: Props) {
     </div>
   )
 }
-

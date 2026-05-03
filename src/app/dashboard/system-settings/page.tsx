@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Settings, Clock, School, ClipboardCheck, ToggleLeft, CreditCard, Bot, KeyRound, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
+import { Settings, Clock, School, ClipboardCheck, ToggleLeft, CreditCard, Bot, KeyRound, CheckCircle, XCircle, AlertTriangle, MessageSquareDiff } from 'lucide-react'
 import { toast } from 'sonner'
 import { Skeleton, PageHeader } from '@/components/ui'
 import { useAllSettings, useUpdateSetting } from '@/hooks/pembayaran/useSystemSetting'
@@ -93,6 +93,7 @@ const TABS = [
   { id: 'fitur', label: 'Fitur', icon: ToggleLeft },
   { id: 'payment', label: 'Payment', icon: CreditCard },
   { id: 'ai', label: 'AI Generator', icon: Bot },
+  { id: 'prompt', label: 'Prompt AI', icon: MessageSquareDiff },
 ] as const
 type TabId = (typeof TABS)[number]['id']
 const AI_PROVIDERS = ['GEMINI', 'OPENAI', 'QWEN', 'DEEPSEEK', 'OPENROUTER'] as const
@@ -252,6 +253,101 @@ function TabAI({ settings, onToggle, onSave, isPending }: TabProps) {
   )
 }
 
+// ─── Prompt Tab ───────────────────────────────────────────────────
+
+/** Textarea dengan auto-save saat blur */
+function PromptTextarea({ settingKey, value, onSave, disabled, placeholder }: {
+  settingKey: string; value: string; onSave: (key: string, v: string) => void
+  disabled?: boolean; placeholder?: string
+}) {
+  const [local, setLocal] = useState(value)
+  useEffect(() => setLocal(value), [value])
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <code className="text-xs text-gray-400 dark:text-gray-500 font-mono">{settingKey}</code>
+        {local !== value && (
+          <span className="text-xs text-amber-500">Belum disimpan — klik di luar untuk simpan</span>
+        )}
+      </div>
+      <textarea
+        rows={12}
+        className="w-full text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-violet-500 resize-y font-mono leading-relaxed"
+        value={local}
+        placeholder={placeholder}
+        disabled={disabled}
+        onChange={(e) => setLocal(e.target.value)}
+        onBlur={() => { if (local !== value) onSave(settingKey, local) }}
+      />
+    </div>
+  )
+}
+
+function TabPrompt({ settings, onSave, isPending }: TabProps) {
+  const PROMPTS: { key: string; label: string; description: string; placeholder: string }[] = [
+    {
+      key:         'AI_PROMPT_RPP',
+      label:       'Instruksi RPP',
+      description: 'Instruksi output untuk generate RPP. Menggantikan instruksi hardcoded sistem. Kosongkan untuk menggunakan default sistem.',
+      placeholder: 'Contoh:\nOutput JSON — WAJIB SATU FIELD:\n{"konten": "<seluruh RPP dalam satu string HTML>"}\n\nSTRUKTUR HTML:\n...',
+    },
+    {
+      key:         'AI_PROMPT_MATERI',
+      label:       'Instruksi Materi Pelajaran',
+      description: 'Instruksi output untuk generate Materi Pelajaran. Kosongkan untuk menggunakan default.',
+      placeholder: 'Contoh:\nOutput JSON:\n{"judul": "...", "konten": "<html>", ...}',
+    },
+    {
+      key:         'AI_PROMPT_TUGAS',
+      label:       'Instruksi Tugas / Kuis',
+      description: 'Instruksi output untuk generate Tugas dan Soal Kuis. Kosongkan untuk menggunakan default.',
+      placeholder: 'Contoh:\nOutput JSON:\n{"judul": "...", "soalKuis": [...]}',
+    },
+  ]
+
+  return (
+    <div className="space-y-6">
+      {/* Info banner */}
+      <div className="flex items-start gap-3 p-4 rounded-xl bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800">
+        <MessageSquareDiff size={16} className="text-violet-600 dark:text-violet-400 mt-0.5 flex-shrink-0" />
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-violet-800 dark:text-violet-300">Custom Prompt Instructions</p>
+          <p className="text-xs text-violet-600 dark:text-violet-400">
+            Instruksi di sini menggantikan instruksi output hardcoded sistem untuk setiap jenis konten.
+            Jika dikosongkan, sistem menggunakan instruksi default bawaan.
+            Perubahan langsung berlaku untuk generate berikutnya — tidak perlu restart server.
+          </p>
+        </div>
+      </div>
+
+      {PROMPTS.map(({ key, label, description, placeholder }) => (
+        <div key={key} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-3">
+          <div>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">{label}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>
+          </div>
+          <PromptTextarea
+            settingKey={key}
+            value={get(settings, key)}
+            onSave={onSave}
+            disabled={isPending}
+            placeholder={placeholder}
+          />
+          {get(settings, key) && (
+            <button
+              className="text-xs text-red-500 hover:text-red-600 transition-colors"
+              disabled={isPending}
+              onClick={() => onSave(key, '')}
+            >
+              Reset ke default sistem
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // ─── Main Page ────────────────────────────────────────────────────
 
 export default function SystemSettingsPage() {
@@ -295,6 +391,7 @@ export default function SystemSettingsPage() {
       {activeTab === 'fitur'   && <TabFitur   {...tabProps} />}
       {activeTab === 'payment' && <TabPayment {...tabProps} />}
       {activeTab === 'ai'      && <TabAI      {...tabProps} />}
+      {activeTab === 'prompt'  && <TabPrompt  {...tabProps} />}
     </div>
   )
 }
