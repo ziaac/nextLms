@@ -10,7 +10,7 @@ import {
   MonitorSmartphone, GitBranch, Calendar, MessageSquare,
   CheckSquare, ScanLine, Wifi, ChevronRight,
 } from 'lucide-react'
-import { PlaceholderImage } from '@/components/public/PlaceholderImage'
+import { ScreenshotImage } from '@/components/public/ScreenshotImage'
 import { cn } from '@/lib/utils'
 
 const sections = [
@@ -227,7 +227,7 @@ export function FeaturesContent() {
                     ['Payment Gateway', 'Midtrans (VA, E-wallet, Kartu Kredit)'],
                     ['Containerization', 'Docker multi-stage build'],
                     ['Deployment', 'Coolify (Self-hosted PaaS), Singapore'],
-                    ['AI Providers', 'Gemini, OpenAI, Anthropic, Cohere, OpenRouter'],
+                    ['AI Providers', 'Gemini, OpenAI, Qwen, DeepSeek, OpenRouter'],
                     ['Timezone', 'WITA (UTC+8) / Asia/Makassar'],
                   ].map(([label, value]) => (
                     <div key={label} className="flex items-baseline gap-2 py-1.5 border-b border-gray-100 dark:border-gray-800 last:border-0">
@@ -252,7 +252,7 @@ export function FeaturesContent() {
                     icon: Brain,
                     title: 'RAG-AI Assistant',
                     desc: 'Generate RPP, materi, dan tugas secara otomatis menggunakan AI dengan konteks kurikulum sekolah.',
-                    tags: ['Gemini', 'OpenAI', 'Anthropic'],
+                    tags: ['Gemini', 'Qwen', 'DeepSeek'],
                     color: 'purple',
                   },
                   {
@@ -311,13 +311,29 @@ export function FeaturesContent() {
                 subtitle="Sistem generasi konten berbasis AI yang menggunakan konteks kurikulum dan dokumen pengajaran sekolah untuk menghasilkan konten yang relevan dan terstruktur."
               />
 
-              {/* Screenshot placeholder */}
-              <div className="mb-8 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800/60">
-                <PlaceholderImage
-                  variant="ai"
-                  label="Screenshot: Antarmuka AI Generator — Pilih jenis konten, provider AI, dan parameter generate"
-                  className="w-full h-64"
-                />
+              {/* Screenshots AI Generator — begin, process, hasil */}
+              <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800/60 relative h-48">
+                  <ScreenshotImage
+                    filename="static_ai_generate_begin.webp"
+                    alt="Antarmuka AI Generator — Pilih jenis konten dan parameter generate"
+                    className="w-full h-full"
+                  />
+                </div>
+                <div className="rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800/60 relative h-48">
+                  <ScreenshotImage
+                    filename="static_ai_generate_process.webp"
+                    alt="Proses generate AI — Animasi step-by-step progress"
+                    className="w-full h-full"
+                  />
+                </div>
+                <div className="rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800/60 relative h-48">
+                  <ScreenshotImage
+                    filename="static_ai_generate_hasil.webp"
+                    alt="Hasil generate AI — Editor draft RPP siap diedit dan disimpan"
+                    className="w-full h-full"
+                  />
+                </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-5 mb-6">
@@ -332,11 +348,11 @@ export function FeaturesContent() {
                 <InfoCard
                   title="Provider AI yang Didukung"
                   items={[
-                    '<strong>Google Gemini</strong> — Model generasi terbaru dari Google',
-                    '<strong>OpenAI GPT</strong> — Model GPT-4 dan variannya',
-                    '<strong>Anthropic Claude</strong> — Model Claude dengan konteks panjang',
-                    '<strong>Cohere</strong> — Model bahasa untuk konten akademik',
-                    '<strong>OpenRouter</strong> — Akses multi-model via satu endpoint',
+                    '<strong>Google Gemini</strong> — Context 1M token, baca PDF native',
+                    '<strong>OpenAI GPT</strong> — GPT-5.4 nano/mini, baca PDF native',
+                    '<strong>Alibaba Qwen</strong> — qwen3.5-plus, murah & cocok Bahasa Indonesia',
+                    '<strong>DeepSeek</strong> — deepseek-v4-flash, sangat murah & berkualitas',
+                    '<strong>OpenRouter</strong> — Akses 200+ model via satu endpoint',
                   ]}
                 />
               </div>
@@ -385,12 +401,12 @@ export function FeaturesContent() {
                 subtitle="Sistem kehadiran berbasis sesi dengan tiga mode operasi, pembaruan status langsung via Socket.IO, dan validasi GPS untuk memastikan kehadiran fisik."
               />
 
-              {/* Screenshot placeholder */}
-              <div className="mb-8 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800/60">
-                <PlaceholderImage
-                  variant="qr"
-                  label="Screenshot: Tampilan QR Code sesi absensi — Guru membuka sesi, siswa scan QR untuk hadir"
-                  className="w-full h-64"
+              {/* Screenshot absensi */}
+              <div className="mb-8 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800/60 relative h-64">
+                <ScreenshotImage
+                  filename="static_absensi_ss.webp"
+                  alt="Tampilan QR Code sesi absensi — Guru membuka sesi, siswa scan QR untuk hadir"
+                  className="w-full h-full"
                 />
               </div>
 
@@ -474,30 +490,30 @@ export function FeaturesContent() {
                 subtitle="Builder visual berbasis halaman untuk membuat lembar kerja digital yang kaya interaksi, dengan sistem penilaian otomatis dan manual terintegrasi."
               />
 
-              {/* Screenshot placeholder — builder */}
-              <div className="mb-5 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800/60">
-                <PlaceholderImage
-                  variant="worksheet"
-                  label="Screenshot: Worksheet Builder — Guru mendesain halaman worksheet dengan drag-and-drop widget di atas gambar latar"
-                  className="w-full h-64"
+              {/* Screenshot worksheet builder */}
+              <div className="mb-5 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800/60 relative h-64">
+                <ScreenshotImage
+                  filename="static_worksheet_guru.webp"
+                  alt="Worksheet Builder — Guru mendesain halaman worksheet dengan widget di atas gambar latar"
+                  className="w-full h-full"
                 />
               </div>
 
               <div className="grid md:grid-cols-2 gap-5 mb-6">
-                {/* Screenshot placeholder — player */}
-                <div className="rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800/60">
-                  <PlaceholderImage
-                    variant="worksheet"
-                    label="Screenshot: Worksheet Player — Tampilan siswa mengerjakan worksheet interaktif"
-                    className="w-full h-48"
+                {/* Screenshot worksheet player */}
+                <div className="rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800/60 relative h-48">
+                  <ScreenshotImage
+                    filename="static_worksheet_siswa.webp"
+                    alt="Worksheet Player — Tampilan siswa mengerjakan worksheet interaktif"
+                    className="w-full h-full"
                   />
                 </div>
-                {/* Screenshot placeholder — grading */}
-                <div className="rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800/60">
-                  <PlaceholderImage
-                    variant="worksheet"
-                    label="Screenshot: Grading View — Guru menilai jawaban esai dan gambar dari siswa"
-                    className="w-full h-48"
+                {/* Screenshot worksheet grading */}
+                <div className="rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800/60 relative h-48">
+                  <ScreenshotImage
+                    filename="static_worksheet_penilaian.webp"
+                    alt="Grading View — Guru menilai jawaban esai dan gambar dari siswa"
+                    className="w-full h-full"
                   />
                 </div>
               </div>

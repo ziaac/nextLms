@@ -2,7 +2,7 @@
 // ai-generator.types.ts
 // ============================================================
 
-export type ProviderAI = 'GEMINI' | 'OPENAI' | 'ANTHROPIC' | 'COHERE' | 'OPENROUTER'
+export type ProviderAI = 'GEMINI' | 'OPENAI' | 'QWEN' | 'DEEPSEEK' | 'OPENROUTER'
 export type JenisKontenAI = 'RPP' | 'MATERI_PELAJARAN' | 'TUGAS'
 export type StatusDraftAI = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'SAVED'
 
@@ -80,6 +80,12 @@ export interface InitiateGenerateDto {
   modelId?:              string
   /** BYOA — tidak disimpan ke DB */
   apiKey?:               string
+}
+
+export interface RetryDraftDto {
+  provider: ProviderAI
+  /** BYOA — tidak disimpan ke DB */
+  apiKey?:  string
 }
 
 export interface SaveDraftDto {

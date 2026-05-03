@@ -5,7 +5,9 @@ import { Button, Spinner, Select, Skeleton } from '@/components/ui'
 import { RichTextEditor } from '@/components/ui/RichTextEditor'
 import { useDraftDetail } from '@/hooks/ai-generator/useAiGenerator'
 import { useMataPelajaranList } from '@/hooks/mata-pelajaran/useMataPelajaran'
-import type { DraftAI, SaveDraftDto } from '@/types/ai-generator.types'
+import { useKurikulumAktif, useFormatBaku } from '@/hooks/kurikulum/useKurikulum'
+import type { DraftAI, SaveDraftDto, JenisKontenAI } from '@/types/ai-generator.types'
+import type { StrukturFieldItem } from '@/types/kurikulum.types'
 
 interface Props {
   draftId:   string
@@ -20,39 +22,146 @@ const SAVE_LABEL: Record<string, string> = {
   TUGAS:            'Simpan sebagai Tugas',
 }
 
+/** Map JenisKontenAI → JenisFormatBaku (untuk lookup format baku) */
+const JENIS_TO_FORMAT: Record<JenisKontenAI, string> = {
+  RPP:              'RPP',
+  MATERI_PELAJARAN: 'MATERI_PELAJARAN',
+  TUGAS:            'ASESMEN',
+}
+
+/** Ubah key snake_case atau camelCase menjadi label terbaca */
+function toReadableLabel(key: string): string {
+  // snake_case: "tujuan_pembelajaran" → "Tujuan Pembelajaran"
+  if (key.includes('_')) {
+    return key
+      .split('_')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ')
+  }
+  // camelCase: "tujuanPembelajaran" → "Tujuan Pembelajaran"
+  return key
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim()
+}
+
+/** Normalisasi konten: AI kadang wrap dalam array berisi satu objek */
+function normalizeKonten(raw: unknown): Record<string, unknown> {
+  if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === 'object' && raw[0] !== null) {
+    return raw[0] as Record<string, unknown>
+  }
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    return raw as Record<string, unknown>
+  }
+  return {}
+}
+
+/**
+ * Untuk RPP dengan format PDF_TEMPLATE:
+ * Jika konten berisi banyak key (format lama), gabungkan menjadi satu field 'konten'.
+ * Jika sudah ada key 'konten', kembalikan apa adanya.
+ */
+function normalizeRppKontenToSingle(
+  raw: Record<string, unknown>,
+  isRpp: boolean,
+  hasSingleKonten: boolean,
+): Record<string, unknown> {
+  if (!isRpp) return raw
+  // Sudah format baru (satu key 'konten') atau ada strukturField (multi-key terstruktur)
+  if (hasSingleKonten) return raw
+
+  // Format lama: gabungkan semua key menjadi satu HTML
+  const keys = Object.keys(raw)
+  if (keys.length === 0) return raw
+  // Jika hanya ada key 'konten', sudah benar
+  if (keys.length === 1 && keys[0] === 'konten') return raw
+
+  // Pisahkan header identitas dari section A/B/C
+  const headerKeys  = keys.filter((k) => !/^[A-Z]\./.test(k))
+  const sectionKeys = keys.filter((k) => /^[A-Z]\./.test(k)).sort()
+
+  const headerHtml = headerKeys.length > 0
+    ? `<table style="border-collapse:collapse;margin-bottom:20px;width:100%">${
+        headerKeys.map((key) => {
+          const val = raw[key]
+          const content = typeof val === 'string' ? val : JSON.stringify(val)
+          return `<tr><td style="width:220px;padding:3px 8px;font-weight:600;vertical-align:top">${key}</td><td style="padding:3px 8px">: ${content}</td></tr>`
+        }).join('')
+      }</table>`
+    : ''
+
+  const sectionsHtml = sectionKeys
+    .map((key) => {
+      const val = raw[key]
+      const content = typeof val === 'string' ? val : JSON.stringify(val)
+      const isHtml = /<[a-z][\s\S]*>/i.test(content)
+      return `<h3>${key}</h3>${isHtml ? content : `<p>${content}</p>`}`
+    })
+    .join('\n')
+
+  return { konten: headerHtml + sectionsHtml }
+}
+
 export function DraftEditorView({ draftId, onCancel, onSave, isSaving }: Props) {
   const { data: draft, isLoading } = useDraftDetail(draftId)
   const [konten, setKonten]               = useState<Record<string, unknown>>({})
   const [mataPelajaranId, setMataPelajaranId] = useState('')
+
+  // Format baku: gunakan kurikulum SAAT draft dibuat (bukan yang aktif sekarang).
+  // Ini menjamin konsistensi editor meski format baku sudah berubah di semester berikutnya.
+  // Fallback ke kurikulum aktif jika kurikulumId tidak tersimpan (draft lama).
+  const { data: formatBakuFromSnapshot } = useFormatBaku(draft?.kurikulumId ?? null)
+  const { data: kurikulumAktif }         = useKurikulumAktif()
 
   // Load mata pelajaran (per kelas) untuk semester draft
   const { data: mapelData } = useMataPelajaranList(
     draft ? { semesterId: draft.semesterId, limit: 100 } : undefined,
   )
 
+  // Hitung strukturField lebih awal (sebelum useEffect) agar bisa dipakai sebagai dependency
+  const strukturField = useMemo((): StrukturFieldItem[] | null => {
+    if (!draft) return null
+    const jenisFormatBaku = JENIS_TO_FORMAT[draft.jenisKonten]
+    const formatBakuList  = formatBakuFromSnapshot ?? kurikulumAktif?.formatBaku ?? []
+    const formatBaku      = formatBakuList.find((fb) => fb.jenisFormat === jenisFormatBaku)
+    return formatBaku?.strukturField?.length ? formatBaku.strukturField as StrukturFieldItem[] : null
+  }, [draft, formatBakuFromSnapshot, kurikulumAktif])
+
   useEffect(() => {
     if (draft?.konten) {
-      setKonten(draft.konten as Record<string, unknown>)
+      const raw = normalizeKonten(draft.konten)
+      // Untuk RPP PDF_TEMPLATE: normalisasi multi-key ke single 'konten'
+      const isRpp = draft.jenisKonten === 'RPP'
+      const hasSingleKonten = typeof raw['konten'] === 'string' && !!raw['konten']
+      const hasStrukturField = !!(strukturField && strukturField.length > 0)
+      // Normalisasi hanya jika RPP dan tidak ada strukturField (PDF_TEMPLATE / fallback)
+      const normalized = isRpp && !hasStrukturField
+        ? normalizeRppKontenToSingle(raw, isRpp, hasSingleKonten)
+        : raw
+      setKonten(normalized)
     }
-  }, [draft?.id, draft?.konten])
+  }, [draft?.id, draft?.konten, strukturField])
 
   const mapelOptions = useMemo(
     () =>
       (mapelData?.data ?? []).map((m) => {
-        const item = m as {
-          id: string
-          mataPelajaranTingkat?: { masterMapel?: { nama: string; kode?: string } }
-          kelas?: { namaKelas: string }
-        }
-        const namaMapel = item.mataPelajaranTingkat?.masterMapel?.nama ?? item.id
-        const kelas     = item.kelas?.namaKelas ? ` — ${item.kelas.namaKelas}` : ''
-        return { value: item.id, label: `${namaMapel}${kelas}` }
+        const namaMapel = m.mataPelajaranTingkat?.masterMapel?.nama ?? m.id
+        const kelas     = m.kelas?.namaKelas ? ` — ${m.kelas.namaKelas}` : ''
+        return { value: m.id, label: `${namaMapel}${kelas}` }
       }),
     [mapelData],
   )
 
   const updateField = (key: string, value: string) => {
     setKonten((prev) => ({ ...prev, [key]: value }))
+  }
+
+  /** Render nilai complex (array/object) sebagai string untuk textarea */
+  const getFieldValue = (key: string): string => {
+    const val = konten[key]
+    if (val == null) return ''
+    if (typeof val === 'string') return val
+    return JSON.stringify(val, null, 2)
   }
 
   const handleSave = async () => {
@@ -82,7 +191,8 @@ export function DraftEditorView({ draftId, onCancel, onSave, isSaving }: Props) 
     )
   }
 
-  const fields = renderFieldsFor(draft)
+  // strukturField sudah dihitung via useMemo di atas
+  const fields = renderFieldsFor(draft, strukturField)
 
   return (
     <div className="space-y-6">
@@ -102,12 +212,12 @@ export function DraftEditorView({ draftId, onCancel, onSave, isSaving }: Props) 
             </label>
             {f.richtext ? (
               <RichTextEditor
-                value={(konten[f.key] as string) ?? ''}
+                value={getFieldValue(f.key)}
                 onChange={(val) => updateField(f.key, val)}
               />
             ) : (
               <textarea
-                value={(konten[f.key] as string) ?? ''}
+                value={getFieldValue(f.key)}
                 onChange={(e) => updateField(f.key, e.target.value)}
                 rows={3}
                 className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-y"
@@ -149,9 +259,16 @@ export function DraftEditorView({ draftId, onCancel, onSave, isSaving }: Props) 
   )
 }
 
-function renderFieldsFor(draft: DraftAI): { key: string; label: string; richtext: boolean }[] {
-  const konten = (draft.konten ?? {}) as Record<string, unknown>
+// ─────────────────────────────────────────────────────────────────────────────
 
+function renderFieldsFor(
+  draft: DraftAI,
+  strukturField: StrukturFieldItem[] | null,
+): { key: string; label: string; richtext: boolean }[] {
+  // Normalisasi konten
+  const konten = normalizeKonten(draft.konten)
+
+  // ── MATERI_PELAJARAN & TUGAS: skema tetap (tidak bergantung format baku) ──
   if (draft.jenisKonten === 'MATERI_PELAJARAN') {
     return [
       { key: 'judul',              label: 'Judul',              richtext: false },
@@ -170,10 +287,22 @@ function renderFieldsFor(draft: DraftAI): { key: string; label: string; richtext
     ]
   }
 
-  // RPP -- render semua key sebagai richtext
-  return Object.keys(konten).map((key) => ({
-    key,
-    label:    key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
-    richtext: true,
-  }))
+  // ── RPP: gunakan strukturField dari format baku jika tersedia ─────────────
+  if (strukturField && strukturField.length > 0) {
+    // Urutkan sesuai urutan yang didefinisikan admin
+    return strukturField
+      .slice()
+      .sort((a, b) => a.urutan - b.urutan)
+      .map((f) => ({
+        key:      f.key,
+        label:    f.label,
+        richtext: f.tipe === 'richtext' || f.tipe === 'list' || f.tipe === 'table',
+      }))
+  }
+
+  // ── Fallback RPP: PDF_TEMPLATE atau format baku belum diisi ───────────────
+  // Gabungkan semua key menjadi satu field 'konten' untuk editor tunggal.
+  // Normalisasi ini terjadi di sini (read-only untuk renderFieldsFor),
+  // konten aktual digabung di normalizeKontenForSingleField().
+  return [{ key: 'konten', label: 'Konten RPP', richtext: true }]
 }

@@ -4,6 +4,7 @@ import type {
   DraftListResponse,
   InitiateGenerateDto,
   InitiateGenerateResponse,
+  RetryDraftDto,
   SaveDraftDto,
   SaveDraftResponse,
   DraftFilterParams,
@@ -22,6 +23,9 @@ export const getDraftDetail = (id: string) =>
 
 export const saveDraft = (id: string, dto: SaveDraftDto) =>
   api.post<SaveDraftResponse>(`${BASE}/draft/${id}/save`, dto).then((r) => r.data)
+
+export const retryDraft = (id: string, dto: RetryDraftDto) =>
+  api.post<InitiateGenerateResponse>(`${BASE}/draft/${id}/retry`, dto).then((r) => r.data)
 
 export const deleteDraft = (id: string) =>
   api.delete<{ message: string }>(`${BASE}/draft/${id}`).then((r) => r.data)

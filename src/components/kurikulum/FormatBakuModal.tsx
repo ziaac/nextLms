@@ -53,14 +53,30 @@ export function FormatBakuModal({
   const [pdfTemplateKey, setPdfTemplateKey] = useState('')
   const [fields, setFields] = useState<StrukturFieldItem[]>([])
 
+  // Fetch existing format baku hanya saat modal terbuka
+  const { data: existingFormats } = useFormatBaku(open ? (kurikulum?.id ?? null) : null)
+
+  // Effect 1: Reset selector jenis ke RPP setiap kali modal dibuka
   useEffect(() => {
-    if (open) {
-      setJenisFormat('RPP')
-      setFormatTipe('RICHTEXT')
-      setPdfTemplateKey('')
-      setFields([])
-    }
+    if (open) setJenisFormat('RPP')
   }, [open])
+
+  // Effect 2: Pre-populate form dari data yang sudah ada, atau reset ke blank
+  // Dijalankan setiap modal dibuka, jenis berganti, atau data selesai dimuat
+  useEffect(() => {
+    if (!open) return
+    const existing = existingFormats?.find((f) => f.jenisFormat === jenisFormat)
+    if (existing) {
+      setFormatTipe(existing.formatTipe)
+      setFields((existing.strukturField as StrukturFieldItem[]) ?? [])
+      setPdfTemplateKey(existing.pdfTemplateKey ?? '')
+    } else {
+      // Belum ada format untuk jenis ini — tampilkan form kosong
+      setFormatTipe('RICHTEXT')
+      setFields([])
+      setPdfTemplateKey('')
+    }
+  }, [open, jenisFormat, existingFormats])
 
   const addField = () => {
     setFields((prev) => [

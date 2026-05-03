@@ -1,7 +1,7 @@
 'use client'
 
 import { Skeleton, Pagination, Button } from '@/components/ui'
-import { Sparkles, Trash2, Eye } from 'lucide-react'
+import { Sparkles, Trash2, Eye, RefreshCw } from 'lucide-react'
 import { DraftStatusBadge } from './DraftStatusBadge'
 import type { DraftAIListItem, JenisKontenAI } from '@/types/ai-generator.types'
 
@@ -20,11 +20,12 @@ interface Props {
   limit:        number
   onPageChange: (page: number) => void
   onOpen:       (item: DraftAIListItem) => void
+  onRetry:      (item: DraftAIListItem) => void
   onDelete:     (item: DraftAIListItem) => void
 }
 
 export function DraftRiwayatTable({
-  data, isLoading, page, totalPages, total, limit, onPageChange, onOpen, onDelete,
+  data, isLoading, page, totalPages, total, limit, onPageChange, onOpen, onRetry, onDelete,
 }: Props) {
   if (isLoading) {
     return (
@@ -89,6 +90,11 @@ export function DraftRiwayatTable({
                     {item.status === 'COMPLETED' && (
                       <Button size="sm" variant="ghost" title="Buka" onClick={() => onOpen(item)}>
                         <Eye className="h-4 w-4 text-emerald-500" />
+                      </Button>
+                    )}
+                    {item.status === 'FAILED' && (
+                      <Button size="sm" variant="ghost" title="Ulangi dengan provider lain" onClick={() => onRetry(item)}>
+                        <RefreshCw className="h-4 w-4 text-amber-500" />
                       </Button>
                     )}
                     <Button size="sm" variant="ghost" title="Hapus" onClick={() => onDelete(item)}>

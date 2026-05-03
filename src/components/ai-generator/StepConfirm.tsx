@@ -4,12 +4,12 @@ import { Select, Input, Button, Spinner } from '@/components/ui'
 import { Sparkles } from 'lucide-react'
 import type { JenisKontenAI, ProviderAI } from '@/types/ai-generator.types'
 
-const PROVIDER_OPTIONS: { value: ProviderAI; label: string }[] = [
-  { value: 'GEMINI',     label: 'Google Gemini' },
-  { value: 'OPENAI',     label: 'OpenAI' },
-  { value: 'ANTHROPIC',  label: 'Anthropic Claude' },
-  { value: 'COHERE',     label: 'Cohere' },
-  { value: 'OPENROUTER', label: 'OpenRouter' },
+const PROVIDER_OPTIONS: { value: ProviderAI; label: string; hint?: string }[] = [
+  { value: 'GEMINI',     label: 'Google Gemini',   hint: 'Gratis (free tier) · Baca PDF native' },
+  { value: 'OPENAI',     label: 'OpenAI (GPT)',     hint: 'Berbayar · Baca PDF native' },
+  { value: 'QWEN',       label: 'Qwen (Alibaba)',   hint: 'Murah · qwen-plus ~$0.04/1M token' },
+  { value: 'DEEPSEEK',   label: 'DeepSeek',         hint: 'Murah · deepseek-chat ~$0.07/1M token' },
+  { value: 'OPENROUTER', label: 'OpenRouter',       hint: 'Gateway multi-model · harga variatif' },
 ]
 
 const JENIS_LABEL: Record<JenisKontenAI, string> = {
@@ -30,6 +30,8 @@ interface Summary {
   topik:          string
   promptTambahan: string
   dokumenCount:   number
+  /** true jika sistem menambahkan PDF template format baku secara otomatis */
+  hasPdfTemplate?: boolean
 }
 
 interface Props {
@@ -66,6 +68,11 @@ export function StepConfirm({ summary, value, onChange, onGenerate, isPending }:
             <p className="font-medium text-gray-900 dark:text-gray-100">
               {summary.dokumenCount} dokumen
             </p>
+            {summary.hasPdfTemplate && (
+              <p className="text-xs text-gray-400 mt-0.5">
+                1 format baku (sistem) + {summary.dokumenCount - 1} dokumen Anda
+              </p>
+            )}
           </div>
           <div className="col-span-2">
             <p className="text-xs text-gray-500">Judul</p>
@@ -92,12 +99,19 @@ export function StepConfirm({ summary, value, onChange, onGenerate, isPending }:
 
       {/* Provider */}
       <div className="space-y-3">
-        <Select
-          label="Provider AI"
-          options={PROVIDER_OPTIONS}
-          value={value.provider}
-          onChange={(e) => onChange({ ...value, provider: e.target.value as ProviderAI })}
-        />
+        <div>
+          <Select
+            label="Provider AI"
+            options={PROVIDER_OPTIONS}
+            value={value.provider}
+            onChange={(e) => onChange({ ...value, provider: e.target.value as ProviderAI })}
+          />
+          {PROVIDER_OPTIONS.find((p) => p.value === value.provider)?.hint && (
+            <p className="mt-1 text-xs text-gray-400">
+              {PROVIDER_OPTIONS.find((p) => p.value === value.provider)?.hint}
+            </p>
+          )}
+        </div>
 
         <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
           <input

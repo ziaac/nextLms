@@ -129,6 +129,7 @@ export const NAV_GROUPS: NavGroup[] = [
         icon:  Sparkles,
         roles: ['GURU', 'WALI_KELAS'],
       },
+
       {
         label: 'Kurikulum',
         href:  '/dashboard/kurikulum',
@@ -327,6 +328,19 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Master Sikap',
         href:  '/dashboard/master-sikap',
         icon:  BookMarked,
+        roles: ['ADMIN', 'SUPER_ADMIN'],
+      },
+    ],
+  },
+  // ── PENGATURAN SISTEM ─────────────────────────────────────────────────────
+  {
+    label: 'Pengaturan',
+    roles: ['ADMIN', 'SUPER_ADMIN'],
+    items: [
+      {
+        label: 'Pengaturan Sistem',
+        href:  '/dashboard/system-settings',
+        icon:  Settings,
         roles: ['ADMIN', 'SUPER_ADMIN'],
       },
     ],

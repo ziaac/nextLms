@@ -15,13 +15,18 @@ import {
   useDraftList,
   useDeleteDraft,
   useSaveDraft,
+  useRetryDraft,
 } from '@/hooks/ai-generator/useAiGenerator'
+import { useDraftPolling } from '@/hooks/ai-generator/useDraftPolling'
 import { DraftRiwayatTable } from '@/components/ai-generator/DraftRiwayatTable'
 import { DraftEditorView } from '@/components/ai-generator/DraftEditorView'
+import { RetryDraftModal } from '@/components/ai-generator/RetryDraftModal'
+import { DraftStatusBadge } from '@/components/ai-generator/DraftStatusBadge'
 import type {
   DraftAIListItem,
   DraftFilterParams,
   JenisKontenAI,
+  ProviderAI,
   StatusDraftAI,
   SaveDraftDto,
 } from '@/types/ai-generator.types'
@@ -52,6 +57,8 @@ function RiwayatContent() {
   const [status,       setStatus]       = useState<StatusDraftAI | ''>('')
   const [openDraftId,  setOpenDraftId]  = useState<string | null>(initialDraftId)
   const [deleteItem,   setDeleteItem]   = useState<DraftAIListItem | null>(null)
+  const [retryItem,    setRetryItem]    = useState<DraftAIListItem | null>(null)
+  const [retryDraftId, setRetryDraftId] = useState<string | null>(null)
 
   const filter: DraftFilterParams = {
     page,
@@ -61,8 +68,24 @@ function RiwayatContent() {
   }
 
   const { data, isLoading } = useDraftList(filter)
-  const deleteMutation      = useDeleteDraft()
-  const saveMutation        = useSaveDraft()
+  const deleteMutation  = useDeleteDraft()
+  const saveMutation    = useSaveDraft()
+  const retryMutation   = useRetryDraft()
+
+  // Poll status draft yang sedang di-retry
+  const { data: retryStatus } = useDraftPolling(retryDraftId, !!retryDraftId)
+
+  // Reaksi terhadap hasil polling retry
+  if (retryDraftId && retryStatus) {
+    if (retryStatus.status === 'COMPLETED') {
+      toast.success('Generate selesai! Buka draft untuk meninjau.')
+      setRetryDraftId(null)
+      setOpenDraftId(retryStatus.id)
+    } else if (retryStatus.status === 'FAILED') {
+      toast.error(retryStatus.errorMessage ?? 'Generate gagal. Coba provider lain.')
+      setRetryDraftId(null)
+    }
+  }
 
   const list = data?.data ?? []
   const meta = data?.meta ?? { total: 0, page: 1, limit: 20, totalPages: 1 }
@@ -77,6 +100,19 @@ function RiwayatContent() {
       const msg = err instanceof Error ? err.message : 'Gagal menghapus draft'
       toast.error(msg)
       setDeleteItem(null)
+    }
+  }
+
+  const handleRetry = async (provider: ProviderAI, apiKey?: string) => {
+    if (!retryItem) return
+    try {
+      const res = await retryMutation.mutateAsync({ id: retryItem.id, dto: { provider, apiKey } })
+      toast.success('Draft baru dibuat. Menunggu hasil generate…')
+      setRetryItem(null)
+      setRetryDraftId(res.draftId)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal memulai ulang generate'
+      toast.error(msg)
     }
   }
 
@@ -126,6 +162,15 @@ function RiwayatContent() {
         }
       />
 
+      {/* Banner polling retry */}
+      {retryDraftId && retryStatus && (retryStatus.status === 'PENDING' || retryStatus.status === 'PROCESSING') && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-sm text-amber-700 dark:text-amber-400">
+          <span className="animate-spin">⏳</span>
+          <span>Sedang memproses ulang…</span>
+          <DraftStatusBadge status={retryStatus.status} />
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="sm:w-56">
           <Select
@@ -152,6 +197,7 @@ function RiwayatContent() {
         limit={meta.limit}
         onPageChange={setPage}
         onOpen={(item) => setOpenDraftId(item.id)}
+        onRetry={setRetryItem}
         onDelete={setDeleteItem}
       />
 
@@ -172,6 +218,14 @@ function RiwayatContent() {
           </div>
         )}
       </SlideOver>
+
+      <RetryDraftModal
+        open={!!retryItem}
+        onClose={() => setRetryItem(null)}
+        draft={retryItem}
+        onRetry={handleRetry}
+        isPending={retryMutation.isPending}
+      />
 
       <ConfirmModal
         open={!!deleteItem}

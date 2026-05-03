@@ -4,10 +4,12 @@ import {
   getDraftList,
   getDraftDetail,
   saveDraft,
+  retryDraft,
   deleteDraft,
 } from '@/lib/api/ai-generator.api'
 import type {
   InitiateGenerateDto,
+  RetryDraftDto,
   SaveDraftDto,
   DraftFilterParams,
 } from '@/types/ai-generator.types'
@@ -46,6 +48,14 @@ export function useSaveDraft() {
       qc.invalidateQueries({ queryKey: aiGeneratorKeys.drafts() })
       qc.invalidateQueries({ queryKey: aiGeneratorKeys.draft(id) })
     },
+  })
+}
+
+export function useRetryDraft() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, dto }: { id: string; dto: RetryDraftDto }) => retryDraft(id, dto),
+    onSuccess:  () => qc.invalidateQueries({ queryKey: aiGeneratorKeys.drafts() }),
   })
 }
 

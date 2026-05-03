@@ -41,6 +41,57 @@ export function RppEditor({ rpp, onSave, onPublish, isSaving, isPublishing }: Rp
   // Jika tidak ada strukturField, tampilkan editor generik
   const hasStruktur = strukturField.length > 0
 
+  /**
+   * Untuk kasus PDF_TEMPLATE atau format baku belum diisi:
+   * Konten bisa berupa:
+   * 1. { konten: "<html>" }  — format baru (satu field)
+   * 2. { "A. Tujuan...": "...", "B. Kegiatan...": "..." } — format lama (multi-key)
+   * Normalisasi ke satu string HTML untuk ditampilkan di editor.
+   */
+  const getKontenSingleField = (): string => {
+    const raw = konten as Record<string, unknown>
+
+    // Format baru: sudah ada key 'konten'
+    if (typeof raw['konten'] === 'string' && raw['konten']) {
+      return raw['konten']
+    }
+
+    // Format lama: gabungkan semua key menjadi satu HTML dengan urutan yang logis
+    const keys = Object.keys(raw).filter((k) => k !== 'konten')
+    if (keys.length === 0) return ''
+
+    // Pisahkan header identitas (tidak diawali huruf kapital + titik) dari section A/B/C
+    const headerKeys  = keys.filter((k) => !/^[A-Z]\./.test(k))
+    const sectionKeys = keys.filter((k) => /^[A-Z]\./.test(k)).sort()
+
+    // Tabel identitas RPP (Mata Pelajaran, Fase, Alokasi Waktu, dll)
+    const headerHtml = headerKeys.length > 0
+      ? `<table style="border-collapse:collapse;margin-bottom:20px;width:100%">${
+          headerKeys.map((key) => {
+            const val = raw[key]
+            const content = typeof val === 'string' ? val : JSON.stringify(val)
+            return `<tr><td style="width:220px;padding:3px 8px;font-weight:600;vertical-align:top">${key}</td><td style="padding:3px 8px">: ${content}</td></tr>`
+          }).join('')
+        }</table>`
+      : ''
+
+    // Section A, B, C dengan heading dan konten HTML
+    const sectionsHtml = sectionKeys
+      .map((key) => {
+        const val = raw[key]
+        const content = typeof val === 'string' ? val : JSON.stringify(val)
+        const isHtml = /<[a-z][\s\S]*>/i.test(content)
+        return `<h3>${key}</h3>${isHtml ? content : `<p>${content}</p>`}`
+      })
+      .join('\n')
+
+    return headerHtml + sectionsHtml
+  }
+
+  const updateKontenSingleField = (val: string) => {
+    setKonten({ konten: val })
+  }
+
   return (
     <div className="space-y-6">
       {/* Header info */}
@@ -89,14 +140,15 @@ export function RppEditor({ rpp, onSave, onPublish, isSaving, isPublishing }: Rp
             ))}
         </div>
       ) : (
-        // Fallback: editor generik jika tidak ada strukturField
+        // Fallback: satu editor richtext — untuk PDF_TEMPLATE atau format baku belum diisi
+        // Konten multi-key lama otomatis digabung menjadi satu HTML
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Konten RPP
           </label>
           <RichTextEditor
-            value={(konten['konten'] as string) ?? ''}
-            onChange={(val) => updateField('konten', val)}
+            value={getKontenSingleField()}
+            onChange={updateKontenSingleField}
             placeholder="Tulis konten RPP di sini..."
             minHeight="400px"
           />
